@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Registration;
+use Socialite;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Services\registartion\login; // Ensure the namespace is correct
 
 use Illuminate\Http\Request;
+use Laravel\Socialite\Facades\Socialite as FacadesSocialite;
 
 class LoginController extends Controller
 {

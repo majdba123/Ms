@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Registration\RegisterController;
 use App\Http\Controllers\Registration\LoginController;
+use App\Http\Controllers\Registration\GoogleAuthController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -32,8 +34,8 @@ Route::post('/verify_otp', [RegisterController::class, 'verfication_otp'])->midd
 
 
 
-
-
+Route::get('auth/google', [GoogleAuthController::class, 'redirect']);
+Route::get('auth/google/callback', [GoogleAuthController::class, 'callback']);
 
 
 

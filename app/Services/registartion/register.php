@@ -19,43 +19,59 @@ class register
      */
     public function register(array $data): User
     {
-        // Create a new user instance
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-        ]);
-        // Check the user type and create additional records if necessary
+        // تحقق من وجود البريد الإلكتروني أو رقم الهاتف
+        if (isset($data['email']) && !isset($data['phone'])) {
+            // إنشاء المستخدم باستخدام البريد الإلكتروني
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => Hash::make($data['password']),
+            ]);
+        } elseif (!isset($data['email']) && isset($data['phone'])) {
+            // إنشاء المستخدم باستخدام رقم الهاتف
+            $user = User::create([
+                'name' => $data['name'],
+                'phone' => $data['phone'],
+                'password' => Hash::make($data['password']),
+            ]);
+        } else {
+            // إذا كانت البيانات تحتوي على البريد الإلكتروني ورقم الهاتف أو لا تحتوي على أي منهما، يمكنك التعامل مع ذلك هنا
+            throw new \Exception('يجب أن تحتوي البيانات إما على البريد الإلكتروني أو رقم الهاتف.');
+        }
+
+        // تحقق من نوع المستخدم وأنشئ السجلات الإضافية إذا لزم الأمر
         switch ($data['type']) {
             case 0:
-                // Type 0: Only create a user
+                // النوع 0: فقط إنشاء مستخدم
                 break;
             case 1:
-                // Type 1: Create a user and a provider_product record
+                // النوع 1: إنشاء مستخدم وسجل provider_product
                 Provider_Product::create([
                     'user_id' => $user->id,
                 ]);
                 break;
             case 2:
-                // Type 2: Create a user and a provider_service record
+                // النوع 2: إنشاء مستخدم وسجل provider_service
                 Provider_Service::create([
                     'user_id' => $user->id,
-                    // Add other necessary fields for provider_service
+                    // أضف الحقول الأخرى اللازمة لـ provider_service
                 ]);
                 break;
             case 3:
-                // Type 3: Create a user and a driver record
-                // Assuming you have a Driver model
+                // النوع 3: إنشاء مستخدم وسجل driver
+                // بافتراض أنك لديك موديل Driver
                 Driver::create([
                     'user_id' => $user->id,
-                    // Add other necessary fields for driver
+                    // أضف الحقول الأخرى اللازمة لـ driver
                 ]);
                 break;
             default:
-                throw new \InvalidArgumentException('Invalid user type');
+                throw new \InvalidArgumentException('نوع المستخدم غير صالح');
         }
+
         return $user;
     }
+
 
 
     public function verifyOtp(string $otp, User $user): bool
@@ -77,7 +93,7 @@ class register
         }
 
         // If OTP is valid, update the user's otp_verified column
-        $user->otp_verified = 1; // Assuming the column name is otp_verified
+        $user->otp = 1; // Assuming the column name is otp_verified
         $user->save(); // Save the changes to the database
 
         // Clear the OTP data from the cache after successful verification

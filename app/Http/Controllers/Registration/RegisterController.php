@@ -7,14 +7,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\registartion\RegisterUser ; // Ensure the namespace is correct
 use App\Services\registartion\register; // Ensure the namespace is correct
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SendOtpMail;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache; // Import Cache facade
 use Illuminate\Support\Str;
-
+use Twilio\Rest\Client;
 class RegisterController extends Controller
 {
     protected $userService;
@@ -37,7 +36,12 @@ class RegisterController extends Controller
         // Pass the modified request data to the service
         $user = $this->userService->register($validatedData);
 
-        $this->sendOtp($user->id);
+        if (isset($validatedData['email'])) {
+            $this->sendOtp_email($user->id);
+        }/*elseif(isset($validatedData['phone']))
+        {
+            $this->sendOtp_mobile($user->id);
+        }*/
 
         return response()->json([
             'message' => 'User  registered successfully',
@@ -45,7 +49,11 @@ class RegisterController extends Controller
         ], 201);
     }
 
-    private function sendOtp($id)
+
+
+
+
+    private function sendOtp_email($id)
     {
         $user = User::findOrFail($id);
 
@@ -55,6 +63,22 @@ class RegisterController extends Controller
 
         // Send OTP via email
         Mail::to($user->email)->send(new SendOtpMail($otp));
+        return $otp;
+    }
+
+
+
+    private function sendOtp_mobile($id)
+    {
+        $user = User::findOrFail($id);
+        $otp = Str::random(6);
+
+        // Store OTP in cache with ID and phone number, set expiration time (e.g., 5 minutes)
+        Cache::put('otp_' . $user->id, ['otp' => $otp, 'phone' => $user->phone], 300);
+
+        // Send OTP via SMS
+        $this->sendSms($user->phone, $otp);
+
         return $otp;
     }
 
@@ -82,5 +106,19 @@ class RegisterController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 400);
         }
+    }
+
+
+    private function sendSms($phone, $otp)
+    {
+        $account_sid = env('TWILIO_SID');
+        $auth_token = env('TWILIO_TOKEN');
+        $twilio_number = env('TWILIO_FROM');
+
+        $client = new Client($account_sid, $auth_token);
+        $client->messages->create($phone, [
+            'from' => $twilio_number,
+            'body' => "Your OTP code is: $otp"
+        ]);
     }
 }

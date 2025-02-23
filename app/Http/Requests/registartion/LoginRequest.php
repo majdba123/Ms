@@ -24,7 +24,8 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|string|email',
+            'email' => 'nullable|string|email|max:255', // Make email nullable
+            'phone' => 'nullable|string|max:20', // Add phone field
             'password' => 'required|string|min:8',
         ];
     }
@@ -32,8 +33,7 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' => 'Email is required.',
-            'email.email' => 'Email is invalid.',
+            'email.email' => 'The email must be a valid email address.',
             'password.required' => 'Password is required.',
             'password.min' => 'Password must be at least 8 characters long.',
         ];
@@ -45,5 +45,14 @@ class LoginRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'errors' => $validator->errors(),
         ], 422));
+    }
+
+    public function withValidator(Validator $validator)
+    {
+        $validator->after(function ($validator) {
+            if (!$this->has('email') && !$this->has('phone')) {
+                $validator->errors()->add('email_or_phone', 'You must provide either an email address or a phone number.');
+            }
+        });
     }
 }

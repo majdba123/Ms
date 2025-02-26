@@ -11,8 +11,8 @@ class Category extends Model
 
     protected $fillable = [
         'name',
-        'month_subscribe',
-        'commision',
+        'type',    /** 0 = product         1=service */
+        'price',
 
     ];
 
@@ -24,10 +24,6 @@ class Category extends Model
     public function Category_Vendor()
     {
         return $this->hasMany(Category_Vendor::class);
-    }
-    public function Category_Subscribe()
-    {
-        return $this->hasMany(Category_Subscribe::class);
     }
 
     public function Favourite_user()

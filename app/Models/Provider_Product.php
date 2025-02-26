@@ -22,10 +22,6 @@ class Provider_Product extends Model
         return $this->morphMany(Product::class, 'providerable');
     }
 
-    public function category_vendor()
-    {
-        return $this->morphMany(Category_Vendor::class, 'vendorable');
-    }
 
     public function discount()
     {

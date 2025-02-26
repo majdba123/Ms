@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache; // Import Cache facade
 use Illuminate\Support\Str;
 use Twilio\Rest\Client;
+use App\Helpers\OtpHelper; 
+
 class RegisterController extends Controller
 {
     protected $userService;
@@ -37,7 +39,7 @@ class RegisterController extends Controller
         $user = $this->userService->register($validatedData);
 
         if (isset($validatedData['email'])) {
-            $this->sendOtp_email($user->id);
+            OtpHelper::sendOtpEmail($user->id);
         }/*elseif(isset($validatedData['phone']))
         {
             $this->sendOtp_mobile($user->id);
@@ -50,21 +52,6 @@ class RegisterController extends Controller
     }
 
 
-
-
-
-    private function sendOtp_email($id)
-    {
-        $user = User::findOrFail($id);
-
-        $otp = Str::random(6);
-        // Store OTP in cache with ID and email, set expiration time (e.g., 5 minutes)
-        Cache::put('otp_' . $user->id, ['otp' => $otp, 'email' => $user->email], 300);
-
-        // Send OTP via email
-        Mail::to($user->email)->send(new SendOtpMail($otp));
-        return $otp;
-    }
 
 
 

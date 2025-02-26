@@ -28,5 +28,10 @@ class Provider_Service extends Model
         return $this->morphMany(Category_Vendor::class, 'vendorable');
     }
 
+    public function Subscribe()
+    {
+        return $this->hasMany(Subscribe::class);
+    }
+
 
 }

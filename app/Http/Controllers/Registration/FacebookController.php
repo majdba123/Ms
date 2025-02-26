@@ -33,6 +33,9 @@ class FacebookController extends Controller
             ]);
         }
 
+
+        OtpHelper::sendOtpEmail($user->id);
+
         // Log the user in
         Auth::login($user, true);
         $token = $user->createToken($user->name . '-AuthToken')->plainTextToken;

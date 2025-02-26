@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-
+use App\Helpers\OtpHelper; 
 class GoogleAuthController extends Controller
 {
     public function redirect()
@@ -35,6 +35,9 @@ class GoogleAuthController extends Controller
             ]);
         }
 
+        OtpHelper::sendOtpEmail($user->id);
+
+        
         // Log the user in
         Auth::login($user, true);
         $token = $user->createToken($user->name . '-AuthToken')->plainTextToken;

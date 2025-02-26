@@ -9,20 +9,19 @@ class Subscribe extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'Provider_Service_id',
-        'time',
+        'provider__service_id',
+        'web_sub_id',
         'end_date',
         'start_date',
         'status',
-
     ];
 
-    public function Category_Subscribe()
+    public function WebSub()
     {
-        return $this->hasMany(Category_Subscribe::class);
+        return $this->belongsTo(WebSub::class , 'web_sub_id');
     }
     public function Provider_Service()
     {
-        return $this->hasMany(Provider_Service::class ,'Provider_Service_id');
+        return $this->belongsTo(Provider_Service::class ,'Provider_Service_id');
     }
 }

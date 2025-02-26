@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Registration\RegisterController;
 use App\Http\Controllers\Registration\LoginController;
 use App\Http\Controllers\Registration\GoogleAuthController;
+use App\Http\Controllers\Registration\FacebookController;
 
 
 /*
@@ -33,14 +34,17 @@ Route::post('/verify_otp', [RegisterController::class, 'verfication_otp'])->midd
 
 
 
-
-Route::get('auth/google', [GoogleAuthController::class, 'redirect']);
-Route::get('auth/google/callback', [GoogleAuthController::class, 'callback']);
-
-
-
-
-Route::group(['prefix' => 'user', 'middleware' => ['auth:sanctum', 'throttle:70,1']], function () {
-
-
+Route::group(['middleware' => ['web']], function () {
+    Route::get('auth/google/redirect', [GoogleAuthController::class, 'redirect']);
+    Route::get('auth/google/callback', [GoogleAuthController::class, 'callback']);
 });
+
+
+
+Route::group(['middleware' => ['web']], function () {
+    Route::get('auth/facebook/redirect', [FacebookController::class, 'redirect']);
+    Route::get('auth/facebook/callback', [FacebookController::class, 'callback']);
+});
+
+
+

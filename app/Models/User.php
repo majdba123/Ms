@@ -67,4 +67,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Favourite_user::class);
     }
+    public function answere()
+    {
+        return $this->hasMany(Answer_Rating::class);
+    }
+
+    public function websub()
+    {
+        return $this->hasMany(WebSub::class);
+    }
+
 }

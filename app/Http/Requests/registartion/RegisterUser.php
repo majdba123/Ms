@@ -57,6 +57,10 @@ class RegisterUser extends FormRequest
         $validator->after(function ($validator) {
             if (!$this->has('email') && !$this->has('phone')) {
                 $validator->errors()->add('email_or_phone', 'You must provide either an email address or a phone number.');
+            }elseif($this->has('email') && $this->has('phone'))
+            {
+                $validator->errors()->add('email_or_phone', 'You must provide either an email address or a phone number.');
+
             }
         });
     }

@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
@@ -14,12 +13,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('order__products', function (Blueprint $table) {
+        Schema::create('rseevations', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Order::class)->constrained()->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignIdFor(Product::class)->constrained()->cascadeOnDelete()->cascadeOnUpdate();
-            $table->string('total_price');
-            $table->string('quantity');
+            $table->string('status')->default('pending');
 
             $table->timestamps();
         });
@@ -30,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('order__products');
+        Schema::dropIfExists('rseevations');
     }
 };

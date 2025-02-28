@@ -12,7 +12,10 @@ use Illuminate\Support\Facades\Auth;
 use App\Helpers\checkActiveSubscription;
 use App\Models\Category;
 use App\Models\Category_Vendor;
+use App\Models\Imag_Product;
 use App\Models\Product;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -51,8 +54,33 @@ class ProductController extends Controller
             }
         }
         $product = $this->productService->createProduct($request->validated(), $providerType);
-        return response()->json(['message' => 'Product created successfully', 'product' => $product], 201);
+
+        $imageUrls = [];
+        foreach ($request->images as $imageFile) {
+            $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
+            $imagePath = 'products_images/' . $imageName;
+            $imageUrl = asset('storage/products_images/' . $imageName);
+
+            // تخزين الصورة في التخزين
+            Storage::disk('public')->put($imagePath, file_get_contents($imageFile));
+
+            // إنشاء الصورة باستخدام الرابط الكامل
+            Imag_Product::create([
+                'product_id' => $product->id,
+                'imag' => $imageUrl,
+            ]);
+
+            // إضافة رابط الصورة إلى الاستجابة
+            $imageUrls[] = $imageUrl;
+        }
+
+        return response()->json([
+            'message' => 'Product created successfully',
+            'product' => $product,
+            'image_urls' => $imageUrls
+        ], 201);
     }
+
 
 
 

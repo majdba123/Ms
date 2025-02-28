@@ -32,13 +32,10 @@ class ProductService
 
     public function getProductsByType($providerType)
     {
-        // جلب المنتجات بناءً على نوع المزود
         if ($providerType == 0) {
-            // جلب المنتجات من موديل provider_product
-            return Product::where('providerable_type', 'App\\Models\\Provider_Product')->get();
+            return Product::with('images')->where('providerable_type', 'App\\Models\\Provider_Product')->get();
         } else {
-            // جلب المنتجات من موديل provider_service
-            return Product::where('providerable_type', 'App\\Models\\Provider_Service')->get();
+            return Product::with('images')->where('providerable_type', 'App\\Models\\Provider_Service')->get();
         }
     }
 
@@ -46,14 +43,13 @@ class ProductService
 
     public function getProductsByCategory($categoryId)
     {
-        // جلب المنتجات بناءً على الفئة
-        return Product::where('category_id', $categoryId)->get();
+        return Product::with('images')->where('category_id', $categoryId)->get();
     }
 
 
     public function getProductsByProviderProduct($id)
     {
-        $provider = Provider_Product::with('products')->find($id);
+        $provider = Provider_Product::with('products.images')->find($id);
 
         if (!$provider) {
             return null;
@@ -65,7 +61,7 @@ class ProductService
 
     public function getProductsByProviderService($id)
     {
-        $provider = Provider_Service::with('products')->find($id);
+        $provider = Provider_Service::with('products.images')->find($id);
 
         if (!$provider) {
             return null;
@@ -74,10 +70,10 @@ class ProductService
         return $provider->products;
     }
 
+
     public function getProductById($id)
     {
-        // جلب المنتج بناءً على المعرف
-        $product = Product::find($id);
+        $product = Product::with('images')->find($id);
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }

@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Category\CategoryController;
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\Product\RatingController;
+use App\Http\Controllers\Order\OrderController;
+use App\Http\Controllers\Order\RseevationController;
 
 
 /*
@@ -39,6 +41,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/rate/store/{Product_id}', [RatingController::class, 'rateProduct']);
     Route::put('/rate/update/{Rate_id}', [RatingController::class, 'Update']);
     Route::delete('/rate/delete/{Rate_id}', [RatingController::class, 'destroy']);
+
+
+
+    Route::post('/orders/store', [OrderController::class, 'createOrder']);
+    Route::post('/reservation/store', [RseevationController::class, 'createOrder']);
 
 
 });

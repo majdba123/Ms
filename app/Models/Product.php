@@ -29,7 +29,7 @@ class Product extends Model
     {
         return $this->hasMany(Rating::class);
     }
-    public function imag_product()
+    public function images()
     {
         return $this->hasMany(imag_product::class);
     }
@@ -44,5 +44,10 @@ class Product extends Model
     public function Favourite_user()
     {
         return $this->morphMany(Favourite_user::class, 'favoritable');
+    }
+
+    public function reservation()
+    {
+        return $this->hasMany(Rseevation::class);
     }
 }

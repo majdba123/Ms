@@ -77,4 +77,8 @@ class User extends Authenticatable
         return $this->hasMany(WebSub::class);
     }
 
+    public function reservation()
+    {
+        return $this->hasMany(Rseevation::class);
+    }
 }

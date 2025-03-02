@@ -29,6 +29,48 @@ class ProductService
     }
 
 
+    public function updateProduct(array $data, $product)
+    {
+        $providerTypeClass = $product->providerable_type;
+
+        // تحديث المنتج الموجود
+        $product->update([
+            'name' => $data['name'] ?? $product->name,
+            'description' => $data['description'] ?? $product->description,
+            'price' => $data['price'] ?? $product->price,
+            'category_id' => $data['category_id'] ?? $product->category_id,
+        ]);
+
+        return $product;
+    }
+
+    public function deleteProduct($id): array
+    {
+        $product = Product::find($id);
+
+        if (!$product) {
+            return ['message' => 'Product not found', 'status' => 404];
+        }
+
+        $user = Auth::user();
+        $providerableId = $product->providerable_id;
+        $providerableType = $product->providerable_type;
+
+        // تحقق من أن الـ providerable_type يتطابق مع نوع الـ provider المستخدم و قم بتحميل المزود المرتبط بالمنتج
+        $provider = $providerableType::find($providerableId);
+
+        // التحقق من أن المنتج يخص المستخدم الذي تم المصادقة عليه
+        if (!$provider || $provider->user_id !== $user->id) {
+            return ['message' => 'Unauthorized', 'status' => 403];
+        }
+
+        // تنفيذ عملية الحذف باستخدام الـ "Soft Delete"
+        $product->delete();
+
+        return ['message' => 'Product deleted successfully', 'status' => 200];
+    }
+
+
 
     public function getProductsByType($providerType)
     {

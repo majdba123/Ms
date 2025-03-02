@@ -6,6 +6,10 @@ namespace App\Http\Controllers\Product;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\Product\StoreProductRequest;
+use App\Http\Requests\Product\UpdateProductRequest;
+use App\Http\Requests\Product\FilterProduct;
+use Illuminate\Support\Facades\Log;
+
 use App\Services\Product\ProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -35,7 +39,7 @@ class ProductController extends Controller
             $providerId = Auth::user()->Provider_service->id;
 
             // التحقق من أن مزود الخدمة لديه اشتراك فعال
-            if (checkActiveSubscription::checkActive($providerId)) {
+            if (!checkActiveSubscription::checkActive($providerId)) {
                 return response()->json(['message' => 'Provider does not have an active subscription'], 403);
             }
 
@@ -79,6 +83,86 @@ class ProductController extends Controller
             'product' => $product,
             'image_urls' => $imageUrls
         ], 201);
+    }
+
+
+
+
+    public function update(UpdateProductRequest $request, $id): JsonResponse
+    {
+
+        $providerType = $request->is('service_provider*') ? 1 : 0; // تحديد النوع بناءً على الرابط
+
+        $product = Product::find($id);
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+
+        if ($providerType === 1) {
+            $providerId = Auth::user()->Provider_service->id;
+            print($providerId);
+            // التحقق من أن المنتج يخص المستخدم الذي تم المصادقة عليه
+            if ($product->providerable_id !== $providerId || $product->providerable_type !== 'App\\Models\\Provider_Service') {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            // التحقق من أن مزود الخدمة لديه اشتراك فعال
+            if (!checkActiveSubscription::checkActive($providerId)) {
+                return response()->json(['message' => 'Provider does not have an active subscription'], 403);
+            }
+
+            // التحقق من أن الفئة (category) من النوع 1
+            if ($request->has('category_id')) {
+                $category = Category::find($request->category_id);
+                if ($category->type != 1) {
+                    return response()->json(['message' => 'The category must be of type 1 for service providers'], 422);
+                }
+            }
+        } else {
+            $providerId = Auth::user()->Provider_Product->id;
+
+            // التحقق من أن المنتج يخص المستخدم الذي تم المصادقة عليه
+            if ($product->providerable_id !== $providerId || $product->providerable_type !== 'App\\Models\\Provider_Product') {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            // التحقق من أن الفئة (category) من النوع 0 لمزودي المنتجات
+            if ($request->has('category_id')) {
+                $category = Category::find($request->category_id);
+                if ($category->type != 0) {
+                    return response()->json(['message' => 'The category must be of type 0 for product providers'], 422);
+                }
+            }
+        }
+
+        $updatedProduct = $this->productService->updateProduct($request->validated(), $product);
+
+        // التحقق مما إذا كان الطلب يحتوي على صور جديدة
+        if ($request->has('images')) {
+            // حذف الصور القديمة
+            Imag_Product::where('product_id', $product->id)->delete();
+            $imageUrls = [];
+            foreach ($request->images as $imageFile) {
+                $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
+                $imagePath = 'products_images/' . $imageName;
+                $imageUrl = asset('storage/products_images/' . $imageName);
+                // تخزين الصورة في التخزين
+                Storage::disk('public')->put($imagePath, file_get_contents($imageFile));
+                // إنشاء الصورة باستخدام الرابط الكامل
+                Imag_Product::create([
+                    'product_id' => $product->id,
+                    'imag' => $imageUrl,
+                ]);
+                // إضافة رابط الصورة إلى الاستجابة
+                $imageUrls[] = $imageUrl;
+            }
+        }
+
+        return response()->json([
+            'message' => 'Product updated successfully',
+            'product' => $updatedProduct,
+            'image_urls' => $imageUrls ?? []
+        ], 200);
     }
 
 
@@ -173,6 +257,49 @@ class ProductController extends Controller
         }
 
         return response()->json($ratings, 200);
+    }
+
+
+
+    public function destroy($id): JsonResponse
+    {
+
+
+        $result = $this->productService->deleteProduct($id);
+        return response()->json(['message' => $result['message']], $result['status']);
+    }
+
+
+
+    public function getProviderProducts(FilterProduct $request)
+    {
+
+
+        $providerType = $request->is('service_provider*') ? 1 : 0; // تحديد النوع بناءً على الرابط
+
+        if ($providerType === 1) {
+            $providerId = Auth::user()->Provider_service->id;
+            $query = Product::where('providerable_id', $providerId)
+            ->where('providerable_type','App\\Models\\Provider_Service');
+
+        } else {
+            $providerId = Auth::user()->Provider_Product->id;
+            $query = Product::where('providerable_id', $providerId)
+            ->where('providerable_type', 'App\\Models\\Provider_Product');
+        }
+
+        if ($request->has('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        if ($request->has('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+        if ($request->has('price')) {
+            $query->where('price', $request->price);
+        }
+
+        return $query->get();
     }
 
 }

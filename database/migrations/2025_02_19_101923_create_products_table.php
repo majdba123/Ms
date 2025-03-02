@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('price');
             $table->morphs('providerable');
             $table->timestamps();
+            $table->softDeletes(); // إضافة عمود softDeletes
         });
     }
 

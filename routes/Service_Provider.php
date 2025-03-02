@@ -32,6 +32,11 @@ Route::middleware(['auth:sanctum' , 'services_provider'])->group(function () {
 
 
     Route::post('/product/store', [ProductController::class, 'store']);
+    Route::post('/product/update/{product_id}', [ProductController::class, 'update']);
+    Route::delete('/product/delete/{product_id}', [ProductController::class, 'destroy']);
+
+
+
 
 
     Route::post('/answer_rating/store/{rate_id}', [AnswerRatingController::class, 'store']);

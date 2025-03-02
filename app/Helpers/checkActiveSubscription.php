@@ -17,6 +17,6 @@ class checkActiveSubscription
                                     ->where('status', 'active')
                                     ->first();
 
-        return $subscription ? false : true;
+            return $subscription ? true : false;
     }
 }

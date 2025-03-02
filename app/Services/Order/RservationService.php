@@ -17,7 +17,7 @@ class RservationService
         // إنشاء الطلب
         $order = Rseevation::create([
             'user_id' => $userId,
-            'product_id' => 0, // سيتم تحديثه لاحقاً
+            'product_id' => $validatedData['product_id'], // سيتم تحديثه لاحقاً
             'status' => 'pending', // أو الحالة التي تريدها
         ]);
         // تحديث سعر الطلب الكلي

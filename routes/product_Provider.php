@@ -26,8 +26,11 @@ Route::middleware(['auth:sanctum' , 'product_provider'])->group(function () {
 
 
 
-
+    Route::get('/product/get_all_By', [ProductController::class, 'getProviderProducts']);
     Route::post('/product/store', [ProductController::class, 'store']);
+    Route::post('/product/update/{product_id}', [ProductController::class, 'update']);
+    Route::delete('/product/delete/{product_id}', [ProductController::class, 'destroy']);
+
 
 
     Route::post('/answer_rating/store/{rate_id}', [AnswerRatingController::class, 'store']);

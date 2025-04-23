@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Category\CategoryController;
 use App\Http\Controllers\Subscribe\SubscribeController;
 use App\Http\Controllers\Product\ProductController;
+use App\Http\Controllers\Product\RatingController;
 use App\Http\Controllers\Vendor\AnswerRatingController;
 
 
@@ -30,11 +31,14 @@ Route::middleware(['auth:sanctum' , 'services_provider'])->group(function () {
     Route::post('/subscribe/store', [SubscribeController::class, 'store']);
 
 
-
+    Route::get('/product/get_all_By', [ProductController::class, 'getProviderProducts']);
+    Route::get('/product/show/{product_id}', [ProductController::class, 'show']);
     Route::post('/product/store', [ProductController::class, 'store']);
     Route::post('/product/update/{product_id}', [ProductController::class, 'update']);
     Route::delete('/product/delete/{product_id}', [ProductController::class, 'destroy']);
 
+
+    Route::get('/product/rating/{product_id}', [RatingController::class, 'getRateProduct']);
 
 
 

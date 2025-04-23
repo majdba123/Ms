@@ -7,7 +7,8 @@ use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\Product\RatingController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\RseevationController;
-
+use App\Http\Controllers\FavouriteUserController;
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,6 +47,24 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('/orders/store', [OrderController::class, 'createOrder']);
     Route::post('/reservation/store', [RseevationController::class, 'createOrder']);
+    Route::get('/orders/ByStatus', [OrderController::class, 'getUserOrders']);
+    Route::get('/orders/get_product/{order_id}', [OrderController::class, 'getProductOrder']);
 
+
+
+
+
+
+    Route::post('/favourites/add/{favourite_id}', [FavouriteUserController::class, 'addToFavourites']);
+    Route::delete('/favourites/remove/{favourite_id}', [FavouriteUserController::class, 'removeFromFavourites']);
+    Route::get('/favourites/categories/get_all', [FavouriteUserController::class, 'getFavouriteCategories']);
+    Route::get('/favourites/products/get_all', [FavouriteUserController::class, 'getFavouriteProducts']);
+
+
+
+    Route::post('/profile/store', [ProfileController::class, 'storeProfile']);
+    Route::post('/profile/update', [ProfileController::class, 'updateProfile']);
+    Route::put('/my_info/update', [ProfileController::class, 'UpdateInfo']);
+    Route::get('/my_info/get', [ProfileController::class, 'getUserInfo']);
 
 });

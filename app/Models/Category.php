@@ -21,10 +21,7 @@ class Category extends Model
         return $this->hasMany(Product::class);
     }
 
-    public function Category_Vendor()
-    {
-        return $this->hasMany(Category_Vendor::class);
-    }
+
 
     public function Favourite_user()
     {

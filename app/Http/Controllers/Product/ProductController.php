@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Product;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+
 use App\Http\Requests\Product\StoreProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
 use App\Http\Requests\Product\FilterProduct;
@@ -301,5 +303,33 @@ class ProductController extends Controller
 
         return $query->get();
     }
+
+    public function show($product_id)
+    {
+        $product = Product::find($product_id);
+
+        if (!$product) {
+            return ['message' => 'Product not found', 'status' => 404];
+        }
+
+        $user = Auth::user();
+        $providerableId = $product->providerable_id;
+        $providerableType = $product->providerable_type;
+
+        // تحقق من أن الـ providerable_type يتطابق مع نوع الـ provider المستخدم و قم بتحميل المزود المرتبط بالمنتج
+        $provider = $providerableType::find($providerableId);
+
+        // التحقق من أن المنتج يخص المستخدم الذي تم المصادقة عليه
+        if (!$provider || $provider->user_id !== $user->id) {
+            return ['message' => 'Unauthorized', 'status' => 403];
+        }
+
+        $result = $this->productService->getProductById($product_id);
+
+
+        return $result ;
+
+    }
+
 
 }

@@ -63,4 +63,11 @@ class RatingService
 
         return $ratings;
     }
+
+    public function GetAllRateProduct($product_id)
+    {
+        $ratings = Rating::where('product_id', $product_id)->get();
+
+        return $ratings;
+    }
 }

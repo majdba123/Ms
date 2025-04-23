@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\Rating\UpdateRatingRequest;
 use App\Http\Requests\Rating\RatingStoreRequest;
+use App\Models\Product;
 use App\Services\Rating\RatingService;
+use Illuminate\Support\Facades\Auth;
+
 class RatingController extends Controller
 {
     protected $ratingService;
@@ -46,5 +49,28 @@ class RatingController extends Controller
         $ratings = $this->ratingService->getUserRatings();
 
         return response()->json($ratings, 200);
+    }
+
+    public function getRateProduct($product_id)
+    {
+        $product = Product::find($product_id);
+
+        if (!$product) {
+            return ['message' => 'Product not found', 'status' => 404];
+        }
+
+        $user = Auth::user();
+        $providerableId = $product->providerable_id;
+        $providerableType = $product->providerable_type;
+        // تحقق من أن الـ providerable_type يتطابق مع نوع الـ provider المستخدم و قم بتحميل المزود المرتبط بالمنتج
+        $provider = $providerableType::find($providerableId);
+        // التحقق من أن المنتج يخص المستخدم الذي تم المصادقة عليه
+        if (!$provider || $provider->user_id !== $user->id) {
+            return ['message' => 'Unauthorized', 'status' => 403];
+        }
+        $result = $this->ratingService->GetAllRateProduct($product_id);
+
+
+        return $result ;
     }
 }

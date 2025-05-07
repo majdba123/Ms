@@ -33,7 +33,7 @@ class Product extends Model
     }
     public function images()
     {
-        return $this->hasMany(imag_product::class);
+        return $this->hasMany(Imag_Product::class);
     }
     public function Discount()
     {

@@ -17,20 +17,13 @@ class login
      */
     public function login(array $data)
     {
-
         if (isset($data['email']) && !isset($data['phone'])) {
-
             $user = User::where('email', $data['email'])->first();
-
         } elseif (!isset($data['email']) && isset($data['phone'])) {
             $user = User::where('phone', $data['phone'])->first();
-
         } else {
-            // إذا كانت البيانات تحتوي على البريد الإلكتروني ورقم الهاتف أو لا تحتوي على أي منهما، يمكنك التعامل مع ذلك هنا
             throw new \Exception('يجب أن تحتوي البيانات إما على البريد الإلكتروني أو رقم الهاتف.');
         }
-
-
 
         if (!$user || !Hash::check($data['password'], $user->password)) {
             return response()->json([
@@ -40,7 +33,13 @@ class login
 
         $token = $user->createToken($user->name . '-AuthToken')->plainTextToken;
 
-        return $token;
+        // تحميل علاقة البروفايل مع المستخدم
+        $user->load('profile');
+
+        return [
+            'token' => $token,
+            'user' => $user
+        ];
     }
 
 }

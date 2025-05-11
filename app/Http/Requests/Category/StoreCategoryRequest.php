@@ -27,6 +27,7 @@ class StoreCategoryRequest extends FormRequest
             'name' => 'required|string|max:255',
             'type' => 'required|boolean',
             'price' => 'required|numeric',
+            'imag' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ];
     }
 
@@ -40,6 +41,9 @@ class StoreCategoryRequest extends FormRequest
             'type.boolean' => 'The type must be 0 or 1.',
             'price.required' => 'The price field is required.',
             'price.numeric' => 'The price must be a number.',
+            'imag.image' => 'The file must be an image.',
+            'imag.mimes' => 'The image must be a file of type: jpeg, png, jpg, gif.',
+            'imag.max' => 'The image may not be greater than 2MB in size.'
         ];
     }
 

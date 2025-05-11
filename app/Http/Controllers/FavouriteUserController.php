@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Favourite_user;
 use Illuminate\Http\Request;
 use App\Services\Favourite\FavouriteService;
-
+use Illuminate\Http\JsonResponse;
+use App\Models\Category;
+use App\Models\Product;
 class FavouriteUserController extends Controller
 {
     protected $favouriteService;
@@ -14,61 +16,68 @@ class FavouriteUserController extends Controller
     {
         $this->favouriteService = $favouriteService;
     }
-
-    public function addToFavourites(Request $request, $favourite_id)
+    public function addToFavourites($favoritable_id, $favoritable_type): JsonResponse
     {
-        $request->validate([
-            'favoritable_type' => 'required|in:0,1'
+        $user_id = auth()->id();
+
+        Favourite_user::create([
+            'user_id' => $user_id,
+            'favoritable_id' => $favoritable_id,
+            'favoritable_type' => $favoritable_type
         ]);
 
-        $favoritable_type = $request->favoritable_type == 0 ? 'App\Models\Product' : 'App\Models\Category';
-
-        // التحقق من وجود المنتج أو الفئة
-        $exists = $favoritable_type::find($favourite_id);
-        if (!$exists) {
-            return response()->json(['message' => $favoritable_type == 'App\Models\Product' ? 'Product not found' : 'Category not found'], 404);
-        }
-
-        // التحقق مما إذا كانت المفضلة موجودة بالفعل للمستخدم
-        $user_id = auth()->user()->id; // افتراض أن المستخدم مسجل الدخول
-        $favouriteExists = Favourite_user::where('user_id', $user_id)
-            ->where('favoritable_id', $favourite_id)
-            ->where('favoritable_type', $favoritable_type)
-            ->exists();
-
-        if ($favouriteExists) {
-            return response()->json(['message' => 'Already added to favourites'], 400);
-        }
-
-        return $this->favouriteService->addToFavourites($favourite_id, $favoritable_type);
+        return response()->json(['message' => 'Added to favourites'], 200);
     }
 
-
-    public function removeFromFavourites($favourite_id)
+    public function removeFromFavourites($favoritable_id): JsonResponse
     {
-        // التحقق من أن المستخدم هو صاحب المفضلة المراد إزالتها
-        $user_id = auth()->user()->id; // افتراض أن المستخدم مسجل الدخول
+        $user_id = auth()->id();
 
-        $favourite = Favourite_user::where('id', $favourite_id)
-            ->where('user_id', $user_id)
-            ->first();
+        Favourite_user::where('user_id', $user_id)
+            ->where('id', $favoritable_id)
+            ->delete();
 
-        if (!$favourite) {
-            return response()->json(['message' => 'You are not authorized to remove this favourite or it does not exist'], 403);
-        }
-
-        return $this->favouriteService->removeFromFavourites($favourite_id);
+        return response()->json(['message' => 'Removed from favourites'], 200);
     }
 
-
-
-    public function getFavouriteCategories()
+    public function getFavouriteCategories(): JsonResponse
     {
-        return $this->favouriteService->getFavouriteCategories();
+        $user_id = auth()->id();
+
+        $favourite_categories = Favourite_user::where('user_id', $user_id)
+            ->where('favoritable_type', Category::class)
+            ->with(['favoritable'])
+            ->get()
+            ->map(function($item) {
+                return $item->favoritable;
+            });
+
+        return response()->json($favourite_categories, 200);
     }
 
-    public function getFavouriteProducts()
+    public function getFavouriteProducts(): JsonResponse
     {
-        return $this->favouriteService->getFavouriteProducts();
+        $user_id = auth()->id();
+
+        $favourite_products = Favourite_user::where('user_id', $user_id)
+            ->where('favoritable_type', Product::class)
+            ->with(['favoritable.images', 'favoritable.category'])
+            ->get()
+            ->map(function($item) {
+                $product = $item->favoritable;
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'description' => $product->description,
+                    'price' => $product->price,
+                    'category' => $product->category,
+                    'images' => $product->images,
+                    'created_at' => $product->created_at,
+                    'updated_at' => $product->updated_at,
+                    'is_favourite' => true // إضافة علامة للمفضلة
+                ];
+            });
+
+        return response()->json($favourite_products, 200);
     }
 }

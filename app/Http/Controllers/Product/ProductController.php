@@ -35,7 +35,7 @@ class ProductController extends Controller
 
     public function store(StoreProductRequest $request): JsonResponse
     {
-        $providerType = $request->is('service_provider*') ? 1 : 0; // تحديد النوع بناءً على الرابط
+        $providerType = $request->is('api/service_provider*') ? 1 : 0; // تحديد النوع بناءً على الرابط
 
         if ($providerType === 1) {
             $providerId = Auth::user()->Provider_service->id;
@@ -93,7 +93,7 @@ class ProductController extends Controller
     public function update(UpdateProductRequest $request, $id): JsonResponse
     {
 
-        $providerType = $request->is('service_provider*') ? 1 : 0; // تحديد النوع بناءً على الرابط
+        $providerType = $request->is('api/service_provider*') ? 1 : 0; // تحديد النوع بناءً على الرابط
 
         $product = Product::find($id);
         if (!$product) {

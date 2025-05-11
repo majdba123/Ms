@@ -13,6 +13,7 @@ class Category extends Model
         'name',
         'type',    /** 0 = product         1=service */
         'price',
+        'imag',
 
     ];
 

@@ -26,4 +26,22 @@ class Rating extends Model
     {
         return $this->hasMany(Answer_Rating::class);
     }
+
+
+        public function toArray()
+        {
+            return [
+                'id' => $this->id,
+                'num' => $this->num,
+                'comment' => $this->comment,
+                'created_at' => $this->created_at,
+                'updated_at' => $this->updated_at,
+                'user' => $this->user ? [
+                    'id' => $this->user->id,
+                    'name' => $this->user->name,
+                    'image' => $this->user->profile->image ?? null
+                ] : null,
+                'answers' => $this->answer_rating
+            ];
+        }
 }

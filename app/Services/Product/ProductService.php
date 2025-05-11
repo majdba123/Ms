@@ -6,19 +6,21 @@ use App\Models\Product;
 use App\Models\Provider_Product;
 use App\Models\Provider_Service;
 use App\Models\Rating;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
 class ProductService
 {
-    public function createProduct(array $data, $providerType)
+    public function createProduct(array $data, $providerType): Product
     {
-        // تحديد نوع المزود (مزود خدمة أو مزود منتج) بناءً على البيانات المستلمة
-        $providerTypeClass = $providerType === 1 ? 'App\\Models\\Provider_Service' : 'App\\Models\\Provider_Product';
+        $providerTypeClass = $providerType === 1
+            ? 'App\\Models\\Provider_Service'
+            : 'App\\Models\\Provider_Product';
 
-        // جلب ID المزود من المستخدم الذي تم المصادقة عليه
-        $providerId = $providerType === 1 ? Auth::user()->Provider_service->id : Auth::user()->Provider_Product->id;
+        $providerId = $providerType === 1
+            ? Auth::user()->Provider_service->id
+            : Auth::user()->Provider_Product->id;
 
-        // إنشاء المنتج وربطه بالعلاقة البولي مورفيك
         return Product::create([
             'name' => $data['name'],
             'description' => $data['description'],
@@ -29,12 +31,8 @@ class ProductService
         ]);
     }
 
-
-    public function updateProduct(array $data, $product)
+    public function updateProduct(array $data, Product $product): Product
     {
-        $providerTypeClass = $product->providerable_type;
-
-        // تحديث المنتج الموجود
         $product->update([
             'name' => $data['name'] ?? $product->name,
             'description' => $data['description'] ?? $product->description,
@@ -42,101 +40,152 @@ class ProductService
             'category_id' => $data['category_id'] ?? $product->category_id,
         ]);
 
-        return $product;
+        return $product->fresh();
     }
 
-    public function deleteProduct($id): array
+    public function deleteProduct($id): JsonResponse
     {
         $product = Product::find($id);
 
         if (!$product) {
-            return ['message' => 'Product not found', 'status' => 404];
+            return response()->json(['message' => 'Product not found'], 404);
         }
 
         $user = Auth::user();
-        $providerableId = $product->providerable_id;
-        $providerableType = $product->providerable_type;
+        $provider = $product->providerable;
 
-        // تحقق من أن الـ providerable_type يتطابق مع نوع الـ provider المستخدم و قم بتحميل المزود المرتبط بالمنتج
-        $provider = $providerableType::find($providerableId);
-
-        // التحقق من أن المنتج يخص المستخدم الذي تم المصادقة عليه
         if (!$provider || $provider->user_id !== $user->id) {
-            return ['message' => 'Unauthorized', 'status' => 403];
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // تنفيذ عملية الحذف باستخدام الـ "Soft Delete"
         $product->delete();
 
-        return ['message' => 'Product deleted successfully', 'status' => 200];
+        return response()->json(['message' => 'Product deleted successfully'], 200);
     }
 
-
-
-    public function getProductsByType($providerType)
+    public function getProductsByType($providerType, $perPage = 10)
     {
+        $query = Product::with(['images', 'category'])
+            ->orderBy('created_at', 'desc');
+
         if ($providerType == 0) {
-            return Product::with('images')->where('providerable_type', 'App\\Models\\Provider_Product')->get();
+            $query->where('providerable_type', 'App\\Models\\Provider_Product');
         } else {
-            return Product::with('images')->where('providerable_type', 'App\\Models\\Provider_Service')->get();
+            $query->where('providerable_type', 'App\\Models\\Provider_Service');
         }
+
+        return $query->paginate($perPage);
     }
 
-
-
-    public function getProductsByCategory($categoryId)
+    public function getProductsByCategory($categoryId, $perPage = 10)
     {
-        return Product::with('images')->where('category_id', $categoryId)->get();
+        return Product::with(['images', 'category'])
+            ->where('category_id', $categoryId)
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
     }
 
-
-    public function getProductsByProviderProduct($id)
+    public function getProductsByProviderProduct($id, $perPage = 10)
     {
-        $provider = Provider_Product::with('products.images')->find($id);
+        $provider = Provider_Product::with(['products' => function($query) {
+            $query->with(['images', 'category'])
+                ->orderBy('created_at', 'desc');
+        }])->find($id);
 
         if (!$provider) {
             return null;
         }
 
-        return $provider->products;
+        return $provider->products()->paginate($perPage);
     }
 
-
-    public function getProductsByProviderService($id)
+    public function getProductsByProviderService($id, $perPage = 10)
     {
-        $provider = Provider_Service::with('products.images')->find($id);
+        $provider = Provider_Service::with(['products' => function($query) {
+            $query->with(['images', 'category'])
+                ->orderBy('created_at', 'desc');
+        }])->find($id);
 
         if (!$provider) {
             return null;
         }
 
-        return $provider->products;
+        return $provider->products()->paginate($perPage);
     }
-
 
     public function getProductById($id)
     {
-        $product = Product::with('images')->find($id);
+        $product = Product::with([
+            'images',
+            'category',
+            'providerable',
+            'ratings' => function($query) {
+                $query->with(['user.profile', 'answer_rating'])
+                    ->orderBy('created_at', 'desc');
+            }
+        ])->find($id);
+
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
-        return $product;
+
+        $formattedProduct = $product->toArray();
+        $formattedProduct['ratings'] = $product->ratings->map(function($rating) {
+            return [
+                'id' => $rating->id,
+                'num' => $rating->num,
+                'comment' => $rating->comment,
+                'created_at' => $rating->created_at,
+                'user' => [
+                    'id' => $rating->user->id,
+                    'name' => $rating->user->name,
+                    'image' => $rating->user->profile->image ?? null
+                ],
+                'answers' => $rating->answer_rating
+            ];
+        });
+
+        return $formattedProduct;
     }
 
-
-    public function getProductRatings($productId)
+    public function getProductRatings($productId, $perPage = 10)
     {
         $product = Product::find($productId);
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
-        // جلب التقييمات بناءً على معرّف المنتج
-        $ratings = Rating::where('product_id', $productId)->get();
+
+        $ratings = Rating::with(['user.profile', 'answer_rating'])
+            ->where('product_id', $productId)
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage)
+            ->through(function($rating) {
+                return [
+                    'id' => $rating->id,
+                    'num' => $rating->num,
+                    'comment' => $rating->comment,
+                    'created_at' => $rating->created_at,
+                    'user' => [
+                        'id' => $rating->user->id,
+                        'name' => $rating->user->name,
+                        'image' => $rating->user->profile->image ?? null
+                    ],
+                    'answers' => $rating->answer_rating
+                ];
+            });
 
         if ($ratings->isEmpty()) {
             return response()->json(['message' => 'No ratings found for this product'], 404);
         }
 
         return $ratings;
+    }
+
+    public function getLatestProducts($limit = 10)
+    {
+        return Product::with(['images', 'category'])
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
     }
 }

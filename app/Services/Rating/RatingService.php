@@ -14,6 +14,7 @@ class RatingService
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
+
         $userId = Auth::id();
         $rating = Rating::create([
             'user_id' => $userId,
@@ -21,53 +22,59 @@ class RatingService
             'num' => $data['num'],
             'comment' => $data['comment'],
         ]);
-        return $rating;
+
+        // إرجاع التقييم مع العلاقات
+        return Rating::with(['user.profile', 'answer_rating'])->find($rating->id);
     }
 
     public function updateRating($ratingId, $data)
     {
-        // البحث عن التقييم بواسطة المعرف
         $rating = Rating::findOrFail($ratingId);
-        // التحقق من أن المستخدم هو صاحب التقييم
+
         if ($rating->user_id != Auth::id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-        // تحديث التقييم
-        $rating->update($data);
-        return $rating;
-    }
 
+        $rating->update($data);
+
+        // إرجاع التقييم المحدث مع العلاقات
+        return Rating::with(['user.profile', 'answer_rating'])->find($rating->id);
+    }
 
     public function deleteRating($ratingId)
     {
-        // البحث عن التقييم بواسطة المعرف
         $rating = Rating::findOrFail($ratingId);
 
-        // التحقق من أن المستخدم هو صاحب التقييم
         if ($rating->user_id != Auth::id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // حذف التقييم
         $rating->delete();
 
         return response()->json(['message' => 'Rating deleted successfully'], 200);
     }
 
-
     public function getUserRatings()
     {
         $userId = Auth::id();
-        // استرجاع جميع التقييمات للمستخدم المصادق عليه
-        $ratings = Rating::where('user_id', $userId)->get();
 
-        return $ratings;
+        // استرجاع التقييمات مع العلاقات
+        return Rating::with(['user.profile', 'answer_rating', 'product'])
+                    ->where('user_id', $userId)
+                    ->get()
+                    ->map(function($rating) {
+                        return $rating->toArray();
+                    });
     }
 
     public function GetAllRateProduct($product_id)
     {
-        $ratings = Rating::where('product_id', $product_id)->get();
-
-        return $ratings;
+        // استرجاع جميع التقييمات للمنتج مع العلاقات
+        return Rating::with(['user.profile', 'answer_rating'])
+                    ->where('product_id', $product_id)
+                    ->get()
+                    ->map(function($rating) {
+                        return $rating->toArray();
+                    });
     }
 }

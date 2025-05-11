@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignIdFor(Provider_Product::class)->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('status')->default('active');
 
+
             $table->timestamps();
         });
     }

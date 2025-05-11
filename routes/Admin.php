@@ -20,7 +20,7 @@ use App\Http\Controllers\Admin\DashboardController;
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('categories/get_all', [CategoryController::class, 'index']);
     Route::post('categories/store', [CategoryController::class, 'store']);
-    Route::put('categories/update/{id}', [CategoryController::class, 'update']);
+    Route::post('categories/update/{id}', [CategoryController::class, 'update']);
     Route::delete('categories/delete/{id}', [CategoryController::class, 'destroy']);
     Route::get('/categories/show/{id}', [CategoryController::class, 'show']);
 

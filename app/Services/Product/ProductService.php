@@ -119,7 +119,7 @@ class ProductService
             'images',
             'category',
             'providerable',
-            'ratings' => function($query) {
+            'rating' => function($query) {
                 $query->with(['user.profile', 'answer_rating'])
                     ->orderBy('created_at', 'desc');
             }
@@ -130,7 +130,7 @@ class ProductService
         }
 
         $formattedProduct = $product->toArray();
-        $formattedProduct['ratings'] = $product->ratings->map(function($rating) {
+        $formattedProduct['rating'] = $product->rating->map(function($rating) {
             return [
                 'id' => $rating->id,
                 'num' => $rating->num,
@@ -155,7 +155,7 @@ class ProductService
             return response()->json(['message' => 'Product not found'], 404);
         }
 
-        $ratings = Rating::with(['user.profile', 'answer_rating'])
+        $rating = Rating::with(['user.profile', 'answer_rating'])
             ->where('product_id', $productId)
             ->orderBy('created_at', 'desc')
             ->paginate($perPage)
@@ -174,11 +174,11 @@ class ProductService
                 ];
             });
 
-        if ($ratings->isEmpty()) {
-            return response()->json(['message' => 'No ratings found for this product'], 404);
+        if ($rating->isEmpty()) {
+            return response()->json(['message' => 'No rating found for this product'], 404);
         }
 
-        return $ratings;
+        return $rating;
     }
 
     public function getLatestProducts($limit = 10)

@@ -16,14 +16,14 @@ class FavouriteUserController extends Controller
     {
         $this->favouriteService = $favouriteService;
     }
-    public function addToFavourites($favoritable_id, $favoritable_type): JsonResponse
+    public function addToFavourites(Request $request ,$favoritable_id): JsonResponse
     {
         $user_id = auth()->id();
 
         Favourite_user::create([
             'user_id' => $user_id,
             'favoritable_id' => $favoritable_id,
-            'favoritable_type' => $favoritable_type
+            'favoritable_type' => $request->favoritable_type
         ]);
 
         return response()->json(['message' => 'Added to favourites'], 200);

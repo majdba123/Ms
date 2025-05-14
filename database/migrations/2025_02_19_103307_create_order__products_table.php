@@ -20,6 +20,8 @@ return new class extends Migration
             $table->foreignIdFor(Product::class)->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('total_price');
             $table->string('quantity');
+            $table->string('status')->default('pending');
+
 
             $table->timestamps();
         });

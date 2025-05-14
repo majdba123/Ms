@@ -26,20 +26,21 @@ class login
         }
 
         if (!$user || !Hash::check($data['password'], $user->password)) {
-            return response()->json([
-                'message' => 'Invalid Credentials'
-            ], 401);
+            return [
+                'status' => 401,
+                'response' => response()->json(['message' => 'Invalid Credentials'], 401)
+            ];
         }
 
-        $token = $user->createToken($user->name . '-AuthToken')->plainTextToken;
-
-        // تحميل علاقة البروفايل مع المستخدم
+        $token = $user->createToken($user->id . '-AuthToken')->plainTextToken;
         $user->load('profile');
 
         return [
+            'status' => 200,
             'token' => $token,
             'user' => $user
         ];
     }
+
 
 }

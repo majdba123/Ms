@@ -24,7 +24,7 @@ class RatingService
         ]);
 
         // إرجاع التقييم مع العلاقات
-        return Rating::with(['user.profile', 'answer_rating'])->find($rating->id);
+        return Rating::with(['user.Profile', 'answer_rating'])->find($rating->id);
     }
 
     public function updateRating($ratingId, $data)
@@ -38,7 +38,7 @@ class RatingService
         $rating->update($data);
 
         // إرجاع التقييم المحدث مع العلاقات
-        return Rating::with(['user.profile', 'answer_rating'])->find($rating->id);
+        return Rating::with(['user.Profile', 'answer_rating'])->find($rating->id);
     }
 
     public function deleteRating($ratingId)
@@ -59,7 +59,7 @@ class RatingService
         $userId = Auth::id();
 
         // استرجاع التقييمات مع العلاقات
-        return Rating::with(['user.profile', 'answer_rating', 'product'])
+        return Rating::with(['user.Profile', 'answer_rating', 'product'])
                     ->where('user_id', $userId)
                     ->get()
                     ->map(function($rating) {
@@ -70,7 +70,7 @@ class RatingService
     public function GetAllRateProduct($product_id)
     {
         // استرجاع جميع التقييمات للمنتج مع العلاقات
-        return Rating::with(['user.profile', 'answer_rating'])
+        return Rating::with(['user.Profile', 'answer_rating'])
                     ->where('product_id', $product_id)
                     ->get()
                     ->map(function($rating) {

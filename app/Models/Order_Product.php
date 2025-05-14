@@ -13,6 +13,7 @@ class Order_Product extends Model
         'total_price',
         'order_id',
         'quantity',
+        'status',
 
     ];
     public function product()

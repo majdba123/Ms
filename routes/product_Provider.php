@@ -7,6 +7,7 @@ use App\Http\Controllers\Product_Provider\CategoryVendorController;
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\Product\RatingController;
 use App\Http\Controllers\Vendor\AnswerRatingController;
+use App\Http\Controllers\ProviderProductController;
 
 
 
@@ -41,6 +42,16 @@ Route::middleware(['auth:sanctum' , 'product_provider'])->group(function () {
     Route::get('/answer_rating/get_all/{rate_id}', [AnswerRatingController::class, 'getAnswersByRating']);
     Route::put('/answer_rating/update/{answer_rate_id}', [AnswerRatingController::class, 'update']);
     Route::delete('/answer_rating/delete/{answer_rate_id}', [AnswerRatingController::class, 'destroy']);
+
+
+
+    Route::prefix('orders')->group(function () {
+
+        Route::get('get_all', [ProviderProductController::class, 'getVendorOrders']);
+        Route::get('get_all_by_status', [ProviderProductController::class, 'getVendorOrdersByStatus']);
+        Route::get('/get_all_by_produt_id/{product_id}', [ProviderProductController::class, 'getOrdersByProductId']);
+        Route::get('/get_all_by_user_id/{user_id}', [ProviderProductController::class, 'getVendorOrdersByOrderProductStatus']);
+    });
 
 
 });

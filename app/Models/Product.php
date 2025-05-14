@@ -52,4 +52,12 @@ class Product extends Model
     {
         return $this->hasMany(Rseevation::class);
     }
+
+
+
+    public function scopeByCategory($query, $categoryId)
+    {
+        return $query->where('category_id', $categoryId);
+    }
+
 }

@@ -7,7 +7,8 @@ use App\Models\Rseevation;
 use Illuminate\Http\Request;
 use App\Http\Requests\Order\CreateResrvationRequest;
 use App\Services\Order\RservationService;
-
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class RseevationController extends Controller
 {
@@ -38,10 +39,50 @@ class RseevationController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Rseevation $rseevation)
+  public function getUserReservations(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|string|in:all,pending,complete,cancelled',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors()->first();
+            return response()->json(['error' => $errors], 422);
+        }
+
+        $user = Auth::user();
+        $status = $request->status;
+
+        if ($status === 'all') {
+            $reservations = Rseevation::where('user_id', $user->id)->get();
+        } else {
+            $reservations = Rseevation::where('user_id', $user->id)
+                            ->where('status', $status)
+                            ->with('product')
+                            ->get();
+        }
+
+        return response()->json(['reservations' => $reservations], 200);
     }
+
+
+    public function getProductReservation($reservation_id)
+    {
+        $user = Auth::user();
+
+        // جلب الحجز والتحقق من أن المستخدم هو صاحب الحجز
+        $reservation = Rseevation::where('id', $reservation_id)
+                      ->where('user_id', $user->id)
+                      ->with('product')
+                      ->first();
+
+        if (!$reservation) {
+            return response()->json(['message' => 'Reservation not found or you do not have permission to view this reservation'], 404);
+        }
+
+        return response()->json(['reservation' => $reservation], 200);
+    }
+
 
     /**
      * Show the form for editing the specified resource.

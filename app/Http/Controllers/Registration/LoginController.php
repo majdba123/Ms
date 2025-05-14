@@ -34,18 +34,21 @@ class LoginController extends Controller
      }
 
 
+public function login(LoginRequest $request): JsonResponse
+{
+    $validatedData = $request->validated();
+    $result = $this->loginService->login($validatedData);
 
-     public function login(LoginRequest $request): JsonResponse
-     {
-         $validatedData = $request->validated();
+    if ($result['status'] !== 200) {
+        return $result['response'];
+    }
 
-         $result = $this->loginService->login($validatedData);
+    return response()->json([
+        'access_token' => $result['token'],
+        'user' => $result['user'],
+    ]);
+}
 
-         return response()->json([
-             'access_token' => $result['token'],
-             'user' => $result['user'],
-         ]);
-     }
 
     public function logout(){
         auth()->user()->tokens()->delete();

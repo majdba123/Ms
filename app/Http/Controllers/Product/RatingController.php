@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\Rating\UpdateRatingRequest;
 use App\Http\Requests\Rating\RatingStoreRequest;
+use App\Models\Answer_Rating;
 use App\Models\Product;
+use App\Models\Rating;
 use App\Services\Rating\RatingService;
 use Illuminate\Support\Facades\Auth;
 
@@ -72,5 +74,53 @@ class RatingController extends Controller
 
 
         return $result ;
+    }
+
+
+    public function admin_getRateProduct($product_id)
+    {
+        $product = Product::find($product_id);
+
+        if (!$product) {
+            return ['message' => 'Product not found', 'status' => 404];
+        }
+
+        $result = $this->ratingService->GetAllRateProduct($product_id);
+
+
+        return $result ;
+    }
+
+
+
+        public function admin_delete_rate($rate_id)
+    {
+        $rate = Rating::find($rate_id);
+
+        if (!$rate) {
+            return ['message' => 'rate not found', 'status' => 404];
+        }
+
+
+        $rate->delete();
+
+
+        return ['message' => 'rate delete sucsuccfully', 'status' => 404];
+    }
+
+
+    public function admin_delete_answer($answer_id)
+    {
+        $answer = Answer_Rating::find($answer_id);
+
+        if (!$answer) {
+            return ['message' => 'answer not found', 'status' => 404];
+        }
+
+
+        $answer->delete();
+
+
+        return ['message' => 'answer delete sucsuccfully', 'status' => 404];
     }
 }

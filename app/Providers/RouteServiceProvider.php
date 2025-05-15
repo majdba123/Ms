@@ -37,7 +37,7 @@ class RouteServiceProvider extends ServiceProvider
                 ->group(base_path('routes/web.php'));
 
             Route::middleware('api') // اجعلها تحت ميدل وير API
-                ->prefix('admin') // أضف بادئة للـ admin
+                ->prefix('api/admin') // أضف بادئة للـ admin
                 ->group(base_path('routes/Admin.php'));
 
 

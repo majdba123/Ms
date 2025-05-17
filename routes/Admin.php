@@ -6,6 +6,7 @@ use App\Http\Controllers\Category\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Product\RatingController;
+use App\Http\Controllers\CommissionController;
 
 
 /*
@@ -18,6 +19,20 @@ use App\Http\Controllers\Product\RatingController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+
+
+
+
+
+
+
+Route::get('dashboard', [AdminController::class, 'adminDashboard']);
+
+
+
+
+
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('categories/get_all', [CategoryController::class, 'index']);
@@ -61,6 +76,12 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('/product/{product_id}', [RatingController::class, 'admin_getRateProduct']);
         Route::delete('/delete/{rate_id}', [RatingController::class, 'admin_delete_rate']);
         Route::delete('answer/delete/{answer_id}', [RatingController::class, 'admin_delete_answer']);
+    });
+
+
+    Route::prefix('commissions')->group(function () {
+        Route::get('calculate/{vendor_id}', [CommissionController::class, 'getVendorCommission']);
+        Route::get('calculate/Vendor_Product/{poduct_id}', [CommissionController::class, 'calculateByProduct']);
     });
 
 

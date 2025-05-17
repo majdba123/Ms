@@ -54,7 +54,9 @@ class RseevationController extends Controller
         $status = $request->status;
 
         if ($status === 'all') {
-            $reservations = Rseevation::where('user_id', $user->id)->get();
+            $reservations = Rseevation::where('user_id', $user->id)
+                                        ->with('product')
+                                        ->get();
         } else {
             $reservations = Rseevation::where('user_id', $user->id)
                             ->where('status', $status)

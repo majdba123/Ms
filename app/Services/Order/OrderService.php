@@ -41,7 +41,7 @@ class OrderService
         public function getOrdersByPriceRange($minPrice, $maxPrice)
         {
             $orders = Order::whereBetween('total_price', [$minPrice, $maxPrice])
-                ->with(['order_product:id,order_id,product_id', 'order_product.product:id,name','coupons'])
+                ->with(['order_product:id,order_id,product_id', 'order_product.product:id,name'])
                 ->paginate(8); // تحديد عدد الطلبات في كل صفحة (10 طلبات)
 
             return response()->json(['orders' => $orders], 200);
@@ -49,7 +49,7 @@ class OrderService
 
         public function getAllOrders()
         {
-            return Order::with(['order_product:id,order_id,product_id', 'order_product.product:id,name','coupons'])
+            return Order::with(['order_product:id,order_id,product_id', 'order_product.product:id,name'])
                 ->paginate(8); // تقسيم الطلبات إلى صفحات
         }
 
@@ -62,7 +62,7 @@ class OrderService
             }
 
             return Order::where('status', $status)
-                ->with(['order_product:id,order_id,product_id', 'order_product.product:id,name','coupons'])
+                ->with(['order_product:id,order_id,product_id', 'order_product.product:id,name'])
                 ->paginate(8); // تقسيم الطلبات إلى صفحات
         }
 

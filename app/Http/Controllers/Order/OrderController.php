@@ -43,10 +43,14 @@ class OrderController extends Controller
         $status = $request->status;
 
         if ($status === 'all') {
-            $orders = Order::where('user_id', $user->id)->get();
+            $orders = Order::where('user_id', $user->id)
+            ->with('Order_Product.product')
+            ->get();
         } else {
             $orders = Order::where('user_id', $user->id)
                             ->where('status', $status)
+                            ->with('Order_Product.product')
+
                             ->get();
         }
 

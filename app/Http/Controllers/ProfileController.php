@@ -72,7 +72,7 @@ class ProfileController extends Controller
     public function getUserInfo()
     {
         $user = Auth::user();
-        $profile = $user->profile;
+        $profile = $user->Profile;
 
         $userInfo = [
             'user' => [

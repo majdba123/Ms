@@ -72,7 +72,7 @@ class VendorDashboardService
                 'total_commissions' => $this->calculateTotalCommissions(),
                 'pending_commissions' => $this->calculatePendingCommissions(),
             ],
-            'recent_orders' => Order_Product::with(['product', 'user'])
+            'recent_orders' => Order_Product::with(['product'])
                 ->latest()
                 ->take(10)
                 ->get(),
@@ -86,10 +86,10 @@ class VendorDashboardService
     protected function calculateTotalCommissions()
     {
         return Order_Product::where('status', 'complete')
-            ->with(['product.subcategory.Category'])
+            ->with(['product.Category'])
             ->get()
             ->sum(function($order) {
-                $rate = $order->product->subcategory->category->percent / 100;
+                $rate = $order->product->category->price / 100;
                 return $order->total_price * $rate;
             });
     }
@@ -97,10 +97,10 @@ class VendorDashboardService
     protected function calculatePendingCommissions()
     {
         return Order_Product::where('status', 'pending')
-            ->with(['product.subcategory.Category'])
+            ->with(['product.Category'])
             ->get()
             ->sum(function($order) {
-                $rate = $order->product->subcategory->category->percent / 100;
+                $rate = $order->product->category->price / 100;
                 return $order->total_price * $rate;
             });
     }

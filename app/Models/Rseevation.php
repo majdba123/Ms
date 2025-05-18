@@ -13,6 +13,7 @@ class Rseevation extends Model
         'user_id',
         'status',
         'product_id',
+        'total_price'
     ];
     public function user()
     {
@@ -22,6 +23,8 @@ class Rseevation extends Model
     {
         return $this->belongsTo(Product::class,'product_id');
     }
+
+
 
 
 }

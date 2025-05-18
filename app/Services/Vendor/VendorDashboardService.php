@@ -6,6 +6,7 @@ use App\Models\Order_Product;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Provider_Product;
+use App\Models\Provider_Service;
 
 class VendorDashboardService
 {
@@ -20,6 +21,21 @@ class VendorDashboardService
                 'total_sales_pending' => $vendor->total_sales_pending,
                 'total_commissions_complete' => $vendor->total_commissions,
                 'balance' => $vendor->total_sales - $vendor->total_commissions
+            ],
+        ];
+    }
+
+
+
+    public function getDashboardData_service(Provider_Service $vendor)
+    {
+        return [
+            'stats' => [
+                'completed_orders' => $vendor->completed_reservations_count,
+                'pending_orders' => $vendor->pending_reservations_count,
+                'cancelled_orders' => $vendor->cancelled_reservations_count,
+                'total_sales_complete' => $vendor->total_reservations_revenue,
+                'total_sales_pending' => $vendor->pending_reservations_revenue,
             ],
         ];
     }

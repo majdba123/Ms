@@ -62,6 +62,17 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     });
 
 
+    Route::prefix('provider_service')->group(function () {
+
+        Route::post('update_status/{vendor_id}', [AdminController::class, 'update_P_S_Status']);
+        Route::get('/get_by_status', [AdminController::class, 'get_P_S_ByStatus']);
+        Route::get('/show_info/{vendor_id}', [AdminController::class, 'get_P_S_Info']);
+        Route::get('get_dashboard_vendor/{vendor_id}', [AdminController::class, 'Provider_service_dash']);
+
+    });
+
+
+
     Route::prefix('orders')->group(function () {
         Route::get('get_all/ByVendor/{id}', [AdminController::class, 'getVendorOrders']);
         Route::get('get_all_by_status', [AdminController::class, 'getOrdersByStatus']);
@@ -69,6 +80,16 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('/get_all_by_produt_id/{product_id}', [AdminController::class, 'getOrdersByProduct']);
         Route::get('/get_all_by_user_id/{user_id}', [AdminController::class, 'getOrdersByUser']);
         Route::get('/get_all_by_category/{category_id}', [AdminController::class, 'getOrdersByCategory']);
+    });
+
+
+
+    Route::prefix('reservation')->group(function () {
+        Route::get('get_all/ByVendor/{id}', [AdminController::class, 'getVendorResr']);
+        Route::get('get_all_by_status', [AdminController::class, 'getReserByStatus']);
+        Route::get('get_all_by_price', [AdminController::class, 'getReserByPriceRange']);
+        Route::get('/get_all_by_produt_id/{product_id}', [AdminController::class, 'getreserByProduct']);
+        Route::get('/get_all_by_user_id/{user_id}', [AdminController::class, 'getresersByUser']);
     });
 
 

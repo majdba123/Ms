@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache; // Import Cache facade
 use Illuminate\Support\Str;
 use Twilio\Rest\Client;
-use App\Helpers\OtpHelper; 
+use App\Helpers\OtpHelper;
 
 class RegisterController extends Controller
 {
@@ -38,7 +38,7 @@ class RegisterController extends Controller
         // Pass the modified request data to the service
         $user = $this->userService->register($validatedData);
 
-        if (isset($validatedData['email'])) {
+      /*  if (isset($validatedData['email'])) {
             OtpHelper::sendOtpEmail($user->id);
         }/*elseif(isset($validatedData['phone']))
         {

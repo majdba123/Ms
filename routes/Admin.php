@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Product\RatingController;
 use App\Http\Controllers\CommissionController;
+use App\Http\Controllers\Product\ProductController;
 
 
 /*
@@ -104,6 +105,24 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('calculate/{vendor_id}', [CommissionController::class, 'getVendorCommission']);
         Route::get('calculate/Vendor_Product/{poduct_id}', [CommissionController::class, 'calculateByProduct']);
     });
+
+
+    Route::prefix('product')->group(function () {
+        Route::get('/get_all_latest', [ProductController::class, 'latest_product']);
+        Route::post('/By_Type', [ProductController::class, 'Get_By_Type']);
+        Route::post('/product_by_category/{id}', [ProductController::class, 'Get_By_Category']);
+
+        Route::post('/product_by_service_provider/{id}', [ProductController::class, 'Get_By_Service']);
+        Route::post('/product_by_product_provider/{id}', [ProductController::class, 'Get_By_Product']);
+        Route::get('/show/{id}', [ProductController::class, 'getProductById']);
+        Route::get('/all_rating/{product_id}', [ProductController::class, 'getProductRatings']);
+    });
+
+
+
+
+
+
 
 
 });

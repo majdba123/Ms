@@ -277,9 +277,9 @@ class ProductController extends Controller
     {
 
 
-        $providerType = $request->is('service_provider*') ? 1 : 0; // تحديد النوع بناءً على الرابط
+        $providerType = $request->is('api/service_provider*') ? 1 : 0; // تحديد النوع بناءً على الرابط
 
-        if ($providerType === 1) {
+        if ($providerType == 1) {
             $providerId = Auth::user()->Provider_service->id;
             $query = Product::where('providerable_id', $providerId)
             ->where('providerable_type','App\\Models\\Provider_Service');

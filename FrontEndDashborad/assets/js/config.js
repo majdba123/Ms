@@ -1,6 +1,6 @@
 // config.js
 window.API_CONFIG = {
-    BASE_URL: 'https://highleveltecknology.com/Ms', 
+    BASE_URL: 'http://127.0.0.1:8000', 
     ENDPOINTS: {
         LOGIN: '/api/login', 
     },

@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 class ProductService
 {
-    public function createProduct(array $data, $providerType): Product
+   public function createProduct(array $data, $providerType): Product
     {
         $providerTypeClass = $providerType === 1
             ? 'App\\Models\\Provider_Service'
@@ -25,42 +25,51 @@ class ProductService
             'name' => $data['name'],
             'description' => $data['description'],
             'price' => $data['price'],
+            'qunatity' => $data['qunatity'],
+            'time_of_service' => $data['time_of_service'] ?? null,
             'category_id' => $data['category_id'],
             'providerable_id' => $providerId,
             'providerable_type' => $providerTypeClass,
         ]);
     }
-
     public function updateProduct(array $data, Product $product): Product
     {
-        $product->update([
+        $updateData = [
             'name' => $data['name'] ?? $product->name,
             'description' => $data['description'] ?? $product->description,
             'price' => $data['price'] ?? $product->price,
+            'qunatity' => $data['qunatity'] ?? $product->qunatity,
             'category_id' => $data['category_id'] ?? $product->category_id,
-        ]);
+        ];
+
+        // Only update time_of_service if it's provided or if it's a service provider
+        if (array_key_exists('time_of_service', $data)) {
+            $updateData['time_of_service'] = $data['time_of_service'];
+        }
+
+        $product->update($updateData);
 
         return $product->fresh();
     }
 
-    public function deleteProduct($id): JsonResponse
+    public function deleteProduct($id): array
     {
         $product = Product::find($id);
 
         if (!$product) {
-            return response()->json(['message' => 'Product not found'], 404);
+            return ['message' => 'Product not found', 'status' => 404];
         }
 
         $user = Auth::user();
         $provider = $product->providerable;
 
         if (!$provider || $provider->user_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return ['message' => 'Unauthorized', 'status' => 403];
         }
 
         $product->delete();
 
-        return response()->json(['message' => 'Product deleted successfully'], 200);
+        return ['message' => 'Product deleted successfully', 'status' => 200];
     }
 
     public function getProductsByType($providerType, $perPage = 10)

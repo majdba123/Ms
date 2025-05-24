@@ -8,6 +8,7 @@ use App\Http\Controllers\Product\RatingController;
 use App\Http\Controllers\Vendor\AnswerRatingController;
 use App\Http\Controllers\ProviderProductController;
 use App\Http\Controllers\CommissionController;
+use App\Http\Controllers\AdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,6 +20,11 @@ use App\Http\Controllers\CommissionController;
 |
 */
 Route::middleware(['auth:sanctum' , 'product_provider'])->group(function () {
+
+    Route::get('/dashboard', [AdminController::class, 'VendorDashboard']);
+
+
+
 
     Route::get('/categories/get_all', [CategoryController::class, 'category_provider']);
 

@@ -20,6 +20,7 @@ use App\Models\Category;
 use App\Models\Category_Vendor;
 use App\Models\Imag_Product;
 use App\Models\Product;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -35,138 +36,183 @@ class ProductController extends Controller
 
     public function store(StoreProductRequest $request): JsonResponse
     {
-        $providerType = $request->is('api/service_provider*') ? 1 : 0; // تحديد النوع بناءً على الرابط
+        // Start database transaction
+        DB::beginTransaction();
 
-        if ($providerType === 1) {
-            $providerId = Auth::user()->Provider_service->id;
+        try {
+            $providerType = $request->is('api/service_provider*') ? 1 : 0;
 
-            // التحقق من أن مزود الخدمة لديه اشتراك فعال
-            if (!checkActiveSubscription::checkActive($providerId)) {
-                return response()->json(['message' => 'Provider does not have an active subscription'], 403);
-            }
+            if ($providerType === 1) {
+                $providerId = Auth::user()->Provider_service->id;
 
-            // التحقق من أن الفئة (category) من النوع 1
-            $category = Category::find($request->category_id);
-            if ($category->type != 1) {
-                return response()->json(['message' => 'The category must be of type 1 for service providers'], 422);
-            }
-        } else {
-            $providerId = Auth::user()->Provider_Product->id;
+                // Check active subscription
+                if (!checkActiveSubscription::checkActive($providerId)) {
+                    return response()->json(['message' => 'Provider does not have an active subscription'], 403);
+                }
 
-            // التحقق من أن الفئة (category) من النوع 0 لمزودي المنتجات
-            $category = Category::find($request->category_id);
-            if ($category->type != 0) {
-                return response()->json(['message' => 'The category must be of type 0 for product providers'], 422);
-            }
-        }
-        $product = $this->productService->createProduct($request->validated(), $providerType);
-
-        $imageUrls = [];
-        foreach ($request->images as $imageFile) {
-            $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
-            $imagePath = 'products_images/' . $imageName;
-            $imageUrl = asset('storage/products_images/' . $imageName);
-
-            // تخزين الصورة في التخزين
-            Storage::disk('public')->put($imagePath, file_get_contents($imageFile));
-
-            // إنشاء الصورة باستخدام الرابط الكامل
-            Imag_Product::create([
-                'product_id' => $product->id,
-                'imag' => $imageUrl,
-            ]);
-
-            // إضافة رابط الصورة إلى الاستجابة
-            $imageUrls[] = $imageUrl;
-        }
-
-        return response()->json([
-            'message' => 'Product created successfully',
-            'product' => $product,
-            'image_urls' => $imageUrls
-        ], 201);
-    }
-
-
-
-
-    public function update(UpdateProductRequest $request, $id): JsonResponse
-    {
-
-        $providerType = $request->is('api/service_provider*') ? 1 : 0; // تحديد النوع بناءً على الرابط
-
-        $product = Product::find($id);
-        if (!$product) {
-            return response()->json(['message' => 'Product not found'], 404);
-        }
-
-        if ($providerType === 1) {
-            $providerId = Auth::user()->Provider_service->id;
-            print($providerId);
-            // التحقق من أن المنتج يخص المستخدم الذي تم المصادقة عليه
-            if ($product->providerable_id !== $providerId || $product->providerable_type !== 'App\\Models\\Provider_Service') {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-
-            // التحقق من أن مزود الخدمة لديه اشتراك فعال
-            if (!checkActiveSubscription::checkActive($providerId)) {
-                return response()->json(['message' => 'Provider does not have an active subscription'], 403);
-            }
-
-            // التحقق من أن الفئة (category) من النوع 1
-            if ($request->has('category_id')) {
+                // Verify category type
                 $category = Category::find($request->category_id);
                 if ($category->type != 1) {
                     return response()->json(['message' => 'The category must be of type 1 for service providers'], 422);
                 }
-            }
-        } else {
-            $providerId = Auth::user()->Provider_Product->id;
+            } else {
+                $providerId = Auth::user()->Provider_Product->id;
 
-            // التحقق من أن المنتج يخص المستخدم الذي تم المصادقة عليه
-            if ($product->providerable_id !== $providerId || $product->providerable_type !== 'App\\Models\\Provider_Product') {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-
-            // التحقق من أن الفئة (category) من النوع 0 لمزودي المنتجات
-            if ($request->has('category_id')) {
+                // Verify category type
                 $category = Category::find($request->category_id);
                 if ($category->type != 0) {
                     return response()->json(['message' => 'The category must be of type 0 for product providers'], 422);
                 }
             }
-        }
 
-        $updatedProduct = $this->productService->updateProduct($request->validated(), $product);
+            // Create product with transaction
+            $product = $this->productService->createProduct($request->validated(), $providerType);
 
-        // التحقق مما إذا كان الطلب يحتوي على صور جديدة
-        if ($request->has('images')) {
-            // حذف الصور القديمة
-            Imag_Product::where('product_id', $product->id)->delete();
+            // Process images
             $imageUrls = [];
             foreach ($request->images as $imageFile) {
-                $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
-                $imagePath = 'products_images/' . $imageName;
-                $imageUrl = asset('storage/products_images/' . $imageName);
-                // تخزين الصورة في التخزين
-                Storage::disk('public')->put($imagePath, file_get_contents($imageFile));
-                // إنشاء الصورة باستخدام الرابط الكامل
-                Imag_Product::create([
-                    'product_id' => $product->id,
-                    'imag' => $imageUrl,
-                ]);
-                // إضافة رابط الصورة إلى الاستجابة
-                $imageUrls[] = $imageUrl;
-            }
-        }
+                $imageName = Str::random(32).'.'.$imageFile->getClientOriginalExtension();
+                $imagePath = 'products_images/'.$imageName;
 
-        return response()->json([
-            'message' => 'Product updated successfully',
-            'product' => $updatedProduct,
-            'image_urls' => $imageUrls ?? []
-        ], 200);
+                // Store image
+                Storage::disk('public')->put($imagePath, file_get_contents($imageFile));
+
+                // Create image record
+                $image = Imag_Product::create([
+                    'product_id' => $product->id,
+                    'imag' => asset('storage/products_images/'.$imageName),
+                ]);
+
+                $imageUrls[] = $image->imag;
+            }
+
+            // Commit transaction if everything is successful
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Product created successfully',
+                'product' => $product,
+                'image_urls' => $imageUrls
+            ], 201);
+
+        } catch (\Exception $e) {
+            // Rollback transaction on error
+            DB::rollBack();
+
+            return response()->json([
+                'message' => 'Product creation failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
+
+
+        public function update(UpdateProductRequest $request, $id): JsonResponse
+    {
+        // Start database transaction
+        DB::beginTransaction();
+
+        try {
+            $providerType = $request->is('api/service_provider*') ? 1 : 0;
+            $product = Product::find($id);
+
+            if (!$product) {
+                return response()->json(['message' => 'Product not found'], 404);
+            }
+
+            if ($providerType === 1) {
+                $providerId = Auth::user()->Provider_service->id;
+
+                // Verify ownership
+                if ($product->providerable_id !== $providerId || $product->providerable_type !== 'App\\Models\\Provider_Service') {
+                    return response()->json(['message' => 'Unauthorized'], 403);
+                }
+
+                // Check active subscription
+                if (!checkActiveSubscription::checkActive($providerId)) {
+                    return response()->json(['message' => 'Provider does not have an active subscription'], 403);
+                }
+
+                // Verify category type if being updated
+                if ($request->has('category_id')) {
+                    $category = Category::find($request->category_id);
+                    if ($category->type != 1) {
+                        return response()->json(['message' => 'The category must be of type 1 for service providers'], 422);
+                    }
+                }
+            } else {
+                $providerId = Auth::user()->Provider_Product->id;
+
+                // Verify ownership
+                if ($product->providerable_id !== $providerId || $product->providerable_type !== 'App\\Models\\Provider_Product') {
+                    return response()->json(['message' => 'Unauthorized'], 403);
+                }
+
+                // Verify category type if being updated
+                if ($request->has('category_id')) {
+                    $category = Category::find($request->category_id);
+                    if ($category->type != 0) {
+                        return response()->json(['message' => 'The category must be of type 0 for product providers'], 422);
+                    }
+                }
+            }
+
+            // Update product
+            $updatedProduct = $this->productService->updateProduct($request->validated(), $product);
+
+            // Handle image updates if present
+            $imageUrls = [];
+            if ($request->has('images')) {
+                // Delete old images
+                $oldImages = Imag_Product::where('product_id', $product->id)->get();
+
+                // Store new images
+                foreach ($request->images as $imageFile) {
+                    $imageName = Str::random(32).'.'.$imageFile->getClientOriginalExtension();
+                    $imagePath = 'products_images/'.$imageName;
+
+                    // Store image
+                    Storage::disk('public')->put($imagePath, file_get_contents($imageFile));
+
+                    // Create image record
+                    $image = Imag_Product::create([
+                        'product_id' => $product->id,
+                        'imag' => asset('/storage/products_images/'.$imageName),
+                    ]);
+
+                    $imageUrls[] = $image->imag;
+                }
+
+                // Delete old image files from storage after new ones are successfully uploaded
+                foreach ($oldImages as $oldImage) {
+                    $oldImagePath = str_replace(asset('storage/'), '', $oldImage->imag);
+                    Storage::disk('public')->delete($oldImagePath);
+                    $oldImage->delete();
+                }
+            }
+
+            // Commit transaction if everything is successful
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Product updated successfully',
+                'product' => $updatedProduct,
+                'image_urls' => $imageUrls
+            ], 200);
+
+        } catch (\Exception $e) {
+            // Rollback transaction on error
+            DB::rollBack();
+
+            // Log the error
+
+            return response()->json([
+                'message' => 'Product update failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 
 

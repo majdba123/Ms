@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('description');
             $table->string('price');
             $table->morphs('providerable');
+            $table->string('quantity');
+            $table->string('time_of_service')->nullable();
             $table->timestamps();
             $table->softDeletes(); // إضافة عمود softDeletes
         });

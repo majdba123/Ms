@@ -2,6 +2,7 @@
 
 namespace App\Services\Vendor;
 
+use App\Models\Driver;
 use App\Models\Order_Product;
 use App\Models\Product;
 use App\Models\User;
@@ -69,10 +70,28 @@ class VendorDashboardService
                 'pending_vendors' => Provider_Product::where('status', 'pending')->count(),
                 'banned_vendors' => Provider_Product::where('status', 'banned')->count(),
 
+
+
+                'total_service_provider' => Provider_Service::count(),
+                'active_service_provider' => Provider_Service::where('status', 'active')->count(),
+                'pending_service_provider' => Provider_Service::where('status', 'pending')->count(),
+                'banned_service_provider' => Provider_Service::where('status', 'banned')->count(),
+
+
+                'total_Driver' => Driver::count(),
+                'active_Driver' => Driver::where('status', 'active')->count(),
+                'pending_Driver' => Driver::where('status', 'pending')->count(),
+                'banned_Driver' => Driver::where('status', 'banned')->count(),
+
                 // إحصائيات المنتجات
-                'total_products' => Product::count(),
-               // 'active_products' => Product::where('status', 'active')->count(),
-               // 'inactive_products' => Product::where('status', 'inactive')->count(),
+                // إحصائيات المنتجات
+                'products_stats' => [
+                    'total_products' => Product::count(),
+                    'by_provider_type' => [
+                        'service_providers' => Product::where('providerable_type', 'App\Models\Provider_Service')->count(),
+                        'product_providers' => Product::where('providerable_type', 'App\Models\Provider_Product')->count(),
+                    ],
+                ],
 
                 'active_products' =>"not yet",
                 'inactive_products' => "not yet",
@@ -88,14 +107,6 @@ class VendorDashboardService
                 'total_commissions' => $this->calculateTotalCommissions(),
                 'pending_commissions' => $this->calculatePendingCommissions(),
             ],
-            'recent_orders' => Order_Product::with(['product'])
-                ->latest()
-                ->take(10)
-                ->get(),
-            'recent_vendors' => Provider_Product::with(['user'])
-                ->latest()
-                ->take(5)
-                ->get()
         ];
     }
 

@@ -7,8 +7,9 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Product\RatingController;
 use App\Http\Controllers\CommissionController;
+use App\Http\Controllers\DriverController;
 use App\Http\Controllers\Product\ProductController;
-
+use App\Services\Driver\DriverServic;
 
 /*
 |--------------------------------------------------------------------------
@@ -71,6 +72,28 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('get_dashboard_vendor/{vendor_id}', [AdminController::class, 'Provider_service_dash']);
 
     });
+
+
+    Route::prefix('provider_service')->group(function () {
+
+        Route::post('update_status/{vendor_id}', [AdminController::class, 'update_P_S_Status']);
+        Route::get('/get_by_status', [AdminController::class, 'get_P_S_ByStatus']);
+        Route::get('/show_info/{vendor_id}', [AdminController::class, 'get_P_S_Info']);
+        Route::get('get_dashboard_vendor/{vendor_id}', [AdminController::class, 'Provider_service_dash']);
+
+    });
+
+
+    Route::prefix('driver')->group(function () {
+
+        Route::post('update_status/{vendor_id}', [DriverController::class, 'update_driver_status']);
+        Route::get('/get_by_status', [DriverController::class, 'getDriverByStatus']);
+        Route::get('/show_info/{vendor_id}', [DriverController::class, 'get_driver_info']);
+       // Route::get('get_dashboard_vendor/{vendor_id}', [DriverController::class, 'Provider_service_dash']);
+
+    });
+
+
 
 
 

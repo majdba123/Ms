@@ -35,7 +35,7 @@ class UsersTableSeeder extends Seeder
             'name' => 'service',
             'email' => 'service@example.com',
             'password' => Hash::make('password'),
-            'type' => 0,
+            'type' => "service_provider",
         ]);
 
         User::create([
@@ -43,7 +43,15 @@ class UsersTableSeeder extends Seeder
             'name' => 'product',
             'email' => 'product@example.com',
             'password' => Hash::make('password'),
-            'type' => 0,
+            'type' => "product_provider",
+        ]);
+
+        User::create([
+            'id' => 5,
+            'name' => 'driver',
+            'email' => 'driver@example.com',
+            'password' => Hash::make('password'),
+            'type' => "driver",
         ]);
     }
 }

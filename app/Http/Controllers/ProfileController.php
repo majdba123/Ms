@@ -93,4 +93,35 @@ class ProfileController extends Controller
 
         return response()->json(['user_info' => $userInfo], 200);
     }
+
+
+    public function user_info($id)
+    {
+        $user = User::find($id);
+        $profile = $user->Profile;
+
+        $userInfo = [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name ?? 'N/A',
+                'email' => $user->email ?? 'N/A',
+                'phone' => $user->phone ?? 'N/A',
+                // أي معلومات إضافية أخرى من نموذج User
+            ],
+            'profile' => [
+                'lang' => $profile->lang ?? 'N/A',
+                'lat' => $profile->lat ?? 'N/A',
+                'image' => $profile->image ?? 'N/A',
+                'address' => $profile->address ?? 'N/A',
+                // أي معلومات إضافية أخرى من نموذج Profile
+            ]
+        ];
+
+        return response()->json(['user_info' => $userInfo], 200);
+    }
+
 }
+
+
+
+

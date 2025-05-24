@@ -22,6 +22,6 @@ class Subscribe extends Model
     }
     public function Provider_Service()
     {
-        return $this->belongsTo(Provider_Service::class ,'Provider_Service_id');
+        return $this->belongsTo(Provider_Service::class ,'provider__service_id');
     }
 }

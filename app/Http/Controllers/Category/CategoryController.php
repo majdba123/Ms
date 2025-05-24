@@ -73,9 +73,9 @@ class CategoryController extends Controller
     {
         $type = 0; // افتراضيًا لنوع 0
 
-        if ($request->is('service_provider*')) {
+        if ($request->is('api/service_provider*')) {
             $type = $request->query('type', 1); // يستخدم النوع المرسل في الطلب
-        } elseif ($request->is('product_provider*')) {
+        } elseif ($request->is('api/product_provider*')) {
             $type = 0; // تعيين النوع 0 إذا كان الطلب يبدأ بـ product_provider
         }
 

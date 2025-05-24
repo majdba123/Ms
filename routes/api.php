@@ -6,7 +6,9 @@ use App\Http\Controllers\Registration\RegisterController;
 use App\Http\Controllers\Registration\LoginController;
 use App\Http\Controllers\Registration\GoogleAuthController;
 use App\Http\Controllers\Registration\FacebookController;
-
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\FileUploadController;
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,3 +50,19 @@ Route::group(['middleware' => ['web']], function () {
 
 
 
+
+
+Route::middleware(['auth:sanctum'])->group(function () {
+
+    Route::post('/SendTo/{recive_id}', [ChatController::class, 'sendMessage']);
+    Route::get('/unread-messages', [ChatController::class, 'getUnreadMessages']);
+    Route::post('/mark-messages-as-read/{sender_id}', [ChatController::class, 'markMessagesAsRead']);
+    Route::get('/getInteractedUsers', [ChatController::class, 'getInteractedUsers']);
+    Route::get('/getConversation/{reciver_id}', [ChatController::class, 'getConversation']);
+    Route::post('/upload', [FileUploadController::class, 'upload']);
+
+
+
+    Route::get('/user_info/{user_id}', [ProfileController::class, 'user_info']);
+
+});

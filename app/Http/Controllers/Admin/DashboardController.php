@@ -29,7 +29,7 @@ class DashboardController extends Controller
     public function getSubscriptionsByStatus(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:pending,active,finished'
+            'status' => 'nullable|in:pending,active,finished'
         ], [
             'status.required' => 'The status field is required.',
             'status.in' => 'The status must be one of the following: pending, active, finished.'

@@ -20,53 +20,52 @@ class register
     public function register(array $data): User
     {
         // تحقق من وجود البريد الإلكتروني أو رقم الهاتف
-        if (isset($data['email']) && !isset($data['phone'])) {
-            // إنشاء المستخدم باستخدام البريد الإلكتروني
-            $user = User::create([
+        if (isset($data['email'])) {
+            $userData = [
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
-            ]);
-        } elseif (!isset($data['email']) && isset($data['phone'])) {
-            // إنشاء المستخدم باستخدام رقم الهاتف
-            $user = User::create([
+            ];
+
+            if (isset($data['phone'])) {
+                $userData['phone'] = $data['phone'];
+            }
+        } elseif (isset($data['phone'])) {
+            $userData = [
                 'name' => $data['name'],
                 'phone' => $data['phone'],
                 'password' => Hash::make($data['password']),
-            ]);
+            ];
         } else {
-            // إذا كانت البيانات تحتوي على البريد الإلكتروني ورقم الهاتف أو لا تحتوي على أي منهما، يمكنك التعامل مع ذلك هنا
             throw new \Exception('يجب أن تحتوي البيانات إما على البريد الإلكتروني أو رقم الهاتف.');
         }
 
-        // تحقق من نوع المستخدم وأنشئ السجلات الإضافية إذا لزم الأمر
+        // إضافة نوع المستخدم كنص بدلاً من رقم
+        $typeNames = [
+            0 => 'user',
+            1 => 'product_provider',
+            2 => 'service_provider',
+            3 => 'driver'
+        ];
+
+        if (!isset($data['type']) || !array_key_exists($data['type'], $typeNames)) {
+            throw new \InvalidArgumentException('نوع المستخدم غير صالح');
+        }
+
+        $userData['type'] = $typeNames[$data['type']];
+        $user = User::create($userData);
+
+        // إنشاء السجلات الإضافية حسب النوع
         switch ($data['type']) {
-            case 0:
-                // النوع 0: فقط إنشاء مستخدم
-                break;
             case 1:
-                // النوع 1: إنشاء مستخدم وسجل provider_product
-                Provider_Product::create([
-                    'user_id' => $user->id,
-                ]);
+                Provider_Product::create(['user_id' => $user->id]);
                 break;
             case 2:
-                // النوع 2: إنشاء مستخدم وسجل provider_service
-                Provider_Service::create([
-                    'user_id' => $user->id,
-                    // أضف الحقول الأخرى اللازمة لـ provider_service
-                ]);
+                Provider_Service::create(['user_id' => $user->id]);
                 break;
             case 3:
-                // النوع 3: إنشاء مستخدم وسجل driver
-                // بافتراض أنك لديك موديل Driver
-                Driver::create([
-                    'user_id' => $user->id,
-                    // أضف الحقول الأخرى اللازمة لـ driver
-                ]);
+                Driver::create(['user_id' => $user->id]);
                 break;
-            default:
-                throw new \InvalidArgumentException('نوع المستخدم غير صالح');
         }
 
         return $user;

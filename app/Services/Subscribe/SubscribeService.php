@@ -62,6 +62,9 @@ class SubscribeService
             return [
                 'id' => $subscription->id,
                 'provider__service_id' => $subscription->provider__service_id,
+                'provider_name' => $subscription->Provider_Service->user->name,
+                'provider_email' => $subscription->Provider_Service->user->email,
+                'provider_status' => $subscription->Provider_Service->status,
                 'web_sub_id' => $subscription->web_sub_id,
                 'start_date' => $subscription->start_date,
                 'end_date' => $subscription->end_date,

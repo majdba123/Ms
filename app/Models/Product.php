@@ -14,7 +14,7 @@ class Product extends Model
         'name',
         'description',
         'price',
-        'qunatity',
+        'quantity',
         'time_of_service',
         'category_id',
         'providerable_id',

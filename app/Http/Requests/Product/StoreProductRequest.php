@@ -18,17 +18,18 @@ class StoreProductRequest extends FormRequest
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
-            'qunatity' => 'required|integer|min:0',
             'category_id' => 'required|exists:categories,id',
             'images' => 'required|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
 
-        // Add time_of_service validation only for service providers
+        // Add validation rules based on the route
         if ($this->is('api/service_provider*')) {
             $rules['time_of_service'] = 'required|string|max:255';
+            $rules['quantity'] = 'nullable|integer|min:0';
         } else {
             $rules['time_of_service'] = 'nullable|string|max:255';
+            $rules['quantity'] = 'required|integer|min:0';
         }
 
         return $rules;
@@ -40,7 +41,7 @@ class StoreProductRequest extends FormRequest
             'name.required' => 'The name field is required.',
             'description.required' => 'The description field is required.',
             'price.required' => 'The price field is required.',
-            'qunatity.required' => 'The quantity field is required.',
+            'quantity.required' => 'The quantity field is required for product providers.',
             'time_of_service.required' => 'The time of service field is required for service providers.',
             'category_id.required' => 'The category ID field is required.',
             'images.required' => 'At least one image is required.',

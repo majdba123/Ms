@@ -65,7 +65,7 @@ class ProductService
         $user = Auth::user();
         $provider = $product->providerable;
 
-        if (!$provider || $provider->user_id !== $user->id) {
+        if (!$provider || $provider->user_id != $user->id) {
             return ['message' => 'Unauthorized', 'status' => 403];
         }
 

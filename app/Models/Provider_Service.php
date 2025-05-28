@@ -30,6 +30,11 @@ class Provider_Service extends Model
         return $this->hasMany(Subscribe::class);
     }
 
+    public function discount()
+    {
+        return $this->morphMany(Disccount::class, 'providerable1');
+    }
+
 
     public function reservations()
     {

@@ -27,7 +27,7 @@ class ProviderProductController extends Controller
         }
 
         $orders = $vendor->orders()
-            ->with(['order:id,status,created_at', 'product:id,name'])
+            ->with(['order:id,user_id,status,created_at', 'product:id,name'])
             ->get();
 
         return response()->json(['orders' => $orders], 200);
@@ -48,7 +48,7 @@ class ProviderProductController extends Controller
         // جلب الطلبات بناءً على الحالة
         $orders = $vendor->orders()
             ->where('status', $status)
-            ->with(['order:id,status,created_at', 'product:id,name'])
+            ->with(['order:id,user_id,status,created_at', 'product:id,name'])
             ->get();
 
         return response()->json(['orders' => $orders], 200);
@@ -80,7 +80,7 @@ class ProviderProductController extends Controller
 
         // جلب الطلبات المتعلقة بالمنتج
         $orders = $product->order_product()
-            ->with(['order:id,status,created_at'])
+            ->with(['order:id,,user_id,status,created_at'])
             ->get();
 
         return response()->json(['orders' => $orders], 200);

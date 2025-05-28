@@ -444,10 +444,28 @@ class AdminController extends Controller
         }
 
         $orders = $vendor->orders()
-            ->with(['order:id,status,created_at', 'product:id,name'])
+            ->with(['order:id,user_id,status,created_at', 'product:id,name'])
             ->get();
 
-        return response()->json(['orders' => $orders], 200);
+               $groupedOrders = $orders->groupBy('order_id')->map(function ($items) {
+            return [
+                'order_id' => $items->first()->order_id,
+                'order_details' => $items->first()->order,
+                'products' => $items->map(function ($item) {
+                    return [
+                        'order_product_id' => $item->id,
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product->name,
+                        'total_price' => $item->total_price,
+                        'quantity' => $item->quantity,
+                        'status' => $item->status,
+                        'created_at' => $item->created_at
+                    ];
+                })
+            ];
+        })->values();
+
+        return response()->json(['orders' => $groupedOrders], 200);
     }
 
     public function getVendorResr($vendor_id = null)

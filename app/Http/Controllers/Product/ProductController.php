@@ -218,7 +218,7 @@ class ProductController extends Controller
     {
         $perPage = $request->query('per_page', 5);
 
-        $query = Product::orderBy('created_at', 'desc');
+        $query = Product::orderBy('created_at', 'desc')->with('images');
 
         // Filter out products with quantity < 1 for user requests
         if ($request->is('api/user*')) {

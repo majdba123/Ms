@@ -28,4 +28,29 @@ class Order extends Model
     {
         return $this->hasMany(Coupon::class);
     }
+
+    public function coupons()
+    {
+        return $this->belongsToMany(Coupon::class, 'order__coupons')
+                    ->withPivot('discount_amount')
+                    ->withTimestamps();
+    }
+
+    public function applyCoupon(Coupon $coupon)
+    {
+        if (!$coupon->isActive()) {
+            return false;
+        }
+
+        $discountAmount = $this->total_price * ($coupon->discount_percent / 100);
+
+        $this->coupons()->attach($coupon, [
+            'discount_amount' => $discountAmount
+        ]);
+
+        $this->total_price -= $discountAmount;
+        $this->save();
+
+        return true;
+    }
 }

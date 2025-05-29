@@ -28,22 +28,10 @@ class Disccount extends Model
     }
 
 
-        public function isActive()
+    public function isActive()
     {
         // تحقق من أن حالة الخصم 'active' (حساس لحالة الأحرف)
-        if (strtolower($this->status) !== 'active') {
-            return false;
-        }
-
-        $now = now();
-
-        // تحقق من أن fromtime ليس في المستقبل
-        if ($this->fromtime && $now->lt($this->fromtime)) {
-            return false;
-        }
-
-        // تحقق من أن totime ليس في الماضي (إذا كان محدداً)
-        if ($this->totime && $now->gt($this->totime)) {
+        if ($this->status !== 'active') {
             return false;
         }
 

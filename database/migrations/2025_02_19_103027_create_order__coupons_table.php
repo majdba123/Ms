@@ -17,8 +17,8 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Order::class)->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignIdFor(Coupon::class)->constrained()->cascadeOnDelete()->cascadeOnUpdate();
-            $table->string('price_bef');
-            $table->string('price_aft');
+            $table->string('discount_amount');
+
             $table->timestamps();
         });
     }

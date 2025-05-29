@@ -37,9 +37,10 @@ class Product extends Model
     {
         return $this->hasMany(Imag_Product::class);
     }
-    public function Discount()
+    public function discount()
     {
-        return $this->hasone(Disccount::class);
+        return $this->hasOne(Disccount::class, 'product_id');
+        // يجب أن يكون اسم النموذج متطابقاً تماماً
     }
     public function Order_Product()
     {

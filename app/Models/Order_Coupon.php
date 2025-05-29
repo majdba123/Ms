@@ -11,8 +11,8 @@ class Order_Coupon extends Model
     protected $fillable = [
         'order_id',
         'coupon_id',
-        'price_bef',
-        'price_aft',
+        'discount_amount',
+
 
     ];
     public function order()

@@ -352,7 +352,7 @@ class ProductController extends Controller
             $query->where('price', $request->price);
         }
 
-        return $query->get();
+        return $query->with(['images', 'category', 'rating'])->get();
     }
 
     public function show($product_id)

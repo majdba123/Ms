@@ -26,8 +26,11 @@ class RegisterUser extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'nullable|string|email|max:255|unique:users', // Make email nullable
             'phone' => 'nullable|string|max:20|unique:users', // Add phone field
+            'national_id' => 'required|string|size:14|unique:users', // إضافة الرقم القومي
+
             'password' => 'required|string|min:8',
             'type' => 'required|integer|in:0,1,2,3',
+
         ];
     }
 
@@ -38,6 +41,9 @@ class RegisterUser extends FormRequest
             'email.email' => 'The email must be a valid email address.',
             'email.unique' => 'Email has already been taken.',
             'phone.unique' => 'Phone has already been taken.',
+                        'national_id.required' => 'National ID is required.', // رسالة الخطأ للرقم القومي
+            'national_id.size' => 'National ID must be exactly 14 digits.',
+            'national_id.unique' => 'National ID has already been taken.',
             'password.required' => 'Password is required.',
             'type.required' => 'User type is required.',
         ];

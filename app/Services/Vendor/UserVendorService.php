@@ -21,6 +21,9 @@ class UserVendorService
                 'id' => $user ? $user->id : $vendor->user->id,
                 'name' => $user ? $user->name : $vendor->user->name,
                 'email' => $user ? $user->email : $vendor->user->email,
+                'national_id' => $user ? $user->national_id : $vendor->user->national_id,
+
+
             ],
             'message' => $message,
         ];

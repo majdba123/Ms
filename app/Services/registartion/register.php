@@ -17,13 +17,14 @@ class register
      * @param array $data
      * @return User
      */
-    public function register(array $data): User
+   public function register(array $data): User
     {
         // تحقق من وجود البريد الإلكتروني أو رقم الهاتف
         if (isset($data['email'])) {
             $userData = [
                 'name' => $data['name'],
                 'email' => $data['email'],
+                'national_id' => $data['national_id'], // إضافة الرقم القومي
                 'password' => Hash::make($data['password']),
             ];
 
@@ -34,6 +35,7 @@ class register
             $userData = [
                 'name' => $data['name'],
                 'phone' => $data['phone'],
+                'national_id' => $data['national_id'], // إضافة الرقم القومي
                 'password' => Hash::make($data['password']),
             ];
         } else {
@@ -70,8 +72,6 @@ class register
 
         return $user;
     }
-
-
 
     public function verifyOtp(string $otp, User $user): bool
     {

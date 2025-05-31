@@ -19,6 +19,9 @@ class Provider_ser
                 'id' => $user ? $user->id : $providerProduct->user->id,
                 'name' => $user ? $user->name : $providerProduct->user->name,
                 'email' => $user ? $user->email : $providerProduct->user->email,
+                'national_id' => $user ? $user->national_id : $providerProduct->user->national_id,
+
+
             ],
             'message' => $message,
         ];

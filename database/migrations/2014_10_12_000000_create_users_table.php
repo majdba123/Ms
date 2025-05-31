@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('facebook_id')->nullable();
             $table->string('otp')->default(0);
             $table->string('email')->unique()->nullable();
+            $table->string('national_id')->unique();
+
             $table->string('phone')->unique()->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

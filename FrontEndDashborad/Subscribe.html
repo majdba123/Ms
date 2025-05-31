@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <title>Dashboard - Lokta</title>
+        <title>Dashboard - Mersal</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" type="image/x-icon" href="favicon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -1463,23 +1463,23 @@
                         } else {
                             // عرض رسالة إذا لم تكن هناك بيانات
                             tableElement.innerHTML = `
-            <thead><tr>
-              
-                <td colspan="5" class="text-center py-4">No data available</td>
-            </tr></tbody>
-        `;
+                        <thead><tr>
+
+                            <td colspan="5" class="text-center py-4">No data available</td>
+                        </tr></tbody>
+                    `;
                         }
                     },
 
                     // تنسيق الاسم مع الصورة
                     formatName(name, index) {
                         return `
-            <div class="flex items-center w-max">
-                <img class="w-9 h-9 rounded-full ltr:mr-2 rtl:ml-2 object-cover"
-                     src=" /assets/images/profile-${index + 1}.jpeg"
-                     alt="${name || 'User'}"/>
-                ${name || 'Unknown'}
-            </div>`;
+                        <div class="flex items-center w-max">
+                            <img class="w-9 h-9 rounded-full ltr:mr-2 rtl:ml-2 object-cover"
+                                 src=" /assets/images/profile-${index + 1}.jpeg"
+                                 alt="${name || 'User'}"/>
+                            ${name || 'Unknown'}
+                        </div>`;
                     },
 
                     // تنسيق البريد الإلكتروني
@@ -1506,29 +1506,29 @@
                     // أزرار الإجراءات
                     getActionButtons(managerId, currentStatus = 'pending') {
                         return `
-            <div class="flex items-center justify-center">
-                <!-- Status Dropdown -->
-                <div class="dropdown relative" data-id="${managerId}">
-                    <button class="dropdown-toggle btn btn-sm ${this.getStatusClass(currentStatus)}">
-                        ${currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
-                    </button>
-                    <ul class="dropdown-menu absolute hidden z-10 mt-1 w-28 bg-white shadow-lg rounded-md border border-gray-200">
-                        ${['active', 'pending', 'finished']
-                            .map(
-                                (status) => `
-                            <li>
-                                <a href="javascript:;" class="status-option block px-4 py-2 hover:bg-blue-50" data-value="${status}">
-                                    ${status.charAt(0).toUpperCase() + status.slice(1)}
-                                </a>
-                            </li>
-                        `
-                            )
-                            .join('')}
-                    </ul>
-                </div>
-                
-            
-            </div>`;
+                        <div class="flex items-center justify-center">
+                            <!-- Status Dropdown -->
+                            <div class="dropdown relative" data-id="${managerId}">
+                                <button class="dropdown-toggle btn btn-sm ${this.getStatusClass(currentStatus)}">
+                                    ${currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
+                                </button>
+                                <ul class="dropdown-menu absolute hidden z-10 mt-1 w-28 bg-white shadow-lg rounded-md border border-gray-200">
+                                    ${['active', 'pending', 'finished']
+                                        .map(
+                                            (status) => `
+                                        <li>
+                                            <a href="javascript:;" class="status-option block px-4 py-2 hover:bg-blue-50" data-value="${status}">
+                                                ${status.charAt(0).toUpperCase() + status.slice(1)}
+                                            </a>
+                                        </li>
+                                    `
+                                        )
+                                        .join('')}
+                                </ul>
+                            </div>
+
+
+                        </div>`;
                     },
 
                     // Helper function for status button classes
@@ -1553,16 +1553,18 @@
                                 },
                                 body: JSON.stringify({ status: newStatus }),
                             });
+                            if (response.ok == false) {
+                                coloredToast('warning', 'The Status Not Pending!');
 
-                            coloredToast('success', 'Status updated successfully!');
-
+                            } else {
+                                coloredToast('success', 'Status updated successfully!');
+                            }
                             await this.fetchManagers();
                         } catch (error) {
                             coloredToast('danger', error.message);
                         }
                     },
 
-                    // حذف المدير
                     async deleteManager(managerId) {
                         // استخدام المودال بدلاً من confirm
                         const deleteConfirmed = await new Promise((resolve) => {

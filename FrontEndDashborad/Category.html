@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <title>Dashboard - Lokta</title>
+        <title>Dashboard - Mersal</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" type="image/x-icon" href="favicon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -1549,7 +1549,6 @@
                             const formData = new FormData();
                             formData.append('name', Alpine.store('global').sharedData.fullname2);
                             formData.append('price', Alpine.store('global').sharedData.price);
-
                             const token = localStorage.getItem('authToken');
                             const response = await fetch(`${this.apiBaseUrl}/api/admin/categories/update/${managerId[0]}`, {
                                 method: 'POST',
@@ -1560,7 +1559,6 @@
                                 body: formData,
                             });
 
-                            if (!response.ok) throw new Error('Failed to Update Category');
                             coloredToast('success', 'Update Category Successful');
 
                             await this.fetchManagers();

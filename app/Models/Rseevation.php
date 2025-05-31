@@ -13,6 +13,13 @@ class Rseevation extends Model
         'user_id',
         'status',
         'product_id',
+        'original_price',
+        'product_discount_applied',
+        'product_discount_value',
+        'product_discount_type',
+        'coupon_applied',
+        'coupon_discount',
+        'coupon_code',
         'total_price'
     ];
     public function user()

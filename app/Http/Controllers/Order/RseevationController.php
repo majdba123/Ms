@@ -55,12 +55,12 @@ class RseevationController extends Controller
 
         if ($status === 'all') {
             $reservations = Rseevation::where('user_id', $user->id)
-                                        ->with('product')
+                                        ->with('product.images')
                                         ->get();
         } else {
             $reservations = Rseevation::where('user_id', $user->id)
                             ->where('status', $status)
-                            ->with('product')
+                            ->with('product.images')
                             ->get();
         }
 
@@ -75,7 +75,7 @@ class RseevationController extends Controller
         // جلب الحجز والتحقق من أن المستخدم هو صاحب الحجز
         $reservation = Rseevation::where('id', $reservation_id)
                       ->where('user_id', $user->id)
-                      ->with('product')
+                      ->with('product.images')
                       ->first();
 
         if (!$reservation) {

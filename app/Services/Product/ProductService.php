@@ -73,15 +73,77 @@ class ProductService
         return ['message' => 'Product deleted successfully', 'status' => 200];
     }
 
-   public function getProductsByType($providerType, $request = null, $perPage = 10)
+    public function formatProductResponse(Product $product): array
     {
-        $query = Product::with(['images', 'category'])
+        $discountInfo = null;
+
+        // Check if product has an active discount
+        if ($product->discount && $product->discount->isActive()) {
+            $discountInfo = [
+                'has_discount' => true,
+                'discount_value' => $product->discount->value,
+                'discount_type' => $product->discount->type,
+                'original_price' => $product->price,
+                'final_price' => $product->discount->calculateDiscountedPrice($product->price),
+                'discount_start_date' => $product->discount->fromtime,
+                'discount_end_date' => $product->discount->totime,
+            ];
+        } else {
+            $discountInfo = [
+                'has_discount' => false,
+                'original_price' => $product->price,
+                'final_price' => $product->price,
+            ];
+        }
+
+        return [
+            'id' => $product->id,
+            'name' => $product->name,
+            'description' => $product->description,
+            'price' => $product->price,
+            'category_id' => $product->category_id,
+            'providerable_type' => $product->providerable_type,
+            'providerable_id' => $product->providerable_id,
+            'quantity' => $product->quantity,
+            'time_of_service' => $product->time_of_service,
+            'created_at' => $product->created_at,
+            'updated_at' => $product->updated_at,
+            'images' => $product->images->map(function($image) {
+                return ['url' => $image->imag];
+            }),
+            'rating' => $this->formatRatingResponse($product->rating),
+            'discount_info' => $discountInfo,
+        ];
+    }
+
+    protected function formatRatingResponse($ratings)
+    {
+        if (!$ratings) return null;
+
+        return $ratings->map(function($rating) {
+            return [
+                'id' => $rating->id,
+                'num' => $rating->num,
+                'comment' => $rating->comment,
+                'created_at' => $rating->created_at,
+                'user' => [
+                    'id' => $rating->user->id ?? null,
+                    'name' => $rating->user->name ?? null,
+                    'image' => $rating->user->profile->image ?? null
+                ],
+                'answers' => $rating->answer_rating ?? []
+            ];
+        });
+    }
+
+    public function getProductsByType($providerType, $request = null, $perPage = 10)
+    {
+        $query = Product::with(['images', 'category', 'discount', 'rating'])
             ->orderBy('created_at', 'desc');
 
         if ($providerType == 0) {
             $query->where('providerable_type', 'App\\Models\\Provider_Product');
 
-            // For user requests, filter out products with quantity <= 0
             if ($request && $request->is('api/user*')) {
                 $query->where(function($q) {
                     $q->whereNull('quantity')
@@ -92,15 +154,23 @@ class ProductService
             $query->where('providerable_type', 'App\\Models\\Provider_Service');
         }
 
-        return $query->paginate($perPage);
+        $products = $query->paginate($perPage);
+
+        return [
+            'data' => $products->map(function($product) {
+                return $this->formatProductResponse($product);
+            }),
+            'current_page' => $products->currentPage(),
+            'per_page' => $products->perPage(),
+            'total' => $products->total(),
+        ];
     }
 
     public function getProductsByCategory($categoryId, $request = null, $perPage = 10)
     {
-        $query = Product::with(['images', 'category'])
+        $query = Product::with(['images', 'category', 'discount', 'rating'])
             ->where('category_id', $categoryId);
 
-        // For user requests, filter out products with quantity <= 0
         if ($request && $request->is('api/user*')) {
             $query->where(function($q) {
                 $q->where('providerable_type', 'App\\Models\\Provider_Service')
@@ -112,15 +182,19 @@ class ProductService
                         });
                 });
             });
-        } else {
-            $query->where(function($query) {
-                $query->where('providerable_type', 'App\\Models\\Provider_Service')
-                    ->orWhere('providerable_type', 'App\\Models\\Provider_Product');
-            });
         }
 
-        return $query->orderBy('created_at', 'desc')
-                    ->paginate($perPage);
+        $products = $query->orderBy('created_at', 'desc')
+                        ->paginate($perPage);
+
+        return [
+            'data' => $products->map(function($product) {
+                return $this->formatProductResponse($product);
+            }),
+            'current_page' => $products->currentPage(),
+            'per_page' => $products->perPage(),
+            'total' => $products->total(),
+        ];
     }
 
     public function getProductsByProviderProduct($id, $request = null, $perPage = 10)
@@ -132,10 +206,9 @@ class ProductService
         }
 
         $query = $provider->products()
-            ->with(['images', 'category'])
+            ->with(['images', 'category', 'discount', 'rating'])
             ->orderBy('created_at', 'desc');
 
-        // Apply quantity filter for user requests
         if (!$request || $request->is('api/user*')) {
             $query->where(function($q) {
                 $q->whereNull('quantity')
@@ -143,28 +216,48 @@ class ProductService
             });
         }
 
-        return $query->paginate($perPage);
+        $products = $query->paginate($perPage);
+
+        return [
+            'data' => $products->map(function($product) {
+                return $this->formatProductResponse($product);
+            }),
+            'current_page' => $products->currentPage(),
+            'per_page' => $products->perPage(),
+            'total' => $products->total(),
+        ];
     }
+
     public function getProductsByProviderService($id, $perPage = 10)
     {
-        $provider = Provider_Service::with(['products' => function($query) {
-            $query->with(['images', 'category'])
-                ->orderBy('created_at', 'desc');
-        }])->find($id);
+        $provider = Provider_Service::find($id);
 
         if (!$provider) {
             return null;
         }
 
-        return $provider->products()->paginate($perPage);
+        $products = $provider->products()
+            ->with(['images', 'category', 'discount', 'rating'])
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
+
+        return [
+            'data' => $products->map(function($product) {
+                return $this->formatProductResponse($product);
+            }),
+            'current_page' => $products->currentPage(),
+            'per_page' => $products->perPage(),
+            'total' => $products->total(),
+        ];
     }
 
-   public function getProductById($id, $request = null)
+    public function getProductById($id, $request = null)
     {
         $product = Product::with([
             'images',
             'category',
             'providerable',
+            'discount',
             'rating' => function($query) {
                 $query->with(['user.profile', 'answer_rating'])
                     ->orderBy('created_at', 'desc');
@@ -175,7 +268,6 @@ class ProductService
             return response()->json(['message' => 'Product not found'], 404);
         }
 
-        // For user requests, check if product is available
         if ($request && $request->is('api/user*') &&
             $product->providerable_type === 'App\\Models\\Provider_Product' &&
             $product->quantity !== null &&
@@ -183,23 +275,7 @@ class ProductService
             return response()->json(['message' => 'Product not available'], 404);
         }
 
-        $formattedProduct = $product->toArray();
-        $formattedProduct['rating'] = $product->rating->map(function($rating) {
-            return [
-                'id' => $rating->id,
-                'num' => $rating->num,
-                'comment' => $rating->comment,
-                'created_at' => $rating->created_at,
-                'user' => [
-                    'id' => $rating->user->id,
-                    'name' => $rating->user->name,
-                    'image' => $rating->user->profile->image ?? null
-                ],
-                'answers' => $rating->answer_rating
-            ];
-        });
-
-        return $formattedProduct;
+        return $this->formatProductResponse($product);
     }
 
     public function getProductRatings($productId, $perPage = 10)
@@ -209,42 +285,32 @@ class ProductService
             return response()->json(['message' => 'Product not found'], 404);
         }
 
-        // Check if it's a product provider with quantity <= 0
         if ($product->providerable_type === 'App\\Models\\Provider_Product' &&
             $product->quantity !== null &&
             $product->quantity <= 0) {
             return response()->json(['message' => 'Product not available'], 404);
         }
 
-        $rating = Rating::with(['user.profile', 'answer_rating'])
+        $ratings = Rating::with(['user.profile', 'answer_rating'])
             ->where('product_id', $productId)
             ->orderBy('created_at', 'desc')
-            ->paginate($perPage)
-            ->through(function($rating) {
-                return [
-                    'id' => $rating->id,
-                    'num' => $rating->num,
-                    'comment' => $rating->comment,
-                    'created_at' => $rating->created_at,
-                    'user' => [
-                        'id' => $rating->user->id,
-                        'name' => $rating->user->name,
-                        'image' => $rating->user->profile->image ?? null
-                    ],
-                    'answers' => $rating->answer_rating
-                ];
-            });
+            ->paginate($perPage);
 
-        if ($rating->isEmpty()) {
+        if ($ratings->isEmpty()) {
             return response()->json(['message' => 'No rating found for this product'], 404);
         }
 
-        return $rating;
+        return [
+            'data' => $this->formatRatingResponse($ratings),
+            'current_page' => $ratings->currentPage(),
+            'per_page' => $ratings->perPage(),
+            'total' => $ratings->total(),
+        ];
     }
 
     public function getLatestProducts($limit = 10, $isUserRequest = false)
     {
-        $query = Product::with(['images', 'category'])
+        $query = Product::with(['images', 'category', 'discount', 'rating'])
             ->orderBy('created_at', 'desc')
             ->limit($limit);
 
@@ -261,6 +327,8 @@ class ProductService
             });
         }
 
-        return $query->get();
+        return $query->get()->map(function($product) {
+            return $this->formatProductResponse($product);
+        });
     }
 }

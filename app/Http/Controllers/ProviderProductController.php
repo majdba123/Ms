@@ -18,41 +18,76 @@ class ProviderProductController extends Controller
     public function getVendorOrders($vendor_id = null)
     {
         if ($vendor_id) {
-            // إذا كان $vendor_id موجودًا، فهذا يعني أن الطلب من المسؤول
             $vendor = Provider_Product::findOrFail($vendor_id);
         } else {
-            // إذا لم يكن $vendor_id موجودًا، فهذا يعني أن الطلب من التاجر
             $user_id = Auth::user();
             $vendor = Provider_Product::findOrFail($user_id->Provider_Product->id);
         }
 
+        // الحصول على الطلبات مع العلاقات
         $orders = $vendor->orders()
-            ->with(['order:id,status,created_at', 'product:id,name'])
+            ->with(['order:id,user_id,status,created_at', 'product:id,name'])
             ->get();
 
-        return response()->json(['orders' => $orders], 200);
+        // تجميع العناصر حسب order_id
+        $groupedOrders = $orders->groupBy('order_id')->map(function ($items) {
+            return [
+                'order_id' => $items->first()->order_id,
+                'order_details' => $items->first()->order,
+                'products' => $items->map(function ($item) {
+                    return [
+                        'order_product_id' => $item->id,
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product->name,
+                        'total_price' => $item->total_price,
+                        'quantity' => $item->quantity,
+                        'status' => $item->status,
+                        'created_at' => $item->created_at
+                    ];
+                })
+            ];
+        })->values();
+
+        return response()->json(['orders' => $groupedOrders], 200);
     }
 
+public function getVendorOrdersByStatus(Request $request)
+{
+    $request->validate([
+        'status' => 'required|string|in:pending,complete,cancelled',
+    ]);
 
+    $status = $request->status;
+    $user_id = Auth::user();
+    $vendor = Provider_Product::findOrFail($user_id->Provider_Product->id);
 
-    public function getVendorOrdersByStatus(Request $request)
-    {
-        // التحقق من أن status موجود في الطلب
-        $request->validate([
-            'status' => 'required|string|in:pending,complete,cancelled',
-        ]);
+    // جلب الطلبات مع الفلترة حسب الحالة
+    $orders = $vendor->orders()
+        ->where('status', $status)
+        ->with(['order:id,user_id,status,created_at', 'product:id,name'])
+        ->get();
 
-        $status = $request->status;
-        $user_id=Auth::user();
-        $vendor=Provider_Product::findOrfail($user_id->Provider_Product->id);
-        // جلب الطلبات بناءً على الحالة
-        $orders = $vendor->orders()
-            ->where('status', $status)
-            ->with(['order:id,status,created_at', 'product:id,name'])
-            ->get();
+    // تجميع العناصر حسب order_id
+    $groupedOrders = $orders->groupBy('order_id')->map(function ($items) {
+        return [
+            'order_id' => $items->first()->order_id,
+            'order_details' => $items->first()->order,
+            'products' => $items->map(function ($item) {
+                return [
+                    'order_product_id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'product_name' => $item->product->name,
+                    'total_price' => $item->total_price,
+                    'quantity' => $item->quantity,
+                    'status' => $item->status,
+                    'created_at' => $item->created_at
+                ];
+            })
+        ];
+    })->values();
 
-        return response()->json(['orders' => $orders], 200);
-    }
+    return response()->json(['orders' => $groupedOrders], 200);
+}
 
     public function getOrdersByProductId($id)
     {
@@ -80,10 +115,30 @@ class ProviderProductController extends Controller
 
         // جلب الطلبات المتعلقة بالمنتج
         $orders = $product->order_product()
-            ->with(['order:id,status,created_at'])
+            ->with(['order:id,,user_id,status,created_at'])
             ->get();
 
-        return response()->json(['orders' => $orders], 200);
+
+        $groupedOrders = $orders->groupBy('order_id')->map(function ($items) {
+        return [
+            'order_id' => $items->first()->order_id,
+            'order_details' => $items->first()->order,
+            'products' => $items->map(function ($item) {
+                return [
+                    'order_product_id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'product_name' => $item->product->name,
+                    'total_price' => $item->total_price,
+                    'quantity' => $item->quantity,
+                    'status' => $item->status,
+                    'created_at' => $item->created_at
+                ];
+            })
+        ];
+    })->values();
+
+    return response()->json(['orders' => $groupedOrders], 200);
+
     }
 
 

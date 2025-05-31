@@ -14,10 +14,11 @@ return new class extends Migration
     {
         Schema::create('disccounts', function (Blueprint $table) {
             $table->id();
-            $table->string('time');
             $table->string('status')->default('active');
             $table->foreignIdFor(Product::class)->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('value');
+            $table->string('fromtime'); // Start time of the discount
+            $table->string('totime'); // End time of the discount
             $table->morphs('providerable1');
 
             $table->timestamps();

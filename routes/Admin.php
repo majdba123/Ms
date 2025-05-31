@@ -9,6 +9,8 @@ use App\Http\Controllers\Product\RatingController;
 use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\Product\ProductController;
+use App\Http\Controllers\CouponController;
+
 use App\Services\Driver\DriverServic;
 
 /*
@@ -141,6 +143,15 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('/all_rating/{product_id}', [ProductController::class, 'getProductRatings']);
     });
 
+
+    Route::prefix('coupons')->group(function () {
+        Route::get('index/', [CouponController::class, 'index']);
+        Route::post('store/', [CouponController::class, 'store']);
+        Route::get('show/{coupon}', [CouponController::class, 'show']);
+        Route::put('update/{coupon}', [CouponController::class, 'update']);
+        Route::patch('update_status/{coupon}', [CouponController::class, 'update_status']);
+        Route::delete('delete/{coupon}', [CouponController::class, 'destroy']);
+    });
 
 
 

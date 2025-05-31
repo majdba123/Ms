@@ -69,21 +69,21 @@ class ProductController extends Controller
             $product = $this->productService->createProduct($request->validated(), $providerType);
 
             // Process images
-            $imageUrls = [];
-            foreach ($request->images as $imageFile) {
-                $imageName = Str::random(32).'.'.$imageFile->getClientOriginalExtension();
-                $imagePath = 'products_images/'.$imageName;
+            $uploadedImages = [];
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $imageFile) {
+                    $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
+                    $imagePath = 'products/' . $imageName;
+                    Storage::disk('public')->put($imagePath, file_get_contents($imageFile));
 
-                // Store image
-                Storage::disk('public')->put($imagePath, file_get_contents($imageFile));
+                    // Create image record
+                    $image = Imag_Product::create([
+                        'product_id' => $product->id,
+                        'imag' => $imagePath ? asset('storage/' . $imagePath) : null,
+                    ]);
 
-                // Create image record
-                $image = Imag_Product::create([
-                    'product_id' => $product->id,
-                    'imag' => asset('storage/products_images/'.$imageName),
-                ]);
-
-                $imageUrls[] = $image->imag;
+                    $uploadedImages[] = $image->imag;
+                }
             }
 
             // Commit transaction if everything is successful
@@ -92,20 +92,18 @@ class ProductController extends Controller
             return response()->json([
                 'message' => 'Product created successfully',
                 'product' => $product,
-                'image_urls' => $imageUrls
+                'image_urls' => $uploadedImages
             ], 201);
 
         } catch (\Exception $e) {
-            // Rollback transaction on error
             DB::rollBack();
-
+            Log::error('Product creation failed: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Product creation failed',
                 'error' => $e->getMessage()
             ], 500);
         }
     }
-
 
 
         public function update(UpdateProductRequest $request, $id): JsonResponse
@@ -125,7 +123,7 @@ class ProductController extends Controller
                 $providerId = Auth::user()->Provider_service->id;
 
                 // Verify ownership
-                if ($product->providerable_id !== $providerId || $product->providerable_type !== 'App\\Models\\Provider_Service') {
+                if ($product->providerable_id != $providerId || $product->providerable_type != 'App\\Models\\Provider_Service') {
                     return response()->json(['message' => 'Unauthorized'], 403);
                 }
 
@@ -145,7 +143,7 @@ class ProductController extends Controller
                 $providerId = Auth::user()->Provider_Product->id;
 
                 // Verify ownership
-                if ($product->providerable_id !== $providerId || $product->providerable_type !== 'App\\Models\\Provider_Product') {
+                if ($product->providerable_id != $providerId || $product->providerable_type != 'App\\Models\\Provider_Product') {
                     return response()->json(['message' => 'Unauthorized'], 403);
                 }
 
@@ -218,51 +216,59 @@ class ProductController extends Controller
 
     public function latest_product(Request $request): JsonResponse
     {
-        // عدد المنتجات في كل صفحة
         $perPage = $request->query('per_page', 5);
-        // جلب أحدث المنتجات مع pagination
-        $products = Product::orderBy('created_at', 'desc')->paginate($perPage);
-        // تخصيص استجابة الـ pagination مع البيانات المطلوبة
-        $response = $products->toArray();
-        return response()->json($response);
+
+        $query = Product::orderBy('created_at', 'desc')->with('images');
+
+        // Filter out products with quantity < 1 for user requests
+        if ($request->is('api/user*')) {
+            $query->where(function($q) {
+                $q->where('providerable_type', 'App\\Models\\Provider_Service')
+                ->orWhere(function($sub) {
+                    $sub->where('providerable_type', 'App\\Models\\Provider_Product')
+                        ->where(function($inner) {
+                            $inner->whereNull('quantity')
+                                    ->orWhere('quantity', '>', 0);
+                        });
+                });
+            });
+        }
+
+        $products = $query->paginate($perPage);
+
+        return response()->json($products->toArray());
     }
-
-
 
     public function Get_By_Type(Request $request): JsonResponse
     {
-        // الحصول على نوع المزود من معاملات الاستعلام (query parameters)
         $providerType = $request->query('type');
-        // التحقق من أن type قد تم تمريره كمعامل استعلام وأن قيمته إما 0 أو 1
+
         if ($providerType === null || !in_array($providerType, [0, 1])) {
             return response()->json(['message' => 'Invalid provider type. Type must be 0 or 1.'], 422);
         }
-        // جلب المنتجات بناءً على نوع المزود باستخدام الخدمة
-        $products = $this->productService->getProductsByType($providerType);
+
+        // Pass the request to service to check if it's from user
+        $products = $this->productService->getProductsByType($providerType, $request);
 
         return response()->json($products);
     }
 
-
-
-    public function Get_By_Category($id): JsonResponse
+   public function Get_By_Category($id, Request $request): JsonResponse
     {
-        // التحقق من وجود الفئة
         $category = Category::find($id);
         if (!$category) {
             return response()->json(['message' => 'Category not found.'], 404);
         }
 
-        // جلب المنتجات بناءً على الفئة باستخدام الخدمة
-        $products = $this->productService->getProductsByCategory($id);
+        // Pass the request to service to check if it's from user
+        $products = $this->productService->getProductsByCategory($id, $request);
         return response()->json($products);
     }
 
 
-
-    public function Get_By_Product($id)
+    public function Get_By_Product(Request $request, $id)
     {
-        $products = $this->productService->getProductsByProviderProduct($id);
+        $products = $this->productService->getProductsByProviderProduct($id, $request);
 
         if (is_null($products)) {
             return response()->json(['message' => 'Provider not found'], 404);
@@ -270,7 +276,6 @@ class ProductController extends Controller
 
         return response()->json($products);
     }
-
 
     public function Get_By_Service($id)
     {
@@ -284,9 +289,10 @@ class ProductController extends Controller
     }
 
 
-    public function getProductById($id)
+    public function getProductById($id, Request $request)
     {
-        $product = $this->productService->getProductById($id);
+        // Pass the request to service to check if it's from user
+        $product = $this->productService->getProductById($id, $request);
 
         if ($product instanceof \Illuminate\Http\JsonResponse) {
             return $product;
@@ -294,7 +300,6 @@ class ProductController extends Controller
 
         return response()->json($product, 200);
     }
-
 
     public function getProductRatings($id)
     {
@@ -347,7 +352,7 @@ class ProductController extends Controller
             $query->where('price', $request->price);
         }
 
-        return $query->get();
+        return $query->with(['images', 'category', 'rating'])->get();
     }
 
     public function show($product_id)

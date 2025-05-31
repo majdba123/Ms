@@ -14,76 +14,88 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 class ProviderServiceController extends Controller
 {
-     public function getVendorOrders($vendor_id = null)
+    public function getVendorOrders($vendor_id = null)
     {
         if ($vendor_id) {
-            // إذا كان $vendor_id موجودًا، فهذا يعني أن الطلب من المسؤول
             $vendor = Provider_Service::findOrFail($vendor_id);
         } else {
-            // إذا لم يكن $vendor_id موجودًا، فهذا يعني أن الطلب من التاجر
             $user_id = Auth::user();
             $vendor = Provider_Service::findOrFail($user_id->Provider_service->id);
         }
 
         $orders = $vendor->reservations()
-            ->with(['product', 'user'])
-            ->get();
+            ->with(['product.images', 'user'])
+            ->paginate(10); // إضافة Pagination هنا
 
-        return response()->json(['reservation' => $orders], 200);
+        return response()->json([
+            'reservation' => $orders->items(),
+            'pagination' => [
+                'current_page' => $orders->currentPage(),
+                'per_page' => $orders->perPage(),
+                'total' => $orders->total(),
+                'last_page' => $orders->lastPage(),
+            ]
+        ], 200);
     }
-
-
 
     public function getVendorOrdersByStatus(Request $request)
     {
-        // التحقق من أن status موجود في الطلب
         $request->validate([
             'status' => 'required|string|in:pending,complete,cancelled',
         ]);
 
         $status = $request->status;
-        $user_id=Auth::user();
-        $vendor=Provider_Service::findOrfail($user_id->Provider_service->id);
-        // جلب الطلبات بناءً على الحالة
+        $user_id = Auth::user();
+        $vendor = Provider_Service::findOrfail($user_id->Provider_service->id);
+
         $orders = $vendor->reservations()
             ->where('status', $status)
-            ->with(['product', 'user'])
-            ->get();
+            ->with(['product.images', 'user'])
+            ->paginate(10); // إضافة Pagination هنا
 
-        return response()->json(['orders' => $orders], 200);
+        return response()->json([
+            'orders' => $orders->items(),
+            'pagination' => [
+                'current_page' => $orders->currentPage(),
+                'per_page' => $orders->perPage(),
+                'total' => $orders->total(),
+                'last_page' => $orders->lastPage(),
+            ]
+        ], 200);
     }
 
     public function getOrdersByProductId($id)
     {
-        // جلب المستخدم الحالي
         $user = Auth::user();
 
-        // التحقق من وجود التاجر المرتبط بالمستخدم
         if (!$user || !$user->Provider_service) {
             return response()->json(['error' => 'Vendor not found for the current user.'], 403);
         }
 
-        // جلب التاجر المرتبط
-// جلب مزود المنتجات المرتبط بالمستخدم
         $providerProduct = $user->Provider_service;
 
-        // البحث عن المنتج بناءً على ID المنتج ومعرف مزود المنتجات
         $product = Product::where('id', $id)
             ->where('providerable_id', $providerProduct->id)
-            ->where('providerable_type', Provider_Service::class) // التأكد من أن المزود هو مزود منتجات وليس خدمة
+            ->where('providerable_type', Provider_Service::class)
             ->first();
 
         if (!$product) {
             return response()->json(['error' => 'Product not found or does not belong to this provider.'], 404);
         }
 
-        // جلب الطلبات المتعلقة بالمنتج
         $orders = $product->reservation()
-                    ->with(['product', 'user'])
+            ->with(['product.images', 'user'])
+            ->paginate(10); // إضافة Pagination هنا
 
-            ->get();
-
-        return response()->json(['orders' => $orders], 200);
+        return response()->json([
+            'orders' => $orders->items(),
+            'pagination' => [
+                'current_page' => $orders->currentPage(),
+                'per_page' => $orders->perPage(),
+                'total' => $orders->total(),
+                'last_page' => $orders->lastPage(),
+            ]
+        ], 200);
     }
 
 

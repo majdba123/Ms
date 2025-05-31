@@ -9,6 +9,7 @@ use App\Http\Controllers\Vendor\AnswerRatingController;
 use App\Http\Controllers\ProviderProductController;
 use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\DisccountController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,6 +61,15 @@ Route::middleware(['auth:sanctum' , 'product_provider'])->group(function () {
     Route::prefix('profile')->group(function () {
         Route::post('/update', [ProviderProductController::class, 'updateProfile']);
         Route::get('/my_info', [ProviderProductController::class, 'getProfile']);
+    });
+
+
+
+    Route::prefix('discount')->group(function () {
+        Route::post('/store/{product_id}', [DisccountController::class, 'store']); // POST /products/1/discount
+        Route::put('/update/{product_id}', [DisccountController::class, 'update']); // POST /products/1/discount
+        Route::post('/changeStatus/{product_id}', [DisccountController::class, 'changeStatus']); // تغيير الحالة
+        Route::delete('/destroy/{product_id}', [DisccountController::class, 'destroy']); // حذف الخصم
     });
 
 

@@ -11,7 +11,8 @@ class Disccount extends Model
     protected $fillable = [
         'product_id',
         'status',
-        'time',
+        'fromtime',
+        'totime',
         'value',
         'providerable1_id',
         'providerable1_type'
@@ -24,5 +25,28 @@ class Disccount extends Model
     public function providerable1()
     {
         return $this->morphTo();
+    }
+
+
+    public function isActive()
+    {
+        // تحقق من أن حالة الخصم 'active' (حساس لحالة الأحرف)
+        if ($this->status !== 'active') {
+            return false;
+        }
+
+        return true;
+    }
+    public function calculateDiscountedPrice($originalPrice)
+    {
+        if (!$this->isActive()) {
+            return $originalPrice;
+        }
+
+        $discountAmount = $originalPrice * ($this->value / 100);
+        $finalPrice = $originalPrice - $discountAmount;
+
+        // التأكد من أن السعر النهائي ليس أقل من الصفر
+        return max($finalPrice, 0);
     }
 }

@@ -22,6 +22,7 @@ class UserVendorService
                 'name' => $user ? $user->name : $vendor->user->name,
                 'email' => $user ? $user->email : $vendor->user->email,
                 'national_id' => $user ? $user->national_id : $vendor->user->national_id,
+                'image_national_id' => $user ? $user->image_path : $vendor->user->image_path,
 
 
             ],

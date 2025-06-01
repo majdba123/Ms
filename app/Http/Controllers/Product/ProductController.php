@@ -28,7 +28,7 @@ class ProductController extends Controller
         $this->productService = $productService;
     }
 
-    public function store(StoreProductRequest $request): JsonResponse
+   /* public function store(StoreProductRequest $request): JsonResponse
     {
         DB::beginTransaction();
 
@@ -89,6 +89,84 @@ class ProductController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }*/
+
+    public function store(StoreProductRequest $request): JsonResponse
+    {
+        DB::beginTransaction();
+
+        try {
+            // تحديد نوع البروفايدر ورقمه
+                   if ($request->is('api/admin*')) {
+            // إذا كان المستخدم أدمن، نستخدم البيانات المرسلة في الـ request
+            $providerType = $request->provider_type;
+            $providerId = $request->provider_id;
+        } else {
+            // إذا كان المستخدم تاجراً، نحدد النوع بناءً على مسار الطلب
+            if ($request->is('api/service_provider*')) {
+                $providerType = 1;
+                $providerId = Auth::user()->Provider_service->id;
+            } else {
+                $providerType = 0;
+                $providerId = Auth::user()->Provider_Product->id;
+            }
+        }
+
+
+            // التحقق من الاشتراك النشط (إذا كان الطلب ليس من الأدمن)
+            if (!$request->is('api/admin*') && $providerType == 1) {
+                if (!checkActiveSubscription::checkActive($providerId)) {
+                    return response()->json(['message' => 'Provider does not have an active subscription'], 403);
+                }
+            }
+
+            // التحقق من نوع الفئة
+            $category = Category::find($request->category_id);
+            if ($category->type != $providerType) {
+                $typeName = $providerType == 1 ? 'service providers' : 'product providers';
+                return response()->json(['message' => "The category must be of type $providerType for $typeName"], 422);
+            }
+
+            // إنشاء المنتج
+            $productData = $request->validated();
+            $productData['provider_type'] = $providerType;
+            $productData['provider_id'] = $providerId;
+
+            $product = $this->productService->createProduct($productData, $providerType);
+
+            // رفع الصور
+            $uploadedImages = [];
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $imageFile) {
+                    $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
+                    $imagePath = 'products/' . $imageName;
+                    Storage::disk('public')->put($imagePath, file_get_contents($imageFile));
+
+                    $image = Imag_Product::create([
+                        'product_id' => $product->id,
+                        'imag' => $imagePath ? asset('storage/' . $imagePath) : null,
+                    ]);
+
+                    $uploadedImages[] = $image->imag;
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Product created successfully',
+                'product' => $this->productService->formatProductResponse($product),
+                'image_urls' => $uploadedImages
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Product creation failed: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Product creation failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function update(UpdateProductRequest $request, $id): JsonResponse
@@ -96,42 +174,45 @@ class ProductController extends Controller
         DB::beginTransaction();
 
         try {
-            $providerType = $request->is('api/service_provider*') ? 1 : 0;
             $product = Product::find($id);
 
             if (!$product) {
                 return response()->json(['message' => 'Product not found'], 404);
             }
 
-            if ($providerType === 1) {
-                $providerId = Auth::user()->Provider_service->id;
+            // إذا كان المستخدم أدمن، نتخطى التحقق من الملكية
+            if (!$request->is('api/admin*')) {
+                $providerType = $request->is('api/service_provider*') ? 1 : 0;
 
-                if ($product->providerable_id != $providerId || $product->providerable_type != 'App\\Models\\Provider_Service') {
-                    return response()->json(['message' => 'Unauthorized'], 403);
-                }
+                if ($providerType === 1) {
+                    $providerId = Auth::user()->Provider_service->id;
 
-                if (!checkActiveSubscription::checkActive($providerId)) {
-                    return response()->json(['message' => 'Provider does not have an active subscription'], 403);
-                }
+                    if ($product->providerable_id != $providerId || $product->providerable_type != 'App\\Models\\Provider_Service') {
+                        return response()->json(['message' => 'Unauthorized'], 403);
+                    }
 
-                if ($request->has('category_id')) {
-                    $category = Category::find($request->category_id);
-                    if ($category->type != 1) {
-                        return response()->json(['message' => 'The category must be of type 1 for service providers'], 422);
+                    if (!checkActiveSubscription::checkActive($providerId)) {
+                        return response()->json(['message' => 'Provider does not have an active subscription'], 403);
+                    }
+                } else {
+                    $providerId = Auth::user()->Provider_Product->id;
+
+                    if ($product->providerable_id != $providerId || $product->providerable_type != 'App\\Models\\Provider_Product') {
+                        return response()->json(['message' => 'Unauthorized'], 403);
                     }
                 }
-            } else {
-                $providerId = Auth::user()->Provider_Product->id;
+            }
 
-                if ($product->providerable_id != $providerId || $product->providerable_type != 'App\\Models\\Provider_Product') {
-                    return response()->json(['message' => 'Unauthorized'], 403);
-                }
+            // التحقق من نوع الفئة إذا تم إرسال category_id
+            if ($request->has('category_id')) {
+                $category = Category::find($request->category_id);
+                $expectedType = $request->is('api/admin*')
+                    ? ($product->providerable_type == 'App\\Models\\Provider_Service' ? 1 : 0)
+                    : ($request->is('api/service_provider*') ? 1 : 0);
 
-                if ($request->has('category_id')) {
-                    $category = Category::find($request->category_id);
-                    if ($category->type != 0) {
-                        return response()->json(['message' => 'The category must be of type 0 for product providers'], 422);
-                    }
+                if ($category->type != $expectedType) {
+                    $typeName = $expectedType == 1 ? 'service providers' : 'product providers';
+                    return response()->json(['message' => "The category must be of type $expectedType for $typeName"], 422);
                 }
             }
 
@@ -178,7 +259,6 @@ class ProductController extends Controller
             ], 500);
         }
     }
-
     public function latest_product(Request $request): JsonResponse
     {
         $products = $this->productService->getLatestProducts($request->query('per_page', 5), $request->is('api/user*'));

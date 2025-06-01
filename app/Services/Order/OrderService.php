@@ -139,6 +139,58 @@ class OrderService
         }
     }
 
+public function cancelOrder($orderId)
+{
+    DB::beginTransaction();
+
+    try {
+        $userId = Auth::id();
+
+        // البحث عن الطلب مع التحقق من ملكية المستخدم له
+        $order = Order::where('id', $orderId)
+                    ->where('user_id', $userId)
+                    ->with(['Order_Product.product']) // استخدام الاسم الصحيح للعلاقة
+                    ->first();
+
+        if (!$order) {
+            throw new \Exception('Order not found or you are not authorized to cancel this order');
+        }
+
+        if ($order->status === 'cancelled') {
+            throw new \Exception('Order is already cancelled');
+        }
+
+        // تحديث حالة الطلب
+        $order->update(['status' => 'cancelled']);
+
+        // إرجاع الكميات للمنتجات وتحديث حالة منتجات الطلب
+        foreach ($order->Order_Product as $orderProduct) { // استخدام Order_Product بدلاً من products
+            // تحديث حالة منتج الطلب
+            $orderProduct->update(['status' => 'cancelled']);
+
+            // إرجاع الكمية للمنتج الأصلي إذا كان له كمية
+            if ($orderProduct->product->quantity !== null) {
+                $orderProduct->product->increment('quantity', $orderProduct->quantity);
+            }
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order has been cancelled successfully',
+            'order_id' => $order->id,
+            'new_status' => 'cancelled'
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to cancel order: ' . $e->getMessage(),
+        ], 500);
+    }
+}
     public function getOrdersByPriceRange($minPrice, $maxPrice)
     {
         $orders = Order::whereBetween('total_price', [$minPrice, $maxPrice])

@@ -18,6 +18,9 @@ class DriverServic
                 'id' => $user ? $user->id : $driver->user->id,
                 'name' => $user ? $user->name : $driver->user->name,
                 'email' => $user ? $user->email : $driver->user->email,
+                'image_national_id' => $user ? $user->image_path : $driver->user->image_path,
+                'national_id' => $user ? $user->national_id : $driver->user->national_id,
+
             ],
             'message' => $message,
         ];

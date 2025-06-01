@@ -20,6 +20,7 @@ class Provider_ser
                 'name' => $user ? $user->name : $providerProduct->user->name,
                 'email' => $user ? $user->email : $providerProduct->user->email,
                 'national_id' => $user ? $user->national_id : $providerProduct->user->national_id,
+                'image_national_id' => $user ? $user->image_path : $providerProduct->user->image_path,
 
 
             ],

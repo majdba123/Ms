@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('provider__services', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete()->cascadeOnUpdate();
-            $table->string('status')->default('active');
+            $table->string('status')->default('pending');
             $table->string('lang')->nullable();
             $table->string('lat')->nullable();
             $table->timestamps();

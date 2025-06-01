@@ -25,6 +25,13 @@ class OrderController extends Controller
         return $this->orderService->createOrder($request->validated());
     }
 
+
+    public function cancelOrder($order_id)
+    {
+        return $this->orderService->cancelOrder($order_id);
+    }
+
+
     public function getUserOrders(Request $request)
     {
         $validator = Validator::make($request->all(), [

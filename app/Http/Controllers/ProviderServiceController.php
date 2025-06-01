@@ -126,6 +126,8 @@ public function getProfile(): JsonResponse
                     'email' => $user->email ?? 'N/A',
                     'phone' => $user->phone ?? 'N/A',
                     'national_id' => $user->national_id ?? 'N/A', // إضافة الرقم القومي
+                    'image_national_id' => $user->image_path ?? 'N/A', // إضافة الرقم القومي هنا
+
                     // أي معلومات إضافية أخرى من نموذج User
                 ],
                 'profile' => [

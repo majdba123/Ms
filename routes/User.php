@@ -46,6 +46,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 
     Route::post('/orders/store', [OrderController::class, 'createOrder']);
+        Route::post('/orders/cancelled/{order_id}', [OrderController::class, 'cancelOrder']);
+
     Route::post('/reservation/store', [RseevationController::class, 'createOrder']);
     Route::get('/orders/ByStatus', [OrderController::class, 'getUserOrders']);
     Route::get('/orders/get_product/{order_id}', [OrderController::class, 'getProductOrder']);

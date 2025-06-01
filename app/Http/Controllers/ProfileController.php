@@ -99,7 +99,6 @@ public function getUserInfo()
             'name' => $user->name ?? 'N/A',
             'email' => $user->email ?? 'N/A',
             'phone' => $user->phone ?? 'N/A',
-            'national_id' => $user->national_id ?? 'N/A', // إضافة الرقم القومي
             // أي معلومات إضافية أخرى من نموذج User
         ],
         'profile' => [

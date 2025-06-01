@@ -22,7 +22,7 @@ class User extends Authenticatable
         'google_id',
         'facebook_id',
         'national_id', // إضافة الرقم القومي
-
+        'image_path',
         'phone',
         'email',
         'otp',

@@ -89,7 +89,7 @@ class DashboardController extends Controller
     {
 
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:active,refuse'
+            'status' => 'required|in:active,refuse,inactive'
         ], [
             'status.required' => 'The status field is required.',
             'status.in' => 'The status must be one of the following: pending, active, finished.'

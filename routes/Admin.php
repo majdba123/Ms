@@ -141,6 +141,9 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::post('/product_by_product_provider/{id}', [ProductController::class, 'Get_By_Product']);
         Route::get('/show/{id}', [ProductController::class, 'getProductById']);
         Route::get('/all_rating/{product_id}', [ProductController::class, 'getProductRatings']);
+
+        Route::post('/store', [ProductController::class, 'store']);
+        Route::post('/update/{product_id}', [ProductController::class, 'update']);
     });
 
 

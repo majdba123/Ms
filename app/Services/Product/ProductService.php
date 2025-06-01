@@ -11,27 +11,27 @@ use Illuminate\Support\Facades\Auth;
 
 class ProductService
 {
-    public function createProduct(array $data, $providerType): Product
-    {
-        $providerTypeClass = $providerType === 1
-            ? 'App\\Models\\Provider_Service'
-            : 'App\\Models\\Provider_Product';
-
-        $providerId = $providerType === 1
-            ? Auth::user()->Provider_service->id
-            : Auth::user()->Provider_Product->id;
-
-        return Product::create([
-            'name' => $data['name'],
-            'description' => $data['description'],
-            'price' => $data['price'],
-            'quantity' => $providerType === 1 ? null : ($data['quantity'] ?? null),
-            'time_of_service' => $providerType === 1 ? ($data['time_of_service'] ?? null) : null,
-            'category_id' => $data['category_id'],
-            'providerable_id' => $providerId,
-            'providerable_type' => $providerTypeClass,
-        ]);
+public function createProduct(array $data, $providerType = null): Product
+{
+    if ($providerType === null) {
+        throw new \InvalidArgumentException('Provider type must be specified');
     }
+
+    $providerTypeClass = $providerType == 1
+        ? 'App\\Models\\Provider_Service'
+        : 'App\\Models\\Provider_Product';
+
+    return Product::create([
+        'name' => $data['name'],
+        'description' => $data['description'],
+        'price' => $data['price'],
+        'quantity' => $providerType == 1 ? null : ($data['quantity'] ?? null),
+        'time_of_service' => $providerType == 1 ? ($data['time_of_service'] ?? null) : null,
+        'category_id' => $data['category_id'],
+        'providerable_id' => $data['provider_id'],
+        'providerable_type' => $providerTypeClass,
+    ]);
+}
 
     public function updateProduct(array $data, Product $product): Product
     {

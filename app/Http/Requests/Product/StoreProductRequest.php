@@ -23,8 +23,25 @@ class StoreProductRequest extends FormRequest
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
 
-        // Add validation rules based on the route
-        if ($this->is('api/service_provider*')) {
+        // إذا كان المستخدم أدمن وأرسل provider_id و provider_type
+        if ($this->is('api/admin*')) {
+            $rules['provider_id'] = [
+                'required',
+                'integer',
+                function ($attribute, $value, $fail) {
+                    if ($this->provider_type == 1 && !\App\Models\Provider_Service::where('id', $value)->exists()) {
+                        $fail('The selected provider does not exist or is not a service provider.');
+                    }
+                    if ($this->provider_type == 0 && !\App\Models\Provider_Product::where('id', $value)->exists()) {
+                        $fail('The selected provider does not exist or is not a product provider.');
+                    }
+                }
+            ];
+            $rules['provider_type'] = 'required|in:0,1';
+        }
+
+        // Add validation rules based on the route or provider_type
+        if ($this->is('api/service_provider*') || (isset($this->provider_type) && $this->provider_type == 1)) {
             $rules['time_of_service'] = 'required|string|max:255';
             $rules['quantity'] = 'nullable|integer|min:0';
         } else {
@@ -48,6 +65,9 @@ class StoreProductRequest extends FormRequest
             'images.*.image' => 'Each file must be an image.',
             'images.*.mimes' => 'Each image must be of type jpeg, png, jpg, or gif.',
             'images.*.max' => 'Each image must not exceed 2048 kilobytes.',
+            'provider_id.required' => 'Provider ID is required for admin users.',
+            'provider_type.required' => 'Provider type is required for admin users.',
+            'provider_type.in' => 'Provider type must be 0 (product) or 1 (service).',
         ];
     }
 

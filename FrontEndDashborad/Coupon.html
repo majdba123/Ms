@@ -1173,13 +1173,10 @@
                                 <a href="javascript:;" class="text-primary hover:underline">Dashboard</a>
                             </li>
                             <li class="before:content-['/'] ltr:before:mr-1 rtl:before:ml-1">
-                                <span>Category & Subscribe </span>
+                                <span>Coupon </span>
                             </li>
                             <li class="before:content-['/'] ltr:before:mr-1 rtl:before:ml-1">
-                                <span>Subscribe </span>
-                            </li>
-                            <li class="before:content-['/'] ltr:before:mr-1 rtl:before:ml-1">
-                                <span>Web Subscribe </span>
+                                <span>Coupon </span>
                             </li>
                         </ul>
 
@@ -1187,14 +1184,21 @@
                             <div class="mb-6 grid gap-6 xl:grid-cols-1">
                                 <div class="panel h-full">
                                     <div class="mb-5 flex items-center">
-                                        <h5 class="text-lg font-semibold dark:text-white-light">Add Web Subscribe</h5>
+                                        <h5 class="text-lg font-semibold dark:text-white-light">Add Coupon</h5>
                                     </div>
                                     <div class="overflow-hidden">
                                         <!-- form grid -->
                                         <form x-data="Add_Merchans" @submit.prevent="Add_Merchans">
                                             <div class="grid grid-cols-1 justify-between gap-5 sm:flex">
-                                                <input type="text" placeholder="Enter Time" class="form-input" x-model="time" required />
-                                                <input type="text" placeholder="Enter Price" class="form-input" x-model="price" required />
+                                                <input type="text" placeholder="Enter Code" class="form-input" x-model="code" required />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Enter Discount Percent"
+                                                    class="form-input"
+                                                    x-model="discount_percent"
+                                                    required
+                                                />
+                                                <input type="date" placeholder="Enter Expires At" class="form-input" x-model="expires_at" required />
                                             </div>
 
                                             <button type="submit" class="btn btn-primary mt-6">Create</button>
@@ -1204,7 +1208,7 @@
                             </div>
                             <div x-data="multipleTable" x-init="fetchManagers()">
                                 <div class="panel mt-6">
-                                    <h5 class="mb-5 text-lg font-semibold dark:text-white-light md:absolute md:top-[25px] md:mb-0">Web Subscribe</h5>
+                                    <h5 class="mb-5 text-lg font-semibold dark:text-white-light md:absolute md:top-[25px] md:mb-0">Coupon</h5>
                                     <table id="myTable1" class="whitespace-nowrap"></table>
                                 </div>
                             </div>
@@ -1222,7 +1226,7 @@
         </div>
         <!-- Modal for Delete Confirmation -->
         <!-- Delete Confirmation Modal -->
-   
+
         <div
             x-data
             x-show="$store.updateModal.isOpen"
@@ -1245,8 +1249,15 @@
                             <div class="overflow-hidden">
                                 <!-- form grid -->
                                 <div class="grid grid-cols-1 justify-between gap-5 sm:flex">
-                                    <input type="text" placeholder="Enter Time" class="form-input" x-model="$store.global.sharedData.fullname2" />
-                                    <input type="text" placeholder="Enter Price" class="form-input" x-model="$store.global.sharedData.price" />
+                                    <input type="text" placeholder="Enter Code" class="form-input" x-model="$store.global.sharedData.code" />
+
+                                    <input
+                                        type="text"
+                                        placeholder="Enter Discount Percent"
+                                        class="form-input"
+                                        x-model="$store.global.sharedData.discount_percent"
+                                    />
+                                    <input type="date" placeholder="Enter Expires At" class="form-input" x-model="$store.global.sharedData.expires_at" />
                                 </div>
 
                                 <div class="mt-8 flex items-center justify-end">
@@ -1274,8 +1285,9 @@
             document.addEventListener('alpine:init', () => {
                 Alpine.store('global', {
                     sharedData: {
-                        fullname2: '',
-                        price: '',
+                        discount_percent: '',
+                        code: '',
+                        expires_at: '',
                         // يمكنك إضافة متغيرات أخرى هنا
                     },
                 });
@@ -1326,7 +1338,7 @@
                         }
                     },
                 }));
-            // header section
+                // header section
                 Alpine.data('header', () => ({
                     init() {
                         const selector = document.querySelector('ul.horizontal-menu a[href="' + window.location.pathname + '"]');
@@ -1415,7 +1427,6 @@
 
                         // Event Delegation for Delete Buttons
                         document.addEventListener('click', (e) => {
-                         
                             if (e.target.closest('.update-btn')) {
                                 const managerId = e.target.closest('.update-btn').dataset.id;
                                 this.updateManager(managerId);
@@ -1463,7 +1474,7 @@
                                 return;
                             }
 
-                            const response = await fetch(`${this.apiBaseUrl}/api/admin/web_subscribe/get_all`, {
+                            const response = await fetch(`${this.apiBaseUrl}/api/admin/coupons/index`, {
                                 method: 'GET',
                                 headers: {
                                     Accept: 'application/json',
@@ -1476,7 +1487,9 @@
                             }
 
                             const data = await response.json();
-                            this.tableData = data;
+                            console.log(data);
+                            this.tableData = data.data.data;
+                            console.log(this.tableData);
 
                             this.populateTable();
                         } catch (error) {}
@@ -1490,15 +1503,16 @@
 
                         const mappedData = this.tableData.map((manager, index) => [
                             this.formatText(index),
+                            this.formatText(manager.code),
 
-                            this.formatText(manager.time),
-                            this.formatText(manager.price),
+                            this.formatText(manager.discount_percent),
+                            this.formatText(manager.expires_at),
                             this.getActionButtons(manager.id, manager.name, manager.imag),
                         ]);
 
                         this.datatable1 = new simpleDatatables.DataTable('#myTable1', {
                             data: {
-                                headings: ['#', 'time', 'price', '<div class="text-center">Action</div>'],
+                                headings: ['#', 'Code', 'Discount Percent', 'Expires_At', '<div class="text-center">Action</div>'],
                                 data: mappedData,
                             },
                             searchable: true,
@@ -1543,18 +1557,18 @@
 
                     // أزرار الإجراءات
                     getActionButtons(managerId, name, imag) {
-                        return `                         
-                                                            <!-- button -->     
-                                                                
-                                                           
-                                                        
+                        return `
+                                                            <!-- button -->
+
+
+
                                                         <div class="flex items-center justify-center">
                                                             <!-- Status Dropdown -->
                                                             <button class="btn update-btn btn-warning"data-id="${[managerId, name]}">UPDATE</button>
 
 
                                                             <!-- Delete Button -->
-                                                           
+
                                                         </div>`;
                     },
 
@@ -1579,11 +1593,17 @@
                             if (!updateConfirmed) return;
 
                             const formData = new FormData();
-                            formData.append('time', Alpine.store('global').sharedData.fullname2);
-                            formData.append('price', Alpine.store('global').sharedData.price);
+                            formData.append('expires_at', Alpine.store('global').sharedData.expires_at);
+                            formData.append('discount_percent', Alpine.store('global').sharedData.discount_percent);
+                            formData.append('code', Alpine.store('global').sharedData.code);
+                            console.log(
+                                Alpine.store('global').sharedData.code,
+                                Alpine.store('global').sharedData.discount_percent,
+                                Alpine.store('global').sharedData.expires_at
+                            );
 
                             const token = localStorage.getItem('authToken');
-                            const response = await fetch(`${this.apiBaseUrl}/api/admin/web_subscribe/update/${managerId[0]}`, {
+                            const response = await fetch(`${this.apiBaseUrl}/api/admin/coupons/update/${managerId[0]}`, {
                                 method: 'PUT',
                                 headers: {
                                     Accept: 'application/json',
@@ -1592,14 +1612,11 @@
                                 body: formData,
                             });
 
-                            if (!response.ok) {
-                                const errorData = await response.json().catch(() => ({}));
-                                throw new Error(errorData.message || `Request failed with status ${response.status}`);
-                            }
-                            coloredToast('success', 'Web Subscription updated successfully');
+
+                            coloredToast('success', 'Coupon updated successfully');
                             await this.fetchManagers();
                         } catch (error) {
-                            coloredToast('error', error.message || 'Failed to update Web subscription. Please try again later.');
+                            coloredToast('error', error.message || 'Failed to update Coupon. Please try again later.');
                         }
                     },
                     getStatusColor(status) {
@@ -1677,14 +1694,15 @@
 
                 Alpine.data('Add_Merchans', () => ({
                     apiBaseUrl: API_CONFIG.BASE_URL, // Ensure API_CONFIG is defined
-                    price: '',
-                    time: '',
+                    expires_at: '',
+                    discount_percent: '',
+                    code: '',
 
                     async Add_Merchans() {
                         try {
                             const token = localStorage.getItem('authToken'); // Retrieve token from localStorage
 
-                            const response = await fetch(`${this.apiBaseUrl}/api/admin/web_subscribe/store`, {
+                            const response = await fetch(`${this.apiBaseUrl}/api/admin/coupons/store`, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -1692,20 +1710,22 @@
                                     Authorization: `Bearer ${token}`, // Pass the token
                                 },
                                 body: JSON.stringify({
-                                    time: this.time,
-                                    price: this.price,
+                                    code: this.code,
+                                    discount_percent: this.discount_percent,
+                                    expires_at: this.expires_at,
                                 }),
                             });
 
                             const result = await response.json();
 
                             // Success: Display the success message and the password
-                            this.time = '';
-                            this.price = '';
-                            coloredToast('success', `Web Subscribe created successfully! `);
+                            this.discount_percent = '';
+                            this.code = '';
+                            this.expires_at = '';
+                            coloredToast('success', `Coupon created successfully! `);
                         } catch (error) {
                             // Show error message in toast
-                            coloredToast('danger', error.message || 'Failed to create Web Subscribe. Please try again.');
+                            coloredToast('danger', error.message || 'Failed to create Coupon. Please try again.');
                         }
                     },
                 }));

@@ -37,9 +37,15 @@ class ProfileController extends Controller
         return response()->json(['message' => 'Profile created successfully', 'profile' => $profile], 201);
     }
 
-    public function updateProfile(UpdateProfileRequest $request)
+    public function updateProfile(UpdateProfileRequest $request , $user_id=null)
     {
-        $user = Auth::user();
+        if($user_id != null)
+        {
+            $user = User::find($user_id);
+        }else{
+            $user = Auth::user();
+        }
+
         $profile = $this->profileService->updateProfile($user, $request->all());
 
         if (!$profile) {
@@ -49,9 +55,14 @@ class ProfileController extends Controller
         return response()->json(['message' => 'Profile updated successfully', 'profile' => $profile], 200);
     }
 
-public function UpdateInfo(UpdateUserInfoRequest $request)
+public function UpdateInfo(UpdateUserInfoRequest $request , $user_id=null)
 {
-    $user = Auth::user();
+        if($user_id != null)
+        {
+            $user = User::find($user_id);
+        }else{
+            $user = Auth::user();
+        }
 
     if ($request->has('name')) {
         $user->name = $request->name;
@@ -88,55 +99,156 @@ public function UpdateInfo(UpdateUserInfoRequest $request)
     return response()->json(['message' => 'تم تحديث معلومات المستخدم بنجاح', 'user' => $user], 200);
 }
 
-public function getUserInfo()
-{
-    $user = Auth::user();
-    $profile = $user->Profile;
+    public function getUserInfo( $user_id=null)
+    {
+        if($user_id != null)
+        {
+            $user = User::find($user_id);
+        }else{
+            $user = Auth::user();
+        }
 
-    $userInfo = [
-        'user' => [
-            'id' => $user->id,
-            'name' => $user->name ?? 'N/A',
-            'email' => $user->email ?? 'N/A',
-            'phone' => $user->phone ?? 'N/A',
-            // أي معلومات إضافية أخرى من نموذج User
-        ],
-        'profile' => [
-            'lang' => $profile->lang ?? 'N/A',
-            'lat' => $profile->lat ?? 'N/A',
-            'image' => $profile->image ?? 'N/A',
-            'address' => $profile->address ?? 'N/A',
-            // أي معلومات إضافية أخرى من نموذج Profile
-        ]
-    ];
+        $profile = $user->Profile;
 
-    return response()->json(['user_info' => $userInfo], 200);
-}
-public function user_info($id)
-{
-    $user = User::find($id);
-    $profile = $user->Profile;
+        $userInfo = [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name ?? 'N/A',
+                'email' => $user->email ?? 'N/A',
+                'phone' => $user->phone ?? 'N/A',
+                'national_id' => $user->national_id ?? 'N/A', // إضافة الرقم القومي
+                'national_id_image' => $user->image_path ?? 'N/A', // إضافة الرقم القومي
 
-    $userInfo = [
-        'user' => [
-            'id' => $user->id,
-            'name' => $user->name ?? 'N/A',
-            'email' => $user->email ?? 'N/A',
-            'phone' => $user->phone ?? 'N/A',
-            'national_id' => $user->national_id ?? 'N/A', // إضافة الرقم القومي
-            // أي معلومات إضافية أخرى من نموذج User
-        ],
-        'profile' => [
-            'lang' => $profile->lang ?? 'N/A',
-            'lat' => $profile->lat ?? 'N/A',
-            'image' => $profile->image ?? 'N/A',
-            'address' => $profile->address ?? 'N/A',
-            // أي معلومات إضافية أخرى من نموذج Profile
-        ]
-    ];
+                // أي معلومات إضافية أخرى من نموذج User
+            ],
+            'profile' => [
+                'lang' => $profile->lang ?? 'N/A',
+                'lat' => $profile->lat ?? 'N/A',
+                'image' => $profile->image ?? 'N/A',
+                'address' => $profile->address ?? 'N/A',
+                // أي معلومات إضافية أخرى من نموذج Profile
+            ]
+        ];
 
-    return response()->json(['user_info' => $userInfo], 200);
-}
+        return response()->json(['user_info' => $userInfo], 200);
+    }
+    public function user_info($id)
+    {
+        $user = User::find($id);
+        $profile = $user->Profile;
+
+        $userInfo = [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name ?? 'N/A',
+                'email' => $user->email ?? 'N/A',
+                'phone' => $user->phone ?? 'N/A',
+                'national_id' => $user->national_id ?? 'N/A', // إضافة الرقم القومي
+                'national_id_image' => $user->image_path ?? 'N/A', // إضافة الرقم القومي
+
+                // أي معلومات إضافية أخرى من نموذج User
+            ],
+            'profile' => [
+                'lang' => $profile->lang ?? 'N/A',
+                'lat' => $profile->lat ?? 'N/A',
+                'image' => $profile->image ?? 'N/A',
+                'address' => $profile->address ?? 'N/A',
+                // أي معلومات إضافية أخرى من نموذج Profile
+            ]
+        ];
+
+        return response()->json(['user_info' => $userInfo], 200);
+    }
+
+
+    public function getAllUsers(Request $request)
+    {
+        // بناء الاستعلام الأساسي
+        $query = User::query();
+
+        // تطبيق الفلاتر إذا وجدت في الطلب
+        if ($request->has('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+
+        if ($request->has('email')) {
+            $query->where('email', 'like', '%' . $request->email . '%');
+        }
+
+        if ($request->has('national_id')) {
+            $query->where('national_id', 'like', '%' . $request->national_id . '%');
+        }
+
+        if ($request->has('type')) {
+            $query->where('type', $request->type);
+        }
+
+        if ($request->has('phone')) {
+            $query->where('phone', 'like', '%' . $request->phone . '%');
+        }
+
+        // جلب النتائج مع العلاقات (مثل Profile)
+        $users = $query->with('Profile')->paginate($request->per_page ?? 15);
+
+        // تنسيق النتيجة
+        $formattedUsers = $users->map(function ($user) {
+            return [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name ?? 'N/A',
+                    'email' => $user->email ?? 'N/A',
+                    'phone' => $user->phone ?? 'N/A',
+                    'national_id' => $user->national_id ?? 'N/A',
+                    'national_id_image' => $user->image_path ?? 'N/A',
+                    'type' => $user->type ?? 'N/A',
+                ],
+                'profile' => [
+                    'lang' => $user->profile->lang ?? 'N/A',
+                    'lat' => $user->profile->lat ?? 'N/A',
+                    'image' => $user->profile->image ?? 'N/A',
+                    'address' => $user->profile->address ?? 'N/A',
+                ] ?? null
+            ];
+        });
+
+        return response()->json([
+            'users' => $formattedUsers,
+            'pagination' => [
+                'total' => $users->total(),
+                'per_page' => $users->perPage(),
+                'current_page' => $users->currentPage(),
+                'last_page' => $users->lastPage(),
+                'from' => $users->firstItem(),
+                'to' => $users->lastItem()
+            ]
+        ], 200);
+    }
+
+    public function updateUserStatus(Request $request, $user_id)
+    {
+        $request->validate([
+            'status' => 'required|in:active,pand',
+        ]);
+
+        $user = User::find($user_id);
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $user->status = $request->status;
+        $user->save();
+
+        return response()->json([
+            'message' => 'User status updated successfully',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'status' => $user->status
+            ]
+        ], 200);
+    }
 
 }
 

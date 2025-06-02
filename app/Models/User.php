@@ -27,6 +27,7 @@ class User extends Authenticatable
         'email',
         'otp',
         'type',
+        'status',
         'password',
     ];
 

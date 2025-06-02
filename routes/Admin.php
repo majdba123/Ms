@@ -10,6 +10,7 @@ use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\CouponController;
+use App\Http\Controllers\ProfileController;
 
 use App\Services\Driver\DriverServic;
 
@@ -82,6 +83,17 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('/get_by_status', [AdminController::class, 'get_P_S_ByStatus']);
         Route::get('/show_info/{vendor_id}', [AdminController::class, 'get_P_S_Info']);
         Route::get('get_dashboard_vendor/{vendor_id}', [AdminController::class, 'Provider_service_dash']);
+
+    });
+
+
+    Route::prefix('profile')->group(function () {
+
+    Route::post('/update/{user_id}', [ProfileController::class, 'updateProfile']);
+    Route::put('/info/update/{user_id}', [ProfileController::class, 'UpdateInfo']);
+    Route::get('/info/get/{user_id}', [ProfileController::class, 'getUserInfo']);
+    Route::get('/get_All', [ProfileController::class, 'getAllUsers']);
+    Route::put('/status/update/{user_id}', [ProfileController::class, 'updateUserStatus']);
 
     });
 

@@ -9,6 +9,7 @@ use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\RseevationController;
 use App\Http\Controllers\FavouriteUserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -71,5 +72,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/profile/update', [ProfileController::class, 'updateProfile']);
     Route::put('/my_info/update', [ProfileController::class, 'UpdateInfo']);
     Route::get('/my_info/get', [ProfileController::class, 'getUserInfo']);
+
+
+    Route::prefix('provider')->group(function () {
+
+        Route::get('product/get_by_status', [AdminController::class, 'get_P_S_ByStatus']);
+        Route::get('product/show_info/{vendor_id}', [AdminController::class, 'get_P_S_Info']);
+
+        Route::get('service/get_by_status', [AdminController::class, 'get_P_S_ByStatus']);
+        Route::get('service/show_info/{vendor_id}', [AdminController::class, 'get_P_S_Info']);
+
+    });
+
 
 });

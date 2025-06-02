@@ -8,27 +8,29 @@ use Illuminate\Support\Facades\Hash;
 
 class Provider_ser
 {
-    private function formatResponse($providerProduct, $user = null, $message = '', $additionalData = [])
-    {
-        $response = [
-            'provider_Servive' => [
-                'id' => $providerProduct->id,
-                'status' => $providerProduct->status,
-            ],
-            'user' => [
-                'id' => $user ? $user->id : $providerProduct->user->id,
-                'name' => $user ? $user->name : $providerProduct->user->name,
-                'email' => $user ? $user->email : $providerProduct->user->email,
-                'national_id' => $user ? $user->national_id : $providerProduct->user->national_id,
-                'image_national_id' => $user ? $user->image_path : $providerProduct->user->image_path,
+private function formatResponse($providerProduct, $user = null, $message = '', $additionalData = [])
+{
+    $response = [
+        'provider_Servive' => [
+            'id' => $providerProduct->id ?? null,
+            'status' => $providerProduct->status ?? null,
+            'image' => $providerProduct->user->Profile->image ?? null,
+            'address' => $providerProduct->user->Profile->address ?? null,
+            'lang' => $providerProduct->user->Profile->lang ?? null,
+            'lat' => $providerProduct->user->Profile->lat ?? null,
+        ],
+        'user' => [
+            'id' => $user ? ($user->id ?? null) : ($providerProduct->user->id ?? null),
+            'name' => $user ? ($user->name ?? null) : ($providerProduct->user->name ?? null),
+            'email' => $user ? ($user->email ?? null) : ($providerProduct->user->email ?? null),
+            'national_id' => $user ? ($user->national_id ?? null) : ($providerProduct->user->national_id ?? null),
+            'image_national_id' => $user ? ($user->image_path ?? null) : ($providerProduct->user->image_path ?? null),
+        ],
+        'message' => $message ?: null,
+    ];
 
-
-            ],
-            'message' => $message,
-        ];
-
-        return array_merge($response, $additionalData);
-    }
+    return array_merge($response, $additionalData);
+}
 
     public function getProviderProductInfo($providerProductId)
     {

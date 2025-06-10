@@ -6,6 +6,10 @@ use App\Http\Requests\Category\StoreCategoryRequest;
 use App\Http\Requests\Category\UpdateCategoryRequest;
 use App\Services\Category\CategoryService;
 use App\Models\Category;
+use App\Models\Product;
+use App\Models\Provider_Product;
+use App\Models\Provider_Service;
+
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -83,5 +87,45 @@ class CategoryController extends Controller
 
         return response()->json($categories);
     }
+
+
+
+
+   public function getProvidersByCategory($categoryId)
+{
+    $category = Category::findOrFail($categoryId);
+
+    // تحديد نوع المزودين المطلوبين بناءً على نوع الفئة
+    $providerModel = $category->type == 0
+        ? Provider_Product::class
+        : Provider_Service::class;
+
+    // الحصول على المزودين الذين لديهم منتجات/خدمات في هذه الفئة
+    $providers = $providerModel::whereHas('products', function($query) use ($categoryId) {
+            $query->where('category_id', $categoryId);
+        })
+        ->with('user') // جلب معلومات المستخدم المرتبطة
+        ->get()
+        ->map(function($provider) {
+            return [
+                'id' => $provider->id,
+                'status' => $provider->status,
+                'user' => $provider->user,
+                'image' => $provider->user->Profile->image ?? null,
+                'address' => $provider->user->Profile->address ?? null,
+                'lat' => $provider->user->Profile->lat ?? null,
+                'lang' => $provider->user->Profile->lang ?? null,
+
+
+                // يمكن إضافة المزيد من الحقول حسب الحاجة
+            ];
+        });
+
+    return response()->json([
+        'success' => true,
+        'category' => $category->only(['id', 'name', 'type']),
+        'providers' => $providers
+    ]);
+}
 
 }

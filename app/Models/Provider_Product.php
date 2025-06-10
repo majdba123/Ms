@@ -84,4 +84,11 @@ class Provider_Product extends Model
             });
     }
 
+
+
+    public function FoodType_ProductProvider()
+    {
+        return $this->belongsTo(FoodType_ProductProvider::class);
+    }
+
 }

@@ -10,6 +10,7 @@ use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\CouponController;
+use App\Http\Controllers\FoodTypeController;
 use App\Http\Controllers\ProfileController;
 
 use App\Services\Driver\DriverServic;
@@ -67,14 +68,17 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     });
 
 
-    Route::prefix('provider_service')->group(function () {
-
-        Route::post('update_status/{vendor_id}', [AdminController::class, 'update_P_S_Status']);
-        Route::get('/get_by_status', [AdminController::class, 'get_P_S_ByStatus']);
-        Route::get('/show_info/{vendor_id}', [AdminController::class, 'get_P_S_Info']);
-        Route::get('get_dashboard_vendor/{vendor_id}', [AdminController::class, 'Provider_service_dash']);
+    Route::prefix('foodtype')->group(function () {
+        Route::get('index/', [FoodTypeController::class, 'index']);
+        Route::post('store/', [FoodTypeController::class, 'store']);
+        Route::get('show/{coupon}', [FoodTypeController::class, 'show']);
+        Route::put('update/{coupon}', [FoodTypeController::class, 'update']);
+        Route::delete('delete/{coupon}', [FoodTypeController::class, 'destroy']);
 
     });
+
+
+
 
 
     Route::prefix('provider_service')->group(function () {

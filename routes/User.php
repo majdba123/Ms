@@ -26,6 +26,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('categories/get_all', [CategoryController::class, 'index']);
     Route::get('/categories/show/{id}', [CategoryController::class, 'show']);
+    Route::get('/categories/getProvidersByCategory/{category_id}', [CategoryController::class, 'getProvidersByCategory']);
 
 
     Route::get('/product/get_all_latest', [ProductController::class, 'latest_product']);
@@ -83,6 +84,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('service/show_info/{vendor_id}', [AdminController::class, 'get_P_S_Info']);
 
     });
+
+
+
 
 
 });

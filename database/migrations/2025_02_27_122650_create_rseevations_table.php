@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('status')->default('pending');
             $table->string('total_price');
             $table->string('original_price')->nullable();
+            $table->text('note')->nullable();
+
             $table->string('product_discount_applied')->nullable();
             $table->string('product_discount_value')->nullable();
             $table->string('product_discount_type')->nullable();

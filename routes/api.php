@@ -9,6 +9,7 @@ use App\Http\Controllers\Registration\FacebookController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\FileUploadController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CouponController;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,7 +63,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/upload', [FileUploadController::class, 'upload']);
 
 
-
+    Route::post('/coupons/check-status/{id}', [CouponController::class, 'checkStatus']);
     Route::get('/user_info/{user_id}', [ProfileController::class, 'user_info']);
 
 });

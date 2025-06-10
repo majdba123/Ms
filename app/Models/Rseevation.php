@@ -20,6 +20,7 @@ class Rseevation extends Model
         'coupon_applied',
         'coupon_discount',
         'coupon_code',
+        'note',
         'total_price'
     ];
     public function user()

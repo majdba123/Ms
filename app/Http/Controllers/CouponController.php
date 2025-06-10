@@ -120,4 +120,30 @@ class CouponController extends Controller
             'data' => $coupon
         ]);
     }
+
+
+    public function checkStatus($id)
+    {
+        $coupon = Coupon::find($id);
+
+        if (!$coupon) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Coupon not found',
+                'data' => null
+            ], 404);
+        }
+
+        $isActive = $coupon->status == Coupon::STATUS_ACTIVE &&
+                   ($coupon->expires_at === null || $coupon->expires_at > now());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Coupon status checked successfully',
+            'data' => [
+                'is_active' => $isActive,
+                'coupon' => $coupon
+            ]
+        ]);
+    }
 }

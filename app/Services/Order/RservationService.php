@@ -20,6 +20,7 @@ class RservationService
         try {
             $userId = Auth::id();
             $couponCode = $validatedData['coupon_code'] ?? null;
+            $note = $validatedData['note'] ?? null;
             $coupon = null;
             $couponDiscount = 0;
             $originalPrice = 0;
@@ -80,6 +81,7 @@ class RservationService
                 'coupon_applied' => $couponApplied,
                 'coupon_discount' => $couponApplied ? $couponDiscount : 0,
                 'coupon_code' => $couponApplied ? $coupon->code : null,
+                'note' =>$note,
                 'total_price' => $finalPrice,
             ]);
 

@@ -10,6 +10,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\FileUploadController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CouponController;
+use App\Http\Controllers\FoodTypeProductProviderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,7 +64,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/upload', [FileUploadController::class, 'upload']);
 
 
-    Route::post('/coupons/check-status/{id}', [CouponController::class, 'checkStatus']);
+    Route::post('/coupons/check-status', [CouponController::class, 'checkStatus']);
     Route::get('/user_info/{user_id}', [ProfileController::class, 'user_info']);
+
+
+
+    Route::get('/food-types/provider/{id}', [FoodTypeProductProviderController::class, 'getFoodTypesByProvider']);
 
 });

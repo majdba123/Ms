@@ -17,6 +17,8 @@ return new class extends Migration
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('total_price');
             $table->string('status')->default('pending');
+            $table->text('note')->nullable();
+
             $table->timestamps();
         });
     }

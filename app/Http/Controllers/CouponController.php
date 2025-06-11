@@ -122,9 +122,13 @@ class CouponController extends Controller
     }
 
 
-    public function checkStatus($id)
+    public function checkStatus(Request $request)
     {
-        $coupon = Coupon::find($id);
+        $request->validate([
+            'code' => 'required|string'
+        ]);
+
+        $coupon = Coupon::where('code', $request->code)->first();
 
         if (!$coupon) {
             return response()->json([
@@ -134,14 +138,11 @@ class CouponController extends Controller
             ], 404);
         }
 
-        $isActive = $coupon->status == Coupon::STATUS_ACTIVE &&
-                   ($coupon->expires_at === null || $coupon->expires_at > now());
-
         return response()->json([
             'success' => true,
             'message' => 'Coupon status checked successfully',
             'data' => [
-                'is_active' => $isActive,
+                'is_active' => $coupon->isActive(),
                 'coupon' => $coupon
             ]
         ]);

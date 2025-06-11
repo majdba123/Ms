@@ -13,13 +13,14 @@ use App\Models\Coupon;
 
 class OrderService
 {
-    public function createOrder(array $validatedData)
+    /*public function createOrder(array $validatedData)
     {
         DB::beginTransaction();
 
         try {
             $userId = Auth::id();
             $couponCode = $validatedData['coupon_code'] ?? null;
+            $note = $validatedData['note'] ?? null;
             $coupon = null;
             $couponDiscount = 0;
             $originalTotalPrice = 0;
@@ -37,6 +38,150 @@ class OrderService
                 'user_id' => $userId,
                 'total_price' => 0,
                 'status' => 'pending',
+                'note' =>$note,
+            ]);
+
+            $totalPrice = 0;
+            $orderProductsDetails = [];
+
+            foreach ($validatedData['products'] as $productData) {
+                $product = Product::with('discount', 'images')
+                    ->where('id', $productData['product_id'])
+                    ->where(function($query) {
+                        $query->whereNull('quantity')
+                            ->orWhere('quantity', '>', 0);
+                    })
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$product) {
+                    throw new ModelNotFoundException("Product not found or out of stock: " . $productData['product_id']);
+                }
+
+                if ($product->quantity !== null) {
+                    if ($productData['quantity'] > $product->quantity) {
+                        return response()->json(['message' => 'Quantity not available'], 404);
+                    }
+                    $product->decrement('quantity', $productData['quantity']);
+                }
+
+                $originalPrice = $product->price;
+                $discountApplied = false;
+                $discountValue = 0;
+                $discountType = "precentage";
+                $productPrice = $originalPrice;
+
+                if ($product->discount && $product->discount->isActive()) {
+                    $discountApplied = true;
+                    $discountValue = $product->discount->value;
+                    $productPrice = $product->discount->calculateDiscountedPrice($originalPrice);
+                }
+
+                $orderProduct = Order_Product::create([
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                    'quantity' => $productData['quantity'],
+                    'original_price' => $originalPrice,
+                    'unit_price' => $productPrice,
+                    'total_price' => $productPrice * $productData['quantity'],
+                    'discount_applied' => $discountApplied,
+                    'discount_value' => $discountValue,
+                    'discount_type' => $discountType,
+                    'status' => 'pending',
+                ]);
+
+                $totalPrice += $orderProduct->total_price;
+
+                $orderProductsDetails[] = [
+                    'id' => $orderProduct->id,
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'quantity' => $productData['quantity'],
+                    'original_unit_price' => $originalPrice,
+                    'final_unit_price' => $productPrice,
+                    'discount_applied' => $discountApplied,
+                    'discount_value' => $discountValue,
+                    'discount_type' => $discountType,
+                    'total_price' => $productPrice * $productData['quantity'],
+                    'images' => $product->images->map(function($image) {
+                        return $image->imag;
+                    })->toArray()
+                ];
+            }
+
+            $originalTotalPrice = $totalPrice;
+
+            if ($coupon) {
+                $couponDiscount = $totalPrice * ($coupon->discount_percent / 100);
+                $totalPrice -= $couponDiscount;
+                $couponApplied = true;
+
+                $order->coupons()->attach($coupon, [
+                    'discount_amount' => $couponDiscount
+                ]);
+            }
+
+            $order->update(['total_price' => $totalPrice]);
+
+            $responseData = [
+                'success' => true,
+                'order' => $this->formatOrderDetails($order, $orderProductsDetails, $originalTotalPrice, $couponApplied, $couponDiscount, $coupon),
+                'message' => 'Order created successfully',
+            ];
+
+            DB::commit();
+            return response()->json($responseData);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create order: ' . $e->getMessage(),
+            ], 500);
+        }
+    }*/
+
+
+    public function createOrder(array $validatedData)
+    {
+        DB::beginTransaction();
+
+        try {
+            $userId = Auth::id();
+            $couponCode = $validatedData['coupon_code'] ?? null;
+            $note = $validatedData['note'] ?? null;
+            $coupon = null;
+            $couponDiscount = 0;
+            $originalTotalPrice = 0;
+            $couponApplied = false;
+
+            if ($couponCode) {
+                $coupon = Coupon::where('code', $couponCode)->first();
+
+                if (!$coupon || !$coupon->isActive()) {
+                    throw new \Exception('Coupon code is invalid or expired');
+                }
+            }
+
+            // التحقق من عدد التجار المختلفين
+            $productIds = collect($validatedData['products'])->pluck('product_id')->unique();
+            $providersCount = Product::with('providerable')
+                ->whereIn('id', $productIds)
+                ->get()
+                ->groupBy(function($product) {
+                    return $product->providerable_type . '-' . $product->providerable_id;
+                })
+                ->count();
+
+            if ($providersCount > 2) {
+                throw new \Exception('You cannot order products from more than 2 different providers in a single order');
+            }
+
+            $order = Order::create([
+                'user_id' => $userId,
+                'total_price' => 0,
+                'status' => 'pending',
+                'note' => $note,
             ]);
 
             $totalPrice = 0;
@@ -352,6 +497,7 @@ public function cancelOrder($orderId)
         return [
             'id' => $order->id,
             'user_id' => $order->user_id,
+            'note' => $order->note,
             'original_total_price' => $originalTotalPrice,
             'total_price' => $order->total_price,
             'coupon_applied' => $couponApplied,

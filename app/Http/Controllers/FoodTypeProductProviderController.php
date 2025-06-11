@@ -4,62 +4,37 @@ namespace App\Http\Controllers;
 
 use App\Models\FoodType_ProductProvider;
 use Illuminate\Http\Request;
-
+use App\Models\Provider_Product;
+use App\Models\User;
 class FoodTypeProductProviderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function getFoodTypesByProvider($id)
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(FoodType_ProductProvider $foodType_ProductProvider)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(FoodType_ProductProvider $foodType_ProductProvider)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, FoodType_ProductProvider $foodType_ProductProvider)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(FoodType_ProductProvider $foodType_ProductProvider)
-    {
-        //
+        // جلب معلومات منتج المزود
+        $providerProduct = Provider_Product::find($id);
+        
+        if (!$providerProduct) {
+            return response()->json(['error' => 'Product provider not found'], 404);
+        }
+        
+        // جلب معلومات المستخدم المالك لهذا المنتج
+        $user = User::find($providerProduct->user_id);
+        
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+        
+        // التحقق من نوع المستخدم
+        if ($user->type !== 'food_provider') {
+            return response()->json(['error' => 'User is not a food provider'], 400);
+        }
+        
+        // جلب أنواع الطعام المرتبطة بهذا المنتج
+        $foodTypes = FoodType_ProductProvider::where('provider__product_id', $id)
+            ->with('food_type')
+            ->get()
+            ->pluck('food_type');
+        
+        return response()->json(['food_types' => $foodTypes]);
     }
 }

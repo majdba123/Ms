@@ -28,13 +28,19 @@ class RegisterUser extends FormRequest
             'email' => 'nullable|string|email|max:255|unique:users',
             'phone' => 'nullable|string|max:20|unique:users',
             'password' => 'required|string|min:8',
-            'type' => 'required|integer|in:0,1,2,3',
+            'type' => 'required|integer|in:0,1,2,3,4',
         ];
 
         // إضافة القواعد للرقم الوطني والصورة فقط إذا كان النوع 1 أو 2 أو 3
-        if (in_array($this->type, [1, 2, 3])) {
+        if (in_array($this->type, [1, 2, 3, 4])) {
             $rules['national_id'] = 'required|string|size:14|unique:users';
             $rules['image'] = 'required|image|mimes:jpeg,png,jpg,gif|max:2048';
+        }
+
+        // إضافة القاعدة لمصفوفة food_type_ids إذا كان النوع 4
+        if ($this->type == 4) {
+            $rules['food_type_ids'] = 'required|array';
+            $rules['food_type_ids.*'] = 'exists:food_types,id';
         }
 
         return $rules;
@@ -53,11 +59,14 @@ class RegisterUser extends FormRequest
             'password.required' => 'Password is required.',
             'password.min' => 'Password must be at least 8 characters.',
             'type.required' => 'User type is required.',
-            'type.in' => 'User type must be 0, 1, 2, or 3.',
+            'type.in' => 'User type must be 0, 1, 2, 3, or 4.',
             'image.required' => 'Image is required for this user type.',
             'image.image' => 'The file must be an image.',
             'image.mimes' => 'The image must be a file of type: jpeg, png, jpg, gif.',
             'image.max' => 'The image must not exceed 2048 kilobytes.',
+            'food_type_ids.required' => 'Food types are required for this user type.',
+            'food_type_ids.array' => 'Food types must be provided as an array.',
+            'food_type_ids.*.exists' => 'One or more selected food types are invalid.',
         ];
     }
 

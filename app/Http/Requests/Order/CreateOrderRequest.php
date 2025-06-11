@@ -20,6 +20,8 @@ class CreateOrderRequest extends FormRequest
             'products.*.product_id' => ['required', 'integer', 'exists:products,id', new ProviderProduct],
             'products.*.quantity' => 'required|integer|min:1',
             'coupon_code' => 'nullable|string|exists:coupons,code',
+            'note' => 'nullable|string',
+
 
         ];
     }

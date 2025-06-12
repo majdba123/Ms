@@ -1,16 +1,17 @@
 <?php
 namespace App\Http\Requests\Product;
 
+use App\Models\FoodType_ProductProvider;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class StoreProductRequest extends FormRequest
-{
-    public function authorize()
+    class StoreProductRequest extends FormRequest
     {
-        return true;
-    }
+        public function authorize()
+        {
+            return true;
+        }
 
     public function rules()
     {
@@ -23,7 +24,6 @@ class StoreProductRequest extends FormRequest
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
 
-        // إذا كان المستخدم أدمن وأرسل provider_id و provider_type
         if ($this->is('api/admin*')) {
             $rules['provider_id'] = [
                 'required',
@@ -40,13 +40,28 @@ class StoreProductRequest extends FormRequest
             $rules['provider_type'] = 'required|in:0,1';
         }
 
-        // Add validation rules based on the route or provider_type
-        if ($this->is('api/service_provider*') || (isset($this->provider_type) && $this->provider_type == 1)) {
-            $rules['time_of_service'] = 'required|string|max:255';
-            $rules['quantity'] = 'nullable|integer|min:0';
-        } else {
+        if ($this->is('api/product_provider*') || (isset($this->provider_type) && $this->provider_type == 0)) {
             $rules['time_of_service'] = 'nullable|string|max:255';
             $rules['quantity'] = 'required|integer|min:0';
+
+            if (auth()->user()->type == 'food_provider') {
+                $rules['food_type_id'] = [
+                    'required',
+                    'integer',
+                    'exists:food_types,id',
+                    function ($attribute, $value, $fail) {
+                        $providerProductId = auth()->user()->provider_product->id ?? null;
+                        if (!FoodType_ProductProvider::where('food_type_id', $value)
+                            ->where('provider__product_id', $providerProductId)
+                            ->exists()) {
+                            $fail('This food type is not associated with your provider account.');
+                        }
+                    }
+                ];
+            }
+        } else {
+            $rules['time_of_service'] = 'required|string|max:255';
+            $rules['quantity'] = 'nullable|integer|min:0';
         }
 
         return $rules;
@@ -55,19 +70,10 @@ class StoreProductRequest extends FormRequest
     public function messages()
     {
         return [
-            'name.required' => 'The name field is required.',
-            'description.required' => 'The description field is required.',
-            'price.required' => 'The price field is required.',
-            'quantity.required' => 'The quantity field is required for product providers.',
-            'time_of_service.required' => 'The time of service field is required for service providers.',
-            'category_id.required' => 'The category ID field is required.',
-            'images.required' => 'At least one image is required.',
-            'images.*.image' => 'Each file must be an image.',
-            'images.*.mimes' => 'Each image must be of type jpeg, png, jpg, or gif.',
-            'images.*.max' => 'Each image must not exceed 2048 kilobytes.',
-            'provider_id.required' => 'Provider ID is required for admin users.',
-            'provider_type.required' => 'Provider type is required for admin users.',
-            'provider_type.in' => 'Provider type must be 0 (product) or 1 (service).',
+            // ... الرسائل الحالية ...
+            'food_type_id.required' => 'The food type ID is required for food providers.',
+            'food_type_id.integer' => 'The food type ID must be an integer.',
+            'food_type_id.exists' => 'The selected food type does not exist.',
         ];
     }
 

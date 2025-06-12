@@ -13,10 +13,12 @@ class Product extends Model
     protected $fillable = [
         'name',
         'description',
+        'food_type',
         'price',
         'quantity',
         'time_of_service',
         'category_id',
+        'food_type_id',
         'providerable_id',
         'providerable_type'
 
@@ -62,5 +64,7 @@ class Product extends Model
     {
         return $query->where('category_id', $categoryId);
     }
+
+
 
 }

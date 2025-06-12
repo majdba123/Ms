@@ -11,6 +11,7 @@ use App\Http\Controllers\FileUploadController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\FoodTypeProductProviderController;
+use App\Http\Controllers\FoodTypeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -70,5 +71,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 
     Route::get('/food-types/provider/{id}', [FoodTypeProductProviderController::class, 'getFoodTypesByProvider']);
+    Route::get('/food-types/getProvidersByFoodType/{id}', [FoodTypeProductProviderController::class, 'getProvidersByFoodType']);
+
+    Route::get('/food-types/index/', [FoodTypeController::class, 'index']);
 
 });

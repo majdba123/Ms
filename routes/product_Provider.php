@@ -10,6 +10,7 @@ use App\Http\Controllers\ProviderProductController;
 use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DisccountController;
+use App\Http\Controllers\FoodTypeProductProviderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -71,6 +72,15 @@ Route::middleware(['auth:sanctum' , 'product_provider'])->group(function () {
         Route::post('/changeStatus/{product_id}', [DisccountController::class, 'changeStatus']); // تغيير الحالة
         Route::delete('/destroy/{product_id}', [DisccountController::class, 'destroy']); // حذف الخصم
     });
+
+
+
+    Route::prefix('food_type')->group(function () {
+        Route::post('/add/{product_id}', [FoodTypeProductProviderController::class, 'add']); // POST /products/1/discount
+        Route::post('/remove/{product_id}', [FoodTypeProductProviderController::class, 'remove']); // POST /products/1/discount
+        Route::get('/get_all', [FoodTypeProductProviderController::class, 'getMyFoodTypes']); // تغيير الحالة
+    });
+
 
 
 

@@ -77,8 +77,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::prefix('provider')->group(function () {
 
-        Route::get('product/get_by_status', [AdminController::class, 'get_P_S_ByStatus']);
-        Route::get('product/show_info/{vendor_id}', [AdminController::class, 'get_P_S_Info']);
+        Route::get('product/get_by_status', [AdminController::class, 'getVendorsByStatus']);
+        Route::get('product/show_info/{vendor_id}', [AdminController::class, 'getVendorInfo']);
 
         Route::get('service/get_by_status', [AdminController::class, 'get_P_S_ByStatus']);
         Route::get('service/show_info/{vendor_id}', [AdminController::class, 'get_P_S_Info']);

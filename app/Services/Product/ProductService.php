@@ -2,6 +2,7 @@
 
 namespace App\Services\Product;
 
+use App\Models\FoodType;
 use App\Models\Product;
 use App\Models\Provider_Product;
 use App\Models\Provider_Service;
@@ -11,27 +12,41 @@ use Illuminate\Support\Facades\Auth;
 
 class ProductService
 {
-public function createProduct(array $data, $providerType = null): Product
-{
-    if ($providerType === null) {
-        throw new \InvalidArgumentException('Provider type must be specified');
+   public function createProduct(array $data, $providerType = null): Product
+    {
+        if ($providerType === null) {
+            throw new \InvalidArgumentException('Provider type must be specified');
+        }
+
+        $providerTypeClass = $providerType == 1
+            ? 'App\\Models\\Provider_Service'
+            : 'App\\Models\\Provider_Product';
+
+        $productData = [
+            'name' => $data['name'],
+            'description' => $data['description'],
+            'price' => $data['price'],
+            'quantity' => $providerType == 1 ? null : ($data['quantity'] ?? null),
+            'time_of_service' => $providerType == 1 ? ($data['time_of_service'] ?? null) : null,
+            'category_id' => $data['category_id'],
+            'providerable_id' => $data['provider_id'],
+            'providerable_type' => $providerTypeClass,
+        ];
+
+        // إذا كان المستخدم food_provider
+        if (auth()->user()->type == 'food_provider' && $providerType == 0) {
+            $foodType = FoodType::find($data['food_type_id']);
+
+            if (!$foodType) {
+                throw new \InvalidArgumentException('Invalid food type ID');
+            }
+
+
+            $productData['food_type'] = $foodType->title; // تخزين العنوان بدلاً من ID
+        }
+
+        return Product::create($productData);
     }
-
-    $providerTypeClass = $providerType == 1
-        ? 'App\\Models\\Provider_Service'
-        : 'App\\Models\\Provider_Product';
-
-    return Product::create([
-        'name' => $data['name'],
-        'description' => $data['description'],
-        'price' => $data['price'],
-        'quantity' => $providerType == 1 ? null : ($data['quantity'] ?? null),
-        'time_of_service' => $providerType == 1 ? ($data['time_of_service'] ?? null) : null,
-        'category_id' => $data['category_id'],
-        'providerable_id' => $data['provider_id'],
-        'providerable_type' => $providerTypeClass,
-    ]);
-}
 
     public function updateProduct(array $data, Product $product): Product
     {
@@ -50,10 +65,24 @@ public function createProduct(array $data, $providerType = null): Product
             $updateData['time_of_service'] = $data['time_of_service'] ?? $product->time_of_service;
         }
 
+        // تحديث نوع الطعام إذا كان المستخدم food_provider والمنتج ليس خدمة
+        if (auth()->user()->type == 'food_provider' && $product->providerable_type === 'App\\Models\\Provider_Product') {
+            if (isset($data['food_type_id'])) {
+                $foodType = FoodType::find($data['food_type_id']);
+
+                if (!$foodType) {
+                    throw new \InvalidArgumentException('Invalid food type ID');
+                }
+
+
+
+                $updateData['food_type'] = $foodType->title; // تحديث العنوان
+            }
+        }
+
         $product->update($updateData);
         return $product->fresh();
     }
-
     public function deleteProduct($id): array
     {
         $product = Product::find($id);
@@ -105,6 +134,7 @@ public function createProduct(array $data, $providerType = null): Product
             'providerable_type' => $product->providerable_type,
             'providerable_id' => $product->providerable_id,
             'quantity' => $product->quantity,
+            'food_type' => $product->food_type,
             'time_of_service' => $product->time_of_service,
             'created_at' => $product->created_at,
             'updated_at' => $product->updated_at,

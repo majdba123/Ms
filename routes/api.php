@@ -69,10 +69,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user_info/{user_id}', [ProfileController::class, 'user_info']);
 
 
+});
+
+
 
     Route::get('/food-types/provider/{id}', [FoodTypeProductProviderController::class, 'getFoodTypesByProvider']);
     Route::get('/food-types/getProvidersByFoodType/{id}', [FoodTypeProductProviderController::class, 'getProvidersByFoodType']);
 
     Route::get('/food-types/index/', [FoodTypeController::class, 'index']);
-
-});

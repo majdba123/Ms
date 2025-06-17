@@ -16,6 +16,8 @@ private function formatResponse($providerProduct, $user = null, $message = '', $
             'status' => $providerProduct->status ?? null,
             'image' => $providerProduct->user->Profile->image ?? null,
             'address' => $providerProduct->user->Profile->address ?? null,
+            'type' => $providerProduct->user->type ?? null,
+
             'lang' => $providerProduct->user->Profile->lang ?? null,
             'lat' => $providerProduct->user->Profile->lat ?? null,
         ],

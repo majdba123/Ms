@@ -10,23 +10,29 @@ class UserVendorService
 {
 
 
-    private function formatResponse($vendor, $user = null, $message = '', $additionalData = [])
-    {
-        $response = [
-            'vendor' => [
-                'id' => $vendor->id,
-                'status' => $vendor->status,
-            ],
-            'user' => [
-                'id' => $user ? $user->id : $vendor->user->id,
-                'name' => $user ? $user->name : $vendor->user->name,
-                'email' => $user ? $user->email : $vendor->user->email,
-            ],
-            'message' => $message,
-        ];
+   private function formatResponse($vendor, $user = null, $message = '', $additionalData = [])
+{
+    $response = [
+        'vendor' => [
+            'id' => $vendor->id ?? null,
+            'status' => $vendor->status ?? null,
+            'image' => $vendor->user->Profile->image ?? null,
+            'address' => $vendor->user->Profile->address ?? null,
+            'lang' => $vendor->user->Profile->lang ?? null,
+            'lat' => $vendor->user->Profile->lat ?? null,
+        ],
+        'user' => [
+            'id' => $user ? ($user->id ?? null) : ($vendor->user->id ?? null),
+            'name' => $user ? ($user->name ?? null) : ($vendor->user->name ?? null),
+            'email' => $user ? ($user->email ?? null) : ($vendor->user->email ?? null),
+            'national_id' => $user ? ($user->national_id ?? null) : ($vendor->user->national_id ?? null),
+            'image_national_id' => $user ? ($user->image_path ?? null) : ($vendor->user->image_path ?? null),
+        ],
+        'message' => $message ?: null,
+    ];
 
-        return array_merge($response, $additionalData);
-    }
+    return array_merge($response, $additionalData);
+}
 
     public function getVendorInfo($vendorId)
     {

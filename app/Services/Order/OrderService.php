@@ -13,70 +13,64 @@ use App\Models\Coupon;
 
 class OrderService
 {
-    public function createOrder(array $validatedData)
+    /*public function createOrder(array $validatedData)
     {
         DB::beginTransaction();
 
         try {
             $userId = Auth::id();
             $couponCode = $validatedData['coupon_code'] ?? null;
+            $note = $validatedData['note'] ?? null;
             $coupon = null;
             $couponDiscount = 0;
             $originalTotalPrice = 0;
             $couponApplied = false;
 
-            // التحقق من صحة الكوبون إذا تم تقديمه
             if ($couponCode) {
                 $coupon = Coupon::where('code', $couponCode)->first();
 
                 if (!$coupon || !$coupon->isActive()) {
-                    throw new \Exception('كود الخصم غير صالح أو منتهي الصلاحية');
+                    throw new \Exception('Coupon code is invalid or expired');
                 }
             }
 
-            // إنشاء الطلب
             $order = Order::create([
                 'user_id' => $userId,
                 'total_price' => 0,
                 'status' => 'pending',
+                'note' =>$note,
             ]);
 
             $totalPrice = 0;
             $orderProductsDetails = [];
 
             foreach ($validatedData['products'] as $productData) {
-                // Find the product with lock for update to prevent race conditions
-            $product = Product::with('discount')
-                ->where('id', $productData['product_id'])
-                ->where(function($query) {
-                    $query->whereNull('quantity')
-                        ->orWhere('quantity', '>', 0);
-                })
-                ->lockForUpdate()
-                ->first();
+                $product = Product::with('discount', 'images')
+                    ->where('id', $productData['product_id'])
+                    ->where(function($query) {
+                        $query->whereNull('quantity')
+                            ->orWhere('quantity', '>', 0);
+                    })
+                    ->lockForUpdate()
+                    ->first();
 
                 if (!$product) {
                     throw new ModelNotFoundException("Product not found or out of stock: " . $productData['product_id']);
                 }
 
-                // Check if product has quantity (not a service)
                 if ($product->quantity !== null) {
-                    // Validate requested quantity
                     if ($productData['quantity'] > $product->quantity) {
-                        return response()->json(['message' => 'quantity not available'], 404);
+                        return response()->json(['message' => 'Quantity not available'], 404);
                     }
-
-                    // Reduce the product quantity
                     $product->decrement('quantity', $productData['quantity']);
                 }
 
                 $originalPrice = $product->price;
                 $discountApplied = false;
                 $discountValue = 0;
-                $discountType = null;
+                $discountType = "precentage";
                 $productPrice = $originalPrice;
 
-                // تطبيق خصم المنتج المباشر إذا كان موجوداً وفعالاً
                 if ($product->discount && $product->discount->isActive()) {
                     $discountApplied = true;
                     $discountValue = $product->discount->value;
@@ -87,7 +81,12 @@ class OrderService
                     'order_id' => $order->id,
                     'product_id' => $product->id,
                     'quantity' => $productData['quantity'],
+                    'original_price' => $originalPrice,
+                    'unit_price' => $productPrice,
                     'total_price' => $productPrice * $productData['quantity'],
+                    'discount_applied' => $discountApplied,
+                    'discount_value' => $discountValue,
+                    'discount_type' => $discountType,
                     'status' => 'pending',
                 ]);
 
@@ -102,20 +101,21 @@ class OrderService
                     'final_unit_price' => $productPrice,
                     'discount_applied' => $discountApplied,
                     'discount_value' => $discountValue,
+                    'discount_type' => $discountType,
                     'total_price' => $productPrice * $productData['quantity'],
+                    'images' => $product->images->map(function($image) {
+                        return $image->imag;
+                    })->toArray()
                 ];
             }
 
-            // حفظ السعر الأصلي قبل تطبيق الكوبون
             $originalTotalPrice = $totalPrice;
 
-            // تطبيق خصم الكوبون إذا كان صالحاً
             if ($coupon) {
                 $couponDiscount = $totalPrice * ($coupon->discount_percent / 100);
                 $totalPrice -= $couponDiscount;
                 $couponApplied = true;
 
-                // ربط الكوبون بالطلب
                 $order->coupons()->attach($coupon, [
                     'discount_amount' => $couponDiscount
                 ]);
@@ -125,100 +125,388 @@ class OrderService
 
             $responseData = [
                 'success' => true,
-                'order' => [
-                    'id' => $order->id,
-                    'user_id' => $order->user_id,
-                    'original_total_price' => $originalTotalPrice,
-                    'total_price' => $order->total_price,
-                    'coupon_applied' => $couponApplied,
-                    'coupon_discount' => $couponDiscount,
-                    'coupon_code' => $coupon ? $coupon->code : null,
-                    'coupon_discount_percent' => $coupon ? $coupon->discount_percent : null,
-                    'status' => $order->status,
-                    'created_at' => $order->created_at,
-                    'products' => $orderProductsDetails,
-                ],
-                'message' => 'تم إنشاء الطلب بنجاح',
+                'order' => $this->formatOrderDetails($order, $orderProductsDetails, $originalTotalPrice, $couponApplied, $couponDiscount, $coupon),
+                'message' => 'Order created successfully',
             ];
 
             DB::commit();
-
             return response()->json($responseData);
 
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'فشل في إنشاء الطلب: ' . $e->getMessage(),
+                'message' => 'Failed to create order: ' . $e->getMessage(),
+            ], 500);
+        }
+    }*/
+
+
+    public function createOrder(array $validatedData)
+    {
+        DB::beginTransaction();
+
+        try {
+            $userId = Auth::id();
+            $couponCode = $validatedData['coupon_code'] ?? null;
+            $note = $validatedData['note'] ?? null;
+            $coupon = null;
+            $couponDiscount = 0;
+            $originalTotalPrice = 0;
+            $couponApplied = false;
+
+            if ($couponCode) {
+                $coupon = Coupon::where('code', $couponCode)->first();
+
+                if (!$coupon || !$coupon->isActive()) {
+                    throw new \Exception('Coupon code is invalid or expired');
+                }
+            }
+
+            // التحقق من عدد التجار المختلفين
+            $productIds = collect($validatedData['products'])->pluck('product_id')->unique();
+            $providersCount = Product::with('providerable')
+                ->whereIn('id', $productIds)
+                ->get()
+                ->groupBy(function($product) {
+                    return $product->providerable_type . '-' . $product->providerable_id;
+                })
+                ->count();
+
+            if ($providersCount > 2) {
+                throw new \Exception('You cannot order products from more than 2 different providers in a single order');
+            }
+
+            $order = Order::create([
+                'user_id' => $userId,
+                'total_price' => 0,
+                'status' => 'pending',
+                'note' => $note,
+            ]);
+
+            $totalPrice = 0;
+            $orderProductsDetails = [];
+
+            foreach ($validatedData['products'] as $productData) {
+                $product = Product::with('discount', 'images')
+                    ->where('id', $productData['product_id'])
+                    ->where(function($query) {
+                        $query->whereNull('quantity')
+                            ->orWhere('quantity', '>', 0);
+                    })
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$product) {
+                    throw new ModelNotFoundException("Product not found or out of stock: " . $productData['product_id']);
+                }
+
+                if ($product->quantity !== null) {
+                    if ($productData['quantity'] > $product->quantity) {
+                        return response()->json(['message' => 'Quantity not available'], 404);
+                    }
+                    $product->decrement('quantity', $productData['quantity']);
+                }
+
+                $originalPrice = $product->price;
+                $discountApplied = false;
+                $discountValue = 0;
+                $discountType = "precentage";
+                $productPrice = $originalPrice;
+
+                if ($product->discount && $product->discount->isActive()) {
+                    $discountApplied = true;
+                    $discountValue = $product->discount->value;
+                    $productPrice = $product->discount->calculateDiscountedPrice($originalPrice);
+                }
+
+                $orderProduct = Order_Product::create([
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                    'quantity' => $productData['quantity'],
+                    'original_price' => $originalPrice,
+                    'unit_price' => $productPrice,
+                    'total_price' => $productPrice * $productData['quantity'],
+                    'discount_applied' => $discountApplied,
+                    'discount_value' => $discountValue,
+                    'discount_type' => $discountType,
+                    'status' => 'pending',
+                ]);
+
+                $totalPrice += $orderProduct->total_price;
+
+                $orderProductsDetails[] = [
+                    'id' => $orderProduct->id,
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'quantity' => $productData['quantity'],
+                    'original_unit_price' => $originalPrice,
+                    'final_unit_price' => $productPrice,
+                    'discount_applied' => $discountApplied,
+                    'discount_value' => $discountValue,
+                    'discount_type' => $discountType,
+                    'total_price' => $productPrice * $productData['quantity'],
+                    'images' => $product->images->map(function($image) {
+                        return $image->imag;
+                    })->toArray()
+                ];
+            }
+
+            $originalTotalPrice = $totalPrice;
+
+            if ($coupon) {
+                $couponDiscount = $totalPrice * ($coupon->discount_percent / 100);
+                $totalPrice -= $couponDiscount;
+                $couponApplied = true;
+
+                $order->coupons()->attach($coupon, [
+                    'discount_amount' => $couponDiscount
+                ]);
+            }
+
+            $order->update(['total_price' => $totalPrice]);
+
+            $responseData = [
+                'success' => true,
+                'order' => $this->formatOrderDetails($order, $orderProductsDetails, $originalTotalPrice, $couponApplied, $couponDiscount, $coupon),
+                'message' => 'Order created successfully',
+            ];
+
+            DB::commit();
+            return response()->json($responseData);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create order: ' . $e->getMessage(),
             ], 500);
         }
     }
 
+public function cancelOrder($orderId)
+{
+    DB::beginTransaction();
 
+    try {
+        $userId = Auth::id();
 
-        public function getOrdersByPriceRange($minPrice, $maxPrice)
-        {
-            $orders = Order::whereBetween('total_price', [$minPrice, $maxPrice])
-                ->with(['order_product:id,order_id,product_id', 'order_product.product:id,name'])
-                ->paginate(8); // تحديد عدد الطلبات في كل صفحة (10 طلبات)
+        // البحث عن الطلب مع التحقق من ملكية المستخدم له
+        $order = Order::where('id', $orderId)
+                    ->where('user_id', $userId)
+                    ->with(['Order_Product.product']) // استخدام الاسم الصحيح للعلاقة
+                    ->first();
 
-            return response()->json(['orders' => $orders], 200);
+        if (!$order) {
+            throw new \Exception('Order not found or you are not authorized to cancel this order');
         }
 
-        public function getAllOrders()
-        {
-            return Order::with(['order_product:id,order_id,product_id', 'order_product.product:id,name'])
-                ->paginate(8); // تقسيم الطلبات إلى صفحات
+        if ($order->status === 'cancelled') {
+            throw new \Exception('Order is already cancelled');
         }
 
+        // تحديث حالة الطلب
+        $order->update(['status' => 'cancelled']);
 
+        // إرجاع الكميات للمنتجات وتحديث حالة منتجات الطلب
+        foreach ($order->Order_Product as $orderProduct) { // استخدام Order_Product بدلاً من products
+            // تحديث حالة منتج الطلب
+            $orderProduct->update(['status' => 'cancelled']);
 
-        public function getOrdersByStatus($status)
-        {
-            if ($status === 'all') {
-                return $this->getAllOrders(); // استدعاء الدالة التي تسترجع جميع الطلبات
+            // إرجاع الكمية للمنتج الأصلي إذا كان له كمية
+            if ($orderProduct->product->quantity !== null) {
+                $orderProduct->product->increment('quantity', $orderProduct->quantity);
             }
-
-            return Order::where('status', $status)
-                ->with(['order_product:id,order_id,product_id', 'order_product.product:id,name'])
-                ->paginate(8); // تقسيم الطلبات إلى صفحات
         }
 
+        DB::commit();
 
+        return response()->json([
+            'success' => true,
+            'message' => 'Order has been cancelled successfully',
+            'order_id' => $order->id,
+            'new_status' => 'cancelled'
+        ]);
 
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to cancel order: ' . $e->getMessage(),
+        ], 500);
+    }
+}
+    public function getOrdersByPriceRange($minPrice, $maxPrice)
+    {
+        $orders = Order::whereBetween('total_price', [$minPrice, $maxPrice])
+            ->with(['Order_Product.product.images', 'coupons'])
+            ->paginate(8);
 
-        public function getOrdersByProduct($productId)
-        {
-            $orders = Order_Product::where('product_id', $productId)
-                ->with(['order:id,status,total_price,user_id', 'order.user:id,name,email'])
-                ->paginate(8); // تحديد عدد الطلبات في كل صفحة (10 طلبات)
+        return $this->formatOrdersResponse($orders);
+    }
 
-            return $orders;
+    public function getAllOrders()
+    {
+        $orders = Order::with(['Order_Product.product.images', 'coupons'])
+            ->paginate(8);
+
+        return $this->formatOrdersResponse($orders);
+    }
+
+    public function getOrdersByStatus($status)
+    {
+        if ($status === 'all') {
+            return $this->getAllOrders();
         }
 
-        public function getOrdersByUser($userId)
-        {
-            $orders = Order::where('user_id', $userId)
-                ->with(['order_product:id,order_id,product_id,status,total_price', 'order_product.product:id,name,price'])
-                ->paginate(8); // تحديد عدد الطلبات في كل صفحة (10 طلبات)
+        $orders = Order::where('status', $status)
+            ->with(['Order_Product.product.images', 'coupons'])
+            ->paginate(8);
 
-            return $orders;
+        return $this->formatOrdersResponse($orders);
+    }
+
+    public function getOrdersByProduct($productId)
+    {
+        $orderProducts = Order_Product::where('product_id', $productId)
+            ->with(['order.coupons', 'order.Order_Product.product.images', 'product.images'])
+            ->paginate(8);
+
+        $formattedOrders = [];
+        foreach ($orderProducts as $orderProduct) {
+            $order = $orderProduct->order;
+            $formattedOrders[] = $this->formatSingleOrder($order);
         }
 
-        public function getOrdersByCategory($categoryId)
-        {
-            $products = Product::byCategory($categoryId)->pluck('id');
+        return response()->json([
+            'success' => true,
+            'orders' => $formattedOrders,
+            'pagination' => [
+                'total' => $orderProducts->total(),
+                'per_page' => $orderProducts->perPage(),
+                'current_page' => $orderProducts->currentPage(),
+                'last_page' => $orderProducts->lastPage(),
+            ]
+        ]);
+    }
 
-            $orders = Order_Product::whereIn('product_id', $products)
-                ->with(['order:id,status,user_id,total_price', 'order.user:id,name,email'])
-                ->paginate(8); // تحديد عدد الطلبات في كل صفحة (10 طلبات)
+    public function getOrdersByUser($userId)
+    {
+        $orders = Order::where('user_id', $userId)
+            ->with(['Order_Product.product.images', 'coupons'])
+            ->paginate(8);
 
-            return $orders;
+        return $this->formatOrdersResponse($orders);
+    }
+
+    public function getOrdersByCategory($categoryId)
+    {
+        $products = Product::byCategory($categoryId)->pluck('id');
+        $orderProducts = Order_Product::whereIn('product_id', $products)
+            ->with(['order.coupons', 'order.Order_Product.product.images', 'product.images'])
+            ->paginate(8);
+
+        $formattedOrders = [];
+        foreach ($orderProducts as $orderProduct) {
+            $order = $orderProduct->order;
+            $formattedOrders[] = $this->formatSingleOrder($order);
         }
 
+        return response()->json([
+            'success' => true,
+            'orders' => $formattedOrders,
+            'pagination' => [
+                'total' => $orderProducts->total(),
+                'per_page' => $orderProducts->perPage(),
+                'current_page' => $orderProducts->currentPage(),
+                'last_page' => $orderProducts->lastPage(),
+            ]
+        ]);
+    }
 
+    private function formatOrdersResponse($orders)
+    {
+        $formattedOrders = [];
+        foreach ($orders as $order) {
+            $formattedOrders[] = $this->formatSingleOrder($order);
+        }
 
+        return response()->json([
+            'success' => true,
+            'orders' => $formattedOrders,
+            'pagination' => [
+                'total' => $orders->total(),
+                'per_page' => $orders->perPage(),
+                'current_page' => $orders->currentPage(),
+                'last_page' => $orders->lastPage(),
+            ]
+        ]);
+    }
 
+    private function formatSingleOrder(Order $order)
+    {
+        $coupon = $order->coupons->first();
+        $originalTotalPrice = $order->Order_Product->sum(function($orderProduct) {
+            return $orderProduct->quantity * $orderProduct->product->price;
+        });
 
+        $couponApplied = $coupon ? true : false;
+        $couponDiscount = $coupon ? $originalTotalPrice * ($coupon->discount_percent / 100) : 0;
 
+        $products = [];
+        foreach ($order->Order_Product as $orderProduct) {
+            $product = $orderProduct->product;
+            $originalPrice = $product->price;
+            $discountApplied = $product->discount && $product->discount->isActive();
+            $finalPrice = $discountApplied ? $product->discount->calculateDiscountedPrice($originalPrice) : $originalPrice;
+
+            $products[] = [
+                'id' => $orderProduct->id,
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'quantity' => $orderProduct->quantity,
+                'original_unit_price' => $originalPrice,
+                'final_unit_price' => $finalPrice,
+                'discount_applied' => $discountApplied,
+                'discount_value' => $discountApplied ? $product->discount->value : 0,
+                'total_price' => $finalPrice * $orderProduct->quantity,
+                'status' => $orderProduct->status,
+                'images' => $product->images->map(function($image) {
+                    return $image->imag;
+                })->toArray()
+            ];
+        }
+
+        return [
+            'id' => $order->id,
+            'user_id' => $order->user_id,
+            'original_total_price' => $originalTotalPrice,
+            'total_price' => $order->total_price,
+            'coupon_applied' => $couponApplied,
+            'coupon_discount' => $couponDiscount,
+            'coupon_code' => $coupon ? $coupon->code : null,
+            'coupon_discount_percent' => $coupon ? $coupon->discount_percent : null,
+            'status' => $order->status,
+            'created_at' => $order->created_at,
+            'products' => $products,
+        ];
+    }
+
+    private function formatOrderDetails($order, $orderProductsDetails, $originalTotalPrice, $couponApplied, $couponDiscount, $coupon)
+    {
+        return [
+            'id' => $order->id,
+            'user_id' => $order->user_id,
+            'note' => $order->note,
+            'original_total_price' => $originalTotalPrice,
+            'total_price' => $order->total_price,
+            'coupon_applied' => $couponApplied,
+            'coupon_discount' => $couponDiscount,
+            'coupon_code' => $coupon ? $coupon->code : null,
+            'coupon_discount_percent' => $coupon ? $coupon->discount_percent : null,
+            'status' => $order->status,
+            'created_at' => $order->created_at,
+            'products' => $orderProductsDetails,
+        ];
+    }
 }

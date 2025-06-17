@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Coupon extends Model
 {
     use HasFactory;
+    
     protected $fillable = [
         'user_id',
         'code',
@@ -15,11 +16,10 @@ class Coupon extends Model
         'status',
         'expires_at',
     ];
+    
     protected $casts = [
-        'expires_at' => 'datetime', // هذا السطر مهم لتحويل الحقل إلى كائن تاريخ
+        'expires_at' => 'datetime',
     ];
-
-    protected $dates = ['expires_at'];
 
     const STATUS_ACTIVE = 'active';
     const STATUS_INACTIVE = 'inactive';
@@ -34,8 +34,15 @@ class Coupon extends Model
     {
         return $this->hasMany(Order_Coupon::class);
     }
+    
     public function user()
     {
-        return $this->belongsTo(User::class,'user_id');
+        return $this->belongsTo(User::class, 'user_id');
+    }
+    
+    // دالة مساعدة للبحث بالكود
+    public static function findByCode($code)
+    {
+        return static::where('code', $code)->first();
     }
 }

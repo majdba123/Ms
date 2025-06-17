@@ -21,10 +21,13 @@ class User extends Authenticatable
         'name',
         'google_id',
         'facebook_id',
+        'national_id', // إضافة الرقم القومي
+        'image_path',
         'phone',
         'email',
         'otp',
         'type',
+        'status',
         'password',
     ];
 

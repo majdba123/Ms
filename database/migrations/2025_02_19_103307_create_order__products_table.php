@@ -20,6 +20,11 @@ return new class extends Migration
             $table->foreignIdFor(Product::class)->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('total_price');
             $table->string('quantity');
+            $table->string('original_price');
+            $table->string('unit_price');
+            $table->string('discount_applied');
+            $table->string('discount_type');
+            $table->string('discount_value');
             $table->string('status')->default('pending');
 
 

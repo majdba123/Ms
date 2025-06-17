@@ -7,21 +7,33 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {
-    /**
-     * Define the application's command schedule.
-     */
-    protected function schedule(Schedule $schedule): void
+    protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+
+        $schedule->command('discounts:check-expired')
+                 ->everyTwelveHours()
+                 ->appendOutputTo(storage_path('logs/expired_discounts.log'));
+
+        $schedule->command('subscribes:check-expired')
+                 ->dailyAt('00:00')
+                 ->appendOutputTo(storage_path('logs/expired_subscribes.log'));
+
+        // المهمة الجديدة للكوبونات (كل ساعة)
+        $schedule->command('coupons:check-expired')
+                 ->hourly()
+                 ->appendOutputTo(storage_path('logs/expired_coupons.log'));
     }
 
-    /**
-     * Register the commands for the application.
-     */
-    protected function commands(): void
-    {
-        $this->load(__DIR__.'/Commands');
-
-        require base_path('routes/console.php');
-    }
+    protected $commands = [
+        \App\Console\Commands\CheckExpiredDiscounts::class,
+        \App\Console\Commands\CheckExpiredSubscribes::class,
+        \App\Console\Commands\CheckExpiredCoupons::class, // إضافة الأمر الجديد
+    ];
 }
+
+
+
+/**php artisan coupons:check-expired
+php artisan subscribes:check-expired
+php artisan discounts:check-expired
+php artisan products:check-expired */

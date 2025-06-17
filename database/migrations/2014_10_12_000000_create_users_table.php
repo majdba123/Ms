@@ -17,7 +17,12 @@ return new class extends Migration
             $table->string('google_id')->nullable();
             $table->string('facebook_id')->nullable();
             $table->string('otp')->default(0);
+            $table->string('status')->default("active");
+
             $table->string('email')->unique()->nullable();
+            $table->string('national_id')->unique()->nullable();
+            $table->string('image_path')->unique()->nullable();
+
             $table->string('phone')->unique()->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

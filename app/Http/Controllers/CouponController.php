@@ -120,4 +120,31 @@ class CouponController extends Controller
             'data' => $coupon
         ]);
     }
+
+
+    public function checkStatus(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|string'
+        ]);
+
+        $coupon = Coupon::where('code', $request->code)->first();
+
+        if (!$coupon) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Coupon not found',
+                'data' => null
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Coupon status checked successfully',
+            'data' => [
+                'is_active' => $coupon->isActive(),
+                'coupon' => $coupon
+            ]
+        ]);
+    }
 }

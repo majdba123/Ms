@@ -18,6 +18,9 @@ class CreateResrvationRequest extends FormRequest
     {
         return [
             'product_id' => ['required', 'integer', 'exists:products,id', new ProviderService],
+            'coupon_code' => 'nullable|string|exists:coupons,code',
+            'note' => 'nullable|string',
+
         ];
     }
 

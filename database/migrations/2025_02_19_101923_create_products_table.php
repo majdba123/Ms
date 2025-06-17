@@ -17,11 +17,14 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->foreignIdFor(Category::class)->constrained()->cascadeOnDelete()->cascadeOnUpdate();
+
             $table->string('description');
             $table->string('price');
             $table->morphs('providerable');
             $table->string('quantity')->nullable();
             $table->string('time_of_service')->nullable();
+            $table->string('food_type')->nullable();
+
             $table->timestamps();
             $table->softDeletes(); // إضافة عمود softDeletes
         });

@@ -9,6 +9,7 @@ use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\RseevationController;
 use App\Http\Controllers\FavouriteUserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +26,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('categories/get_all', [CategoryController::class, 'index']);
     Route::get('/categories/show/{id}', [CategoryController::class, 'show']);
+    Route::get('/categories/getProvidersByCategory/{category_id}', [CategoryController::class, 'getProvidersByCategory']);
 
 
     Route::get('/product/get_all_latest', [ProductController::class, 'latest_product']);
@@ -46,6 +48,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 
     Route::post('/orders/store', [OrderController::class, 'createOrder']);
+        Route::post('/orders/cancelled/{order_id}', [OrderController::class, 'cancelOrder']);
+
     Route::post('/reservation/store', [RseevationController::class, 'createOrder']);
     Route::get('/orders/ByStatus', [OrderController::class, 'getUserOrders']);
     Route::get('/orders/get_product/{order_id}', [OrderController::class, 'getProductOrder']);
@@ -69,5 +73,20 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/profile/update', [ProfileController::class, 'updateProfile']);
     Route::put('/my_info/update', [ProfileController::class, 'UpdateInfo']);
     Route::get('/my_info/get', [ProfileController::class, 'getUserInfo']);
+
+
+    Route::prefix('provider')->group(function () {
+
+        Route::get('product/get_by_status', [AdminController::class, 'getVendorsByStatus']);
+        Route::get('product/show_info/{vendor_id}', [AdminController::class, 'getVendorInfo']);
+
+        Route::get('service/get_by_status', [AdminController::class, 'get_P_S_ByStatus']);
+        Route::get('service/show_info/{vendor_id}', [AdminController::class, 'get_P_S_Info']);
+
+    });
+
+
+
+
 
 });

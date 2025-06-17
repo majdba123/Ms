@@ -86,7 +86,7 @@ class CommissionController extends Controller
             $vendor = Provider_Product::findOrFail($vendor_id);
         } else {
             $user = Auth::user();
-            $vendor = $user->vendor;
+            $vendor = $user->Provider_Product;
         }
 
         $commissionService = new CommissionService();

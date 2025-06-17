@@ -4,6 +4,7 @@ namespace App\Http\Requests\Product;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Models\FoodType_ProductProvider;
 
 class UpdateProductRequest extends FormRequest
 {
@@ -30,6 +31,24 @@ class UpdateProductRequest extends FormRequest
         } else {
             $rules['time_of_service'] = 'nullable|string|max:255';
             $rules['quantity'] = 'sometimes|required|integer|min:0';
+
+            // إذا كان نوع المستخدم food_provider
+            if (auth()->user()->type == 'food_provider') {
+                $rules['food_type_id'] = [
+                    'sometimes',
+                    'required',
+                    'integer',
+                    'exists:food_types,id',
+                    function ($attribute, $value, $fail) {
+                        $providerProductId = auth()->user()->provider_product->id ?? null;
+                        if (!FoodType_ProductProvider::where('food_type_id', $value)
+                            ->where('provider__product_id', $providerProductId)
+                            ->exists()) {
+                            $fail('This food type is not associated with your provider account.');
+                        }
+                    }
+                ];
+            }
         }
 
         return $rules;
@@ -52,9 +71,11 @@ class UpdateProductRequest extends FormRequest
             'images.*.image' => 'Each file must be an image.',
             'images.*.mimes' => 'Each image must be of type jpeg, png, jpg, or gif.',
             'images.*.max' => 'Each image must not exceed 2048 kilobytes.',
+            'food_type_id.required' => 'The food type ID is required for food providers when provided.',
+            'food_type_id.integer' => 'The food type ID must be an integer.',
+            'food_type_id.exists' => 'The selected food type does not exist.',
         ];
     }
-
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([

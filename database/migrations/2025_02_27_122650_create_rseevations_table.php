@@ -19,7 +19,15 @@ return new class extends Migration
             $table->foreignIdFor(Product::class)->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('status')->default('pending');
             $table->string('total_price');
+            $table->string('original_price')->nullable();
+            $table->text('note')->nullable();
 
+            $table->string('product_discount_applied')->nullable();
+            $table->string('product_discount_value')->nullable();
+            $table->string('product_discount_type')->nullable();
+            $table->string('coupon_applied')->nullable();
+            $table->string('coupon_discount')->nullable();
+            $table->string('coupon_code')->nullable();
             $table->timestamps();
         });
     }

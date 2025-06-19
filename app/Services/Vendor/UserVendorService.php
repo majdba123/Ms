@@ -16,6 +16,7 @@ class UserVendorService
         'vendor' => [
             'id' => $vendor->id ?? null,
             'status' => $vendor->status ?? null,
+            'type' => $vendor->user->type ?? null,
             'image' => $vendor->user->Profile->image ?? null,
             'address' => $vendor->user->Profile->address ?? null,
             'lang' => $vendor->user->Profile->lang ?? null,

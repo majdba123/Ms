@@ -532,6 +532,9 @@
                                 <li>
                                     <a href="Driver.html">Driver</a>
                                 </li>
+                                <li>
+                                    <a href="Food.html">Food</a>
+                                </li>
                             </ul>
                             <h2 class="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
                                 <svg
@@ -996,6 +999,9 @@
                                     <li>
                                         <a href="Driver.html">Driver</a>
                                     </li>
+                                    <li>
+                                        <a href="Food.html">Food</a>
+                                    </li>
                                 </ul>
                             </li>
                             <li class="menu nav-item relative">
@@ -1244,11 +1250,11 @@
                                 <a href="javascript:;" class="text-primary hover:underline">Dashboard</a>
                             </li>
                             <li class="before:content-['/'] ltr:before:mr-1 rtl:before:ml-1">
-                                <span>Category & Subscribe </span>
+                                <span>Provider </span>
                             </li>
 
                             <li class="before:content-['/'] ltr:before:mr-1 rtl:before:ml-1">
-                                <span>Category</span>
+                                <span>Food</span>
                             </li>
                         </ul>
 
@@ -1312,7 +1318,6 @@
                                 <!-- form grid -->
                                 <div class="grid grid-cols-1 justify-between gap-5 sm:flex">
                                     <input type="text" placeholder="Enter Name" class="form-input" x-model="$store.global.sharedData.fullname2" />
-                                    <input type="text" placeholder="Enter Price" class="form-input" x-model="$store.global.sharedData.price" />
                                 </div>
 
                                 <div class="mt-8 flex items-center justify-end">
@@ -1340,7 +1345,7 @@
                     <button @click="$store.deleteModal.closeModal()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">✕</button>
                 </div>
                 <div class="p-4">
-                    <p class="text-gray-700 dark:text-gray-300">"Are you sure you want to delete this Category?"</p>
+                    <p class="text-gray-700 dark:text-gray-300">"Are you sure you want to delete this Food?"</p>
                 </div>
                 <div class="flex justify-end gap-2 border-t p-4 dark:border-gray-700">
                     <button @click="$store.deleteModal.closeModal()" class="btn btn-outline-danger">No</button>
@@ -1540,7 +1545,7 @@
                                 return;
                             }
 
-                            const response = await fetch(`${this.apiBaseUrl}/api/admin/categories/get_all`, {
+                            const response = await fetch(`${this.apiBaseUrl}/api/admin/foodtype/index`, {
                                 method: 'GET',
                                 headers: {
                                     Accept: 'application/json',
@@ -1553,7 +1558,8 @@
                             }
 
                             const data = await response.json();
-                            this.tableData = data;
+                            this.tableData = data.data;
+                            console.log(data);
 
                             this.populateTable();
                         } catch (error) {}
@@ -1566,16 +1572,15 @@
                         }
 
                         const mappedData = this.tableData.map((manager, index) => [
-                            this.formatName(manager.name, manager.imag, index),
-                            this.formatText(manager.price),
-                            this.formatType(manager.type),
+                            this.formatText( index),
+                            this.formatText(manager.title),
 
-                            this.getActionButtons(manager.id, manager.name, manager.imag),
+                            this.getActionButtons(manager.id),
                         ]);
 
                         this.datatable1 = new simpleDatatables.DataTable('#myTable1', {
                             data: {
-                                headings: ['Name', 'price', 'Type', '<div class="text-center">Action</div>'],
+                                headings: ['Number', 'Title', '<div class="text-center">Action</div>'],
                                 data: mappedData,
                             },
                             searchable: true,
@@ -1670,11 +1675,10 @@
 
                         try {
                             const formData = new FormData();
-                            formData.append('name', Alpine.store('global').sharedData.fullname2);
-                            formData.append('price', Alpine.store('global').sharedData.price);
+                            formData.append('title', Alpine.store('global').sharedData.fullname2);
                             const token = localStorage.getItem('authToken');
-                            const response = await fetch(`${this.apiBaseUrl}/api/admin/categories/update/${managerId[0]}`, {
-                                method: 'POST',
+                            const response = await fetch(`${this.apiBaseUrl}/api/admin/foodtype/update/${managerId[0]}`, {
+                                method: 'PUT',
                                 headers: {
                                     Accept: 'application/json',
                                     Authorization: `Bearer ${token}`,
@@ -1682,7 +1686,7 @@
                                 body: formData,
                             });
 
-                            coloredToast('success', 'Update Category Successful');
+                            coloredToast('success', 'Update Food Successful');
 
                             await this.fetchManagers();
                         } catch (error) {
@@ -1703,7 +1707,7 @@
 
                         try {
                             const token = localStorage.getItem('authToken');
-                            const response = await fetch(`${this.apiBaseUrl}/api/admin/categories/delete/${managerId}`, {
+                            const response = await fetch(`${this.apiBaseUrl}/api/admin/foodtype/delete/${managerId}`, {
                                 method: 'DELETE',
                                 headers: {
                                     Accept: 'application/json',
@@ -1711,8 +1715,8 @@
                                 },
                             });
 
-                            if (!response.ok) throw new Error('Failed to delete Category');
-                            coloredToast('success', 'Delete Category Successful');
+                            if (!response.ok) throw new Error('Failed to delete Food');
+                            coloredToast('success', 'Delete Food Successful');
 
                             await this.fetchManagers();
                         } catch (error) {
@@ -1801,28 +1805,42 @@
                         try {
                             const token = localStorage.getItem('authToken');
                             if (!token) throw new Error('لم يتم العثور على رمز المصادقة');
-console.log(token);
+
+                            if (!this.fullname || this.fullname.trim() === '') {
+                                throw new Error('اسم الفئة لا يمكن أن يكون فارغًا');
+                            }
+
                             const formData = new FormData();
-                            formData.append('name', this.fullname);
-                            console.log(formData);
+                            formData.append('title', this.fullname.trim());
 
                             const response = await fetch(`${this.apiBaseUrl}/api/admin/foodtype/store`, {
                                 method: 'POST',
                                 headers: {
                                     Authorization: `Bearer ${token}`,
+                                    Accept: 'application/json',
                                 },
                                 body: formData,
                             });
 
-                            const result = await response.json();
+                            if (!response.ok) {
+                                const errorData = await response.json();
+                                throw new Error(errorData.message || 'Failed to add Food');
+                            }
 
-                            console.log(result);
+                            const result = await response.json();
+                            console.log('Success:', result);
 
                             this.fullname = '';
-
                             coloredToast('success', 'ADD [Food] Successful');
+
+
+                            // إعادة تحميل البيانات إذا كانت هناك دالة fetchManagers
+                            if (this.fetchManagers) {
+                                await this.fetchManagers();
+                            }
                         } catch (error) {
-                            coloredToast('danger', error.message);
+                            console.error('Error adding food ]:', error);
+                            coloredToast('danger', error.message || 'Error adding food');
                         }
                     },
                 }));

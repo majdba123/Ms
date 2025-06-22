@@ -532,6 +532,9 @@
                                 <li>
                                     <a href="Driver.html">Driver</a>
                                 </li>
+                                <li>
+                                    <a href="Food.html">Food</a>
+                                </li>
                             </ul>
                             <h2 class="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
                                 <svg
@@ -996,6 +999,9 @@
                                     <li>
                                         <a href="Driver.html">Driver</a>
                                     </li>
+                                    <li>
+                                        <a href="Food.html">Food</a>
+                                    </li>
                                 </ul>
                             </li>
                             <li class="menu nav-item relative">
@@ -1244,95 +1250,355 @@
                                 <a href="javascript:;" class="text-primary hover:underline">Dashboard</a>
                             </li>
                             <li class="before:content-['/'] ltr:before:mr-1 rtl:before:ml-1">
-                                <span>Reservation </span>
+                                <span>User Management </span>
                             </li>
                             <li class="before:content-['/'] ltr:before:mr-1 rtl:before:ml-1">
-                                <span>Reservation </span>
+                                <span>User </span>
                             </li>
                         </ul>
 
                         <div class="pt-5">
-                            <div x-data="multipleTable" x-init="init()">
+                            <div x-data="usersManagement" x-init="init()">
                                 <!-- Filter Buttons -->
-                                <div class="mb-4 flex space-x-2 rtl:space-x-reverse">
+                                <div class="mb-4 flex flex-wrap gap-2 rtl:space-x-reverse">
                                     <button
-                                        @click="currentFilter='all'; fetchOrders(1);"
+                                        @click="currentFilter='all'; fetchUsers();"
                                         class="filter-btn btn"
                                         :class="currentFilter === 'all' ? 'btn-primary' : 'btn-outline-primary'"
                                     >
-                                        All Reservation
+                                        All Users
+                                    </button>
+                          
+                                    <button
+                                        @click="currentFilter='service_provider'; fetchUsers();"
+                                        class="filter-btn btn"
+                                        :class="currentFilter === 'service_provider' ? 'btn-primary' : 'btn-outline-primary'"
+                                    >
+                                        Service Providers
                                     </button>
                                     <button
-                                        @click="currentFilter='pending'; fetchOrders(1);"
+                                        @click="currentFilter='product_provider'; fetchUsers();"
                                         class="filter-btn btn"
-                                        :class="currentFilter === 'pending' ? 'btn-primary' : 'btn-outline-primary'"
+                                        :class="currentFilter === 'product_provider' ? 'btn-primary' : 'btn-outline-primary'"
                                     >
-                                        Pending
+                                        Product Providers
                                     </button>
                                     <button
-                                        @click="currentFilter='complete'; fetchOrders(1);"
+                                        @click="currentFilter='driver'; fetchUsers();"
                                         class="filter-btn btn"
-                                        :class="currentFilter === 'complete' ? 'btn-primary' : 'btn-outline-primary'"
+                                        :class="currentFilter === 'driver' ? 'btn-primary' : 'btn-outline-primary'"
                                     >
-                                        Complete
-                                    </button>
-                                    <button
-                                        @click="currentFilter='cancelled'; fetchOrders(1);"
-                                        class="filter-btn btn"
-                                        :class="currentFilter === 'cancelled' ? 'btn-primary' : 'btn-outline-primary'"
-                                    >
-                                        Cancelled
+                                        Drivers
                                     </button>
                                 </div>
-                                <div class="mb-4 rounded-lg bg-gray-50 p-4">
-                                    <h6 class="mb-2 font-semibold">Filter by Price Range:</h6>
-                                    <div class="flex flex-wrap items-center gap-4">
-                                        <div class="flex items-center">
-                                            <label class="mr-2">Min:</label>
-                                            <input type="number" x-model="minPrice" class="form-input w-32" placeholder="Min price" />
-                                        </div>
 
-                                        <div class="flex items-center">
-                                            <label class="mr-2">Max:</label>
-                                            <input type="number" x-model="maxPrice" class="form-input w-32" placeholder="Max price" />
-                                        </div>
-
-                                        <button @click="applyPriceFilter()" class="btn btn-primary px-4 py-2">Apply Price Filter</button>
-
-                                        <button @click="resetPriceFilter()" class="btn btn-outline-primary px-4 py-2" x-show="priceFilterApplied">
-                                            Reset Price Filter
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Orders Table -->
+                                <!-- Users Table -->
                                 <div class="panel mt-6">
-                                    <h5 class="mb-5 text-lg font-semibold dark:text-white-light">Reservation Management</h5>
+                                    <h5 class="mb-5 text-lg font-semibold dark:text-white-light">Users Management</h5>
                                     <div x-show="loading" class="py-4 text-center"><span class="mr-2 inline-block animate-spin">↻</span> Loading...</div>
-                                    <table id="ordersTable" class="whitespace-nowrap"></table>
+
+                                    <div class="table-responsive">
+                                        <table class="whitespace-nowrap">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>User</th>
+                                                    <th>Contact Info</th>
+                                                    <th>Type</th>
+                                                    <th>Status</th>
+                                                    <th>Location</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <template x-for="(item, index) in users.users" :key="item.user.id">
+                                                    <tr>
+                                                        <td x-text="(currentPage - 1) * perPage + index + 1"></td>
+                                                        <td>
+                                                            <div class="flex items-center">
+                                                                <div>
+                                                                    <div x-text="item.user.name" class="font-medium"></div>
+                                                                    <div class="text-xs text-gray-500" x-text="'ID: ' + item.user.national_id"></div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="flex flex-col">
+                                                                <a
+                                                                    :href="'mailto:' + item.user.email"
+                                                                    class="text-primary hover:underline"
+                                                                    x-text="item.user.email"
+                                                                ></a>
+                                                                <span x-text="item.user.phone !== 'N/A' ? item.user.phone : 'No phone'"></span>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <span
+                                                                class="badge"
+                                                                :class="getTypeBadgeClass(item.user.type)"
+                                                                x-text="formatUserType(item.user.type)"
+                                                            ></span>
+                                                        </td>
+                                                        <td>
+                                                            <select
+                                                                x-model="item.user.status"
+                                                                @change="updateUserStatus(item.user.id, $event.target.value)"
+                                                                class="form-select min-w-[100px]"
+                                                                :class="getStatusClass(item.user.status)"
+                                                            >
+                                                                <option value="active">Active</option>
+                                                                <option value="pending">Pending</option>
+                                                                <option value="pand">Pand</option>
+                                                                <option value="banned">Banned</option>
+                                                            </select>
+                                                        </td>
+                                                        <td>
+                                                            <div class="flex flex-col">
+                                                                <span x-text="item.profile.address !== 'N/A' ? item.profile.address : 'No address'"></span>
+                                                                <template x-if="item.profile.lang !== 'N/A' && item.profile.lat !== 'N/A'">
+                                                                    <a
+                                                                        href="javascript:;"
+                                                                        @click="showOnMap(item.profile.lang, item.profile.lat)"
+                                                                        class="text-xs text-primary hover:underline"
+                                                                    >
+                                                                        View on Map
+                                                                    </a>
+                                                                </template>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="flex space-x-2">
+                                                                <button @click="openEditModal(item)" class="btn btn-sm btn-primary">Edit</button>
+                                                                <button @click="openEditInfoModal(item.user)" class="btn btn-sm btn-info">Edit Info</button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                                <template x-if="users.users && users.users.length === 0">
+                                                    <tr>
+                                                        <td colspan="7" class="py-4 text-center">No users found</td>
+                                                    </tr>
+                                                </template>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
 
                                 <!-- Pagination -->
                                 <div class="mt-4 flex items-center justify-between">
-                                    <div class="text-sm text-gray-600">
+                                    <div class="text-sm text-gray-600 dark:text-gray-400">
                                         Showing <span x-text="(currentPage - 1) * perPage + 1"></span> to
-                                        <span x-text="Math.min(currentPage * perPage, total)"></span> of <span x-text="total"></span> Reservation
+                                        <span x-text="Math.min(currentPage * perPage, users.pagination?.total || 0)"></span> of
+                                        <span x-text="users.pagination?.total || 0"></span> users
                                     </div>
 
                                     <div class="flex space-x-2">
                                         <button @click="prevPage()" :disabled="currentPage === 1" class="btn btn-outline-primary px-3 py-1">Previous</button>
 
-                                        <template x-for="page in Array.from({length: lastPage}, (_, i) => i + 1)">
+                                        <template x-for="page in getVisiblePages()" :key="page">
                                             <button
                                                 @click="goToPage(page)"
                                                 class="btn px-3 py-1"
                                                 :class="page === currentPage ? 'btn-primary' : 'btn-outline-primary'"
-                                            >
-                                                <span x-text="page"></span>
-                                            </button>
+                                                x-text="page"
+                                            ></button>
                                         </template>
 
                                         <button @click="nextPage()" :disabled="currentPage === lastPage" class="btn btn-outline-primary px-3 py-1">Next</button>
+                                    </div>
+                                </div>
+
+                                <!-- Edit Modal -->
+                                <div x-show="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" x-cloak>
+                                    <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" @click="showModal = false"></div>
+
+                                    <div class="max-h-[90vh] w-full max-w-5xl transform overflow-y-auto rounded-lg bg-white shadow-xl transition-all">
+                                        <div class="p-6">
+                                            <div class="flex items-start justify-between">
+                                                <h3 class="text-xl font-bold text-gray-900">تعديل موقع المستخدم</h3>
+                                                <button @click="showModal = false" class="text-gray-500 hover:text-gray-700">
+                                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+                                                <!-- Map Column -->
+                                                <div class="lg:col-span-2">
+                                                    <div class="relative h-96 w-full rounded-lg border border-gray-300">
+                                                        <!-- Map will be loaded here -->
+                                                        <div id="editUserMap" class="absolute inset-0 rounded-lg"></div>
+                                                        <div class="absolute left-2 top-2 z-10 rounded bg-white p-2 shadow">
+                                                            <p class="text-sm text-gray-600">انقر على الخريطة لتحديد الموقع</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Form Column -->
+                                                <div class="space-y-4">
+                                                    <div>
+                                                        <label class="block text-sm font-medium text-gray-700">العنوان</label>
+                                                        <input
+                                                            x-model="editData.profile.address"
+                                                            type="text"
+                                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                                                        />
+                                                    </div>
+
+                                                    <div class="grid grid-cols-2 gap-4">
+                                                        <div>
+                                                            <label class="block text-sm font-medium text-gray-700">خط الطول</label>
+                                                            <input
+                                                                x-model="editData.profile.lang"
+                                                                type="text"
+                                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                                                                readonly
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-sm font-medium text-gray-700">خط العرض</label>
+                                                            <input
+                                                                x-model="editData.profile.lat"
+                                                                type="text"
+                                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                                                                readonly
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <label class="block text-sm font-medium text-gray-700">صورة الملف الشخصي</label>
+                                                        <input
+                                                            type="file"
+                                                            @change="handleImageUpload"
+                                                            class="hover:file:bg-primary-dark mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+                                                        />
+                                                    </div>
+
+                                                    <div class="flex justify-end space-x-3 pt-4">
+                                                        <button
+                                                            @click="showModal = false"
+                                                            type="button"
+                                                            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                                        >
+                                                            إلغاء
+                                                        </button>
+                                                        <button
+                                                            @click="updateUserProfile"
+                                                            type="button"
+                                                            class="hover:bg-primary-dark rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                                        >
+                                                            حفظ التغييرات
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Edit Info Modal -->
+                                <!-- Edit User Info Modal -->
+                                <div x-show="showInfoModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" x-cloak>
+                                    <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" @click="showInfoModal = false"></div>
+
+                                    <div class="max-h-[90vh] w-full max-w-md transform overflow-y-auto rounded-lg bg-white shadow-xl transition-all">
+                                        <div class="p-6">
+                                            <div class="flex items-start justify-between">
+                                                <h3 class="text-xl font-bold text-gray-900">تعديل المعلومات الأساسية</h3>
+                                                <button @click="showInfoModal = false" class="text-gray-500 hover:text-gray-700">
+                                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            <div class="mt-6 space-y-4">
+                                                <!-- Name Field -->
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700">الاسم الكامل</label>
+                                                    <input
+                                                        x-model="editInfoData.name"
+                                                        type="text"
+                                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                                                    />
+                                                </div>
+
+                                                <!-- Email Field -->
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700">البريد الإلكتروني</label>
+                                                    <input
+                                                        x-model="editInfoData.email"
+                                                        type="email"
+                                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                                                    />
+                                                </div>
+
+                                                <!-- Phone Field -->
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700">رقم الهاتف</label>
+                                                    <input
+                                                        x-model="editInfoData.phone"
+                                                        type="tel"
+                                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                                                    />
+                                                </div>
+
+                                                <!-- Password Fields -->
+                                                <div class="border-t border-gray-200 pt-2">
+                                                    <h4 class="mb-3 text-sm font-medium text-gray-700">تغيير كلمة المرور</h4>
+
+                                                    <!-- Current Password -->
+                                                    <div class="mb-3">
+                                                        <label class="block text-sm font-medium text-gray-700">كلمة المرور الحالية</label>
+                                                        <input
+                                                            x-model="editInfoData.current_password"
+                                                            type="password"
+                                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                                                        />
+                                                    </div>
+
+                                                    <!-- New Password -->
+                                                    <div class="mb-3">
+                                                        <label class="block text-sm font-medium text-gray-700">كلمة المرور الجديدة</label>
+                                                        <input
+                                                            x-model="editInfoData.password"
+                                                            type="password"
+                                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                                                        />
+                                                    </div>
+
+                                                    <!-- Confirm Password -->
+                                                    <div>
+                                                        <label class="block text-sm font-medium text-gray-700">تأكيد كلمة المرور</label>
+                                                        <input
+                                                            x-model="editInfoData.password_confirmation"
+                                                            type="password"
+                                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <!-- Action Buttons -->
+                                                <div class="flex justify-end space-x-3 pt-4">
+                                                    <button
+                                                        @click="showInfoModal = false"
+                                                        type="button"
+                                                        class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                                    >
+                                                        إلغاء
+                                                    </button>
+                                                    <button
+                                                        @click="updateUserInfo"
+                                                        type="button"
+                                                        class="hover:bg-primary-dark rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                                    >
+                                                        حفظ التغييرات
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1533,41 +1799,45 @@
                         this.messages = this.messages.filter((d) => d.id !== value);
                     },
                 }));
-                Alpine.data('multipleTable', () => ({
-                    orders: [],
+
+                Alpine.data('usersManagement', () => ({
+                    apiBaseUrl: API_CONFIG.BASE_URL,
+                    users: { data: [], pagination: {} },
+                    currentFilter: 'all',
                     currentPage: 1,
-                    lastPage: 1,
                     perPage: 10,
+                    map: null,
+                    marker: null,
+                    lastPage: 1,
                     total: 0,
                     loading: false,
-                    apiBaseUrl: API_CONFIG.BASE_URL,
-                    currentFilter: 'all',
-                    minPrice: null,
-                    maxPrice: null,
-                    priceFilterApplied: false,
-
+                    showModal: false,
+                    showInfoModal: false,
+                    editData: {
+                        user: {},
+                        profile: {},
+                    },
+                    editInfoData: {
+                        name: '',
+                        email: '',
+                        phone: '',
+                        current_password: '',
+                        password: '',
+                        password_confirmation: '',
+                    },
                     async init() {
-                        await this.fetchOrders();
-                        window.orderApp = this;
+                        await this.fetchUsers();
+                        this.loadGoogleMaps();
                     },
 
-                    async fetchOrders(page = 1) {
+                    async fetchUsers() {
                         this.loading = true;
                         try {
                             const token = localStorage.getItem('authToken');
-                            if (!token) {
-                                coloredToast('error', 'Authentication token is missing. Please log in.');
-                                window.location.href = '/auth-boxed-signin.html';
-                                return;
-                            }
+                            let url = `${this.apiBaseUrl}/api/admin/profile/get_All?page=${this.currentPage}`;
 
-                            let url = `${this.apiBaseUrl}/api/admin/reservation/get_all_by_status?status=${this.currentFilter}&page=${page}`;
-
-                            if (this.priceFilterApplied && (this.minPrice || this.maxPrice)) {
-                                url = `${this.apiBaseUrl}/api/admin/reservation/get_all_by_price?`;
-                                if (this.minPrice) url += `&min_price=${this.minPrice}`;
-                                if (this.maxPrice) url += `&max_price=${this.maxPrice}`;
-                                if (this.currentFilter !== 'all') url += `&status=${this.currentFilter}`;
+                            if (this.currentFilter !== 'all') {
+                                url += `&type=${this.currentFilter}`;
                             }
 
                             const response = await fetch(url, {
@@ -1578,131 +1848,349 @@
                                 },
                             });
 
-                            if (!response.ok) {
-                                const errorData = await response.json().catch(() => ({}));
-                                throw new Error(errorData.message || `Request failed with status ${response.status}`);
-                            }
-                            console.log(response);
                             const data = await response.json();
                             console.log(data);
-                            if (data.orders.original) {
-                                this.current_page = data.orders.original.orders.current_page;
-                                this.orders = data.orders.original.orders.data || [];
-                                this.lastPage = data.orders.original.orders.last_page;
-                                this.perPage = data.orders.original.orders.per_page;
-                                this.total = data.orders.original.orders.total;
-                            } else {
-                                this.current_page = data.orders.current_page;
-                                this.orders = data.orders.data || [];
-                                this.lastPage = data.orders.last_page;
-                                this.perPage = data.orders.per_page;
-                                this.total = data.orders.total;
-                            }
-                            this.populateTable();
+                            this.users = data;
+                            console.log(this.users, 'sss');
+                            this.perPage = data.pagination?.per_page || 10;
+                            this.lastPage = data.pagination?.last_page || 1;
+                            this.total = data.pagination?.total || 0;
                         } catch (error) {
-                            console.error('Error fetching orders:', error);
-                            coloredToast('error', error.message || 'Failed to fetch Reservatin data. Please try again later.');
+                            coloredToast('error', error.message || 'Failed to fetch users. Please try again later.');
                         } finally {
                             this.loading = false;
                         }
                     },
-                    applyPriceFilter() {
-                        if ((this.minPrice && isNaN(this.minPrice)) || (this.maxPrice && isNaN(this.maxPrice))) {
-                            coloredToast('error', 'Please enter valid numbers for price range');
-                            return;
-                        }
-                        this.priceFilterApplied = true;
-                        this.fetchOrders(1);
+
+                    formatUserType(type) {
+                        const types = {
+                            0: 'Regular User',
+                            1: 'Admin',
+                            service_provider: 'Service Provider',
+                            product_provider: 'Product Provider',
+                            driver: 'Driver',
+                        };
+                        return types[type] || type;
                     },
 
-                    resetPriceFilter() {
-                        this.minPrice = null;
-                        this.maxPrice = null;
-                        this.priceFilterApplied = false;
-                        this.fetchOrders(1);
-                    },
-                    populateTable() {
-                        const tableElement = document.getElementById('ordersTable');
-                        if (!tableElement) return;
-
-                        tableElement.innerHTML = `
-                        <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Service/Product</th>
-                    <th>description</th>
-                    <th>User</th>
-                    <th>Email</th>
-
-                    <th>Price</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${
-                    this.orders.length > 0
-                        ? this.orders
-                              .map(
-                                  (reservation, index) => `
-                        <tr>
-                            <td>${(this.currentPage - 1) * this.perPage + index + 1}</td>
-                            <td>
-                                ${reservation.product?.name || reservation.service?.name || 'N/A'}
-                            </td>
-                            <td>
-                                ${reservation.product?.description || reservation.service?.description || 'N/A'}
-                            </td>
-                            <td>${reservation.user?.name || 'N/A'}</td>
-                            <td>${reservation.user?.email || 'N/A'}</td>
-
-                            <td>${reservation.total_price || 'N/A'}</td>
-                            <td>
-                                <span class="badge ${this.getStatusClass(reservation.status)}">
-                                    ${reservation.status}
-                                </span>
-                            </td>
-                            <td>${new Date(reservation.created_at).toLocaleDateString()}</td>
-                           
-                        </tr>
-                    `
-                              )
-                              .join('')
-                        : `
-                    <tr>
-                        <td colspan="7" class="text-center py-4">No reservations found</td>
-                    </tr>
-                `
-                }
-            </tbody>
-        `;
+                    getTypeBadgeClass(type) {
+                        const classes = {
+                            0: 'bg-gray-100 text-gray-800',
+                            1: 'bg-gray-100 text-gray-800',
+                            service_provider: 'bg-gray-100 text-gray-800',
+                            product_provider: 'bg-gray-100 text-gray-800',
+                            driver: 'bg-gray-100 text-gray-800',
+                        };
+                        return classes[type] || 'bg-gray-100 text-gray-800';
                     },
 
                     getStatusClass(status) {
                         const classes = {
-                            complete: 'bg-success',
+                            active: 'bg-success',
                             pending: 'bg-warning',
-                            cancelled: 'bg-danger',
-                            processing: 'bg-info',
+                            pand: 'bg-danger',
+                            banned: 'bg-dark',
                         };
                         return classes[status] || 'bg-primary';
                     },
 
-                    // Pagination functions
-                    goToPage(page) {
-                        if (page < 1 || page > this.lastPage) return;
-                        this.fetchOrders(page);
+                    openEditModal(user) {
+                        this.editData = JSON.parse(JSON.stringify(user));
+                        this.showModal = true;
                     },
 
-                    nextPage() {
-                        if (this.currentPage < this.lastPage) {
-                            this.fetchOrders(this.currentPage + 1);
+                    openEditInfoModal(user) {
+                        this.editInfoData = {
+                            name: user.name || '',
+                            email: user.email || '',
+                            phone: user.phone !== 'N/A' ? user.phone : '',
+                            current_password: '',
+                            password: '',
+                            password_confirmation: '',
+                        };
+                        this.showInfoModal = true;
+                    },
+                    async updateUserInfo() {
+                        try {
+                            const token = localStorage.getItem('authToken');
+                            const updateData = [];
+
+                            // Add fields to update
+                            if (this.editInfoData.name) {
+                                updateData.push({
+                                    key: 'name',
+                                    value: this.editInfoData.name,
+                                    enabled: true,
+                                });
+                            }
+
+                            if (this.editInfoData.phone) {
+                                updateData.push({
+                                    key: 'phone',
+                                    value: this.editInfoData.phone,
+                                    enabled: true,
+                                });
+                            }
+
+                            if (this.editInfoData.password) {
+                                updateData.push(
+                                    {
+                                        key: 'current_password',
+                                        value: this.editInfoData.current_password,
+                                        enabled: true,
+                                    },
+                                    {
+                                        key: 'password',
+                                        value: this.editInfoData.password,
+                                        enabled: true,
+                                    },
+                                    {
+                                        key: 'password_confirmation',
+                                        value: this.editInfoData.password_confirmation,
+                                        enabled: true,
+                                    }
+                                );
+                            }
+
+                            const response = await fetch(`${this.apiBaseUrl}/api/admin/profile/info/update/${this.editData.user.id}`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    Authorization: `Bearer ${token}`,
+                                },
+                                body: JSON.stringify(updateData),
+                            });
+
+                            coloredToast('success', 'تم تحديث معلومات المستخدم بنجاح');
+                            this.showInfoModal = false;
+                            await this.fetchUsers();
+                        } catch (error) {
+                            coloredToast('error', error.message || 'فشل في تحديث معلومات المستخدم');
                         }
+                    },
+
+                    async updateUserProfile() {
+                        try {
+                            const token = localStorage.getItem('authToken');
+                            const formData = new FormData();
+
+                            // Prepare data for API
+                            const updateData = [
+                                { key: 'lang', value: this.editData.profile.lang, type: 'text', enabled: true },
+                                { key: 'lat', value: this.editData.profile.lat, type: 'text', enabled: true },
+                                { key: 'address', value: this.editData.profile.address, type: 'text', enabled: true },
+                            ];
+
+                            // If image is uploaded
+                            if (this.editData.profile.imageFile) {
+                                formData.append('image', this.editData.profile.imageFile);
+                                updateData.push({ key: 'image', type: 'file', enabled: true });
+                            }
+
+                            // formData.append('data', JSON.stringify(updateData));
+
+                            const response = await fetch(`${this.apiBaseUrl}/api/admin/profile/update/${this.editData.user.id}`, {
+                                method: 'POST',
+                                headers: {
+                                    Authorization: `Bearer ${token}`,
+                                },
+                                body: formData,
+                            });
+
+                            if (!response.ok) {
+                                throw new Error(`Request failed with status ${response.status}`);
+                            }
+
+                            coloredToast('success', 'User profile updated successfully');
+                            this.showModal = false;
+                            await this.fetchUsers();
+                        } catch (error) {
+                            coloredToast('error', error.message || 'Failed to update user profile');
+                        }
+                    },
+
+                    async updateUserStatus(userId, status) {
+                        try {
+                            const token = localStorage.getItem('authToken');
+                            const response = await fetch(`${this.apiBaseUrl}/api/admin/profile/status/update/${userId}?status=${status}`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    Authorization: `Bearer ${token}`,
+                                },
+                                body: JSON.stringify([
+                                    {
+                                        key: 'status',
+                                        value: status,
+                                        equals: true,
+                                        description: null,
+                                        enabled: true,
+                                    },
+                                ]),
+                            });
+
+                            if (!response.ok) {
+                                throw new Error(`Request failed with status ${response.status}`);
+                            }
+
+                            coloredToast('success', 'User status updated successfully');
+                        } catch (error) {
+                            coloredToast('error', error.message || 'Failed to update user status');
+                        }
+                    },
+
+                    handleImageUpload(event) {
+                        this.editData.profile.imageFile = event.target.files[0];
+                    },
+
+                    showOnMap(lang, lat) {
+                        if (lang !== 'N/A' && lat !== 'N/A') {
+                            const mapUrl = `https://www.google.com/maps?q=${lat},${lang}`;
+                            window.open(mapUrl, '_blank');
+                        }
+                    },
+
+                    // Pagination functions (same as before)
+                    getVisiblePages() {
+                        const pages = [];
+                        const maxVisible = 5;
+                        let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+                        let end = Math.min(this.lastPage, start + maxVisible - 1);
+
+                        if (end - start + 1 < maxVisible) {
+                            start = Math.max(1, end - maxVisible + 1);
+                        }
+
+                        for (let i = start; i <= end; i++) {
+                            pages.push(i);
+                        }
+
+                        return pages;
+                    },
+                    loadGoogleMaps() {
+                        if (!window.google) {
+                            const script = document.createElement('script');
+                            script.src = `https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap`;
+                            script.async = true;
+                            script.defer = true;
+                            document.head.appendChild(script);
+                            window.initMap = this.initMap.bind(this);
+                        }
+                    },
+
+                    initMap() {
+                        // This will be called when Google Maps API is loaded
+                        console.log('Google Maps API loaded');
+                    },
+
+                    openEditModal(user) {
+                        this.editData = JSON.parse(JSON.stringify(user));
+                        this.showModal = true;
+
+                        // Initialize map after modal is shown
+                        this.$nextTick(() => {
+                            this.initUserMap();
+                        });
+                    },
+
+                    initUserMap() {
+                        const initialLat = this.editData.profile.lat !== 'N/A' ? parseFloat(this.editData.profile.lat) : 24.7136;
+                        const initialLng = this.editData.profile.lang !== 'N/A' ? parseFloat(this.editData.profile.lang) : 46.6753;
+
+                        this.map = new google.maps.Map(document.getElementById('editUserMap'), {
+                            center: { lat: initialLat, lng: initialLng },
+                            zoom: 12,
+                            streetViewControl: false,
+                            mapTypeControl: false,
+                        });
+
+                        // Add initial marker
+                        if (this.editData.profile.lat !== 'N/A' && this.editData.profile.lang !== 'N/A') {
+                            this.marker = new google.maps.Marker({
+                                position: { lat: initialLat, lng: initialLng },
+                                map: this.map,
+                                draggable: true,
+                            });
+                        }
+
+                        // Add click listener to map
+                        this.map.addListener('click', (e) => {
+                            this.handleMapClick(e);
+                        });
+
+                        // Add dragend listener to marker
+                        if (this.marker) {
+                            this.marker.addListener('dragend', (e) => {
+                                this.handleMarkerDrag(e);
+                            });
+                        }
+                    },
+
+                    handleMapClick(e) {
+                        const lat = e.latLng.lat();
+                        const lng = e.latLng.lng();
+
+                        this.editData.profile.lat = lat.toString();
+                        this.editData.profile.lang = lng.toString();
+
+                        // Update or create marker
+                        if (!this.marker) {
+                            this.marker = new google.maps.Marker({
+                                position: e.latLng,
+                                map: this.map,
+                                draggable: true,
+                            });
+
+                            // Add dragend listener to new marker
+                            this.marker.addListener('dragend', (e) => {
+                                this.handleMarkerDrag(e);
+                            });
+                        } else {
+                            this.marker.setPosition(e.latLng);
+                        }
+
+                        // Get address using Geocoder
+                        this.geocodePosition(e.latLng);
+                    },
+
+                    handleMarkerDrag(e) {
+                        const lat = e.latLng.lat();
+                        const lng = e.latLng.lng();
+
+                        this.editData.profile.lat = lat.toString();
+                        this.editData.profile.lang = lng.toString();
+
+                        // Get address using Geocoder
+                        this.geocodePosition(e.latLng);
+                    },
+
+                    geocodePosition(pos) {
+                        const geocoder = new google.maps.Geocoder();
+                        geocoder.geocode({ location: pos }, (results, status) => {
+                            if (status === 'OK' && results[0]) {
+                                this.editData.profile.address = results[0].formatted_address;
+                            }
+                        });
                     },
 
                     prevPage() {
                         if (this.currentPage > 1) {
-                            this.fetchOrders(this.currentPage - 1);
+                            this.currentPage--;
+                            this.fetchUsers();
+                        }
+                    },
+
+                    nextPage() {
+                        if (this.currentPage < this.lastPage) {
+                            this.currentPage++;
+                            this.fetchUsers();
+                        }
+                    },
+
+                    goToPage(page) {
+                        if (page >= 1 && page <= this.lastPage) {
+                            this.currentPage = page;
+                            this.fetchUsers();
                         }
                     },
                 }));

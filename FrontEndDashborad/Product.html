@@ -1244,92 +1244,143 @@
                                 <a href="javascript:;" class="text-primary hover:underline">Dashboard</a>
                             </li>
                             <li class="before:content-['/'] ltr:before:mr-1 rtl:before:ml-1">
-                                <span>Reservation </span>
+                                <span>Product & Rate </span>
                             </li>
                             <li class="before:content-['/'] ltr:before:mr-1 rtl:before:ml-1">
-                                <span>Reservation </span>
+                                <span>Product </span>
                             </li>
                         </ul>
 
                         <div class="pt-5">
-                            <div x-data="multipleTable" x-init="init()">
+                            <div x-data="productsManagement" x-init="init()">
                                 <!-- Filter Buttons -->
-                                <div class="mb-4 flex space-x-2 rtl:space-x-reverse">
+                                <div class="mb-4 flex flex-wrap gap-2 rtl:space-x-reverse">
                                     <button
-                                        @click="currentFilter='all'; fetchOrders(1);"
+                                        @click="currentFilter='all'; fetchProducts();"
                                         class="filter-btn btn"
                                         :class="currentFilter === 'all' ? 'btn-primary' : 'btn-outline-primary'"
                                     >
-                                        All Reservation
+                                        All Products
                                     </button>
-                                    <button
-                                        @click="currentFilter='pending'; fetchOrders(1);"
-                                        class="filter-btn btn"
-                                        :class="currentFilter === 'pending' ? 'btn-primary' : 'btn-outline-primary'"
-                                    >
-                                        Pending
-                                    </button>
-                                    <button
-                                        @click="currentFilter='complete'; fetchOrders(1);"
-                                        class="filter-btn btn"
-                                        :class="currentFilter === 'complete' ? 'btn-primary' : 'btn-outline-primary'"
-                                    >
-                                        Complete
-                                    </button>
-                                    <button
-                                        @click="currentFilter='cancelled'; fetchOrders(1);"
-                                        class="filter-btn btn"
-                                        :class="currentFilter === 'cancelled' ? 'btn-primary' : 'btn-outline-primary'"
-                                    >
-                                        Cancelled
-                                    </button>
-                                </div>
-                                <div class="mb-4 rounded-lg bg-gray-50 p-4">
-                                    <h6 class="mb-2 font-semibold">Filter by Price Range:</h6>
-                                    <div class="flex flex-wrap items-center gap-4">
-                                        <div class="flex items-center">
-                                            <label class="mr-2">Min:</label>
-                                            <input type="number" x-model="minPrice" class="form-input w-32" placeholder="Min price" />
-                                        </div>
 
-                                        <div class="flex items-center">
-                                            <label class="mr-2">Max:</label>
-                                            <input type="number" x-model="maxPrice" class="form-input w-32" placeholder="Max price" />
-                                        </div>
+                                    <!-- Service Providers Filter -->
+                                    <!-- Service Providers Filter -->
+                                    <div class="w-full sm:w-auto">
+                                        <select x-model="activeServiceProvider" @change="applyServiceProviderFilter()" class="form-select w-full sm:w-48">
+                                            <option value="">All Service Providers</option>
+                                            <template x-for="provider in serviceProviders" :key="provider.provider_Servive.id">
+                                                <option :value="provider.provider_Servive.id" x-text="provider.user.name"></option>
+                                            </template>
+                                        </select>
+                                    </div>
 
-                                        <button @click="applyPriceFilter()" class="btn btn-primary px-4 py-2">Apply Price Filter</button>
+                                    <!-- Product Providers Filter -->
+                                    <div class="w-full sm:w-auto">
+                                        <select x-model="activeProductProvider" @change="applyProductProviderFilter()" class="form-select w-full sm:w-48">
+                                            <option value="">All Product Providers</option>
+                                            <template x-for="provider in productProviders" :key="provider.vendor.id">
+                                                <option :value="provider.vendor.id" x-text="provider.user.name"></option>
+                                            </template>
+                                        </select>
+                                    </div>
 
-                                        <button @click="resetPriceFilter()" class="btn btn-outline-primary px-4 py-2" x-show="priceFilterApplied">
-                                            Reset Price Filter
-                                        </button>
+                                    <!-- Categories Filter -->
+                                    <div class="w-full sm:w-auto">
+                                        <select x-model="activeCategory" @change="applyCategoryFilter()" class="form-select w-full sm:w-48">
+                                            <option value="">All Categories</option>
+                                            <template x-for="category in categories" :key="category.id">
+                                                <option :value="category.id" x-text="category.name"></option>
+                                            </template>
+                                        </select>
                                     </div>
                                 </div>
 
-                                <!-- Orders Table -->
+                                <!-- Price Range Filter -->
+
+                                <!-- Products Table -->
                                 <div class="panel mt-6">
-                                    <h5 class="mb-5 text-lg font-semibold dark:text-white-light">Reservation Management</h5>
+                                    <h5 class="mb-5 text-lg font-semibold dark:text-white-light">Products Management</h5>
                                     <div x-show="loading" class="py-4 text-center"><span class="mr-2 inline-block animate-spin">↻</span> Loading...</div>
-                                    <table id="ordersTable" class="whitespace-nowrap"></table>
+
+                                    <div class="table-responsive">
+                                        <table class="whitespace-nowrap">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Product</th>
+                                                    <th>Description</th>
+                                                    <th>Price</th>
+                                                    <th>Discount</th>
+                                                    <th>Provider</th>
+                                                    <th>Category</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <template x-for="(product, index) in products.data" :key="product.id">
+                                                    <tr>
+                                                        <td x-text="(currentPage - 1) * perPage + index + 1"></td>
+                                                        <td>
+                                                            <div class="flex items-center">
+                                                                <template x-if="product.images && product.images.length > 0">
+                                                                    <img :src="product.images[0].url" class="mr-3 h-10 w-10 rounded-md object-cover" />
+                                                                </template>
+                                                                <span x-text="product.name" class="font-medium"></span>
+                                                            </div>
+                                                        </td>
+                                                        <td x-text="product.description" class="max-w-xs"></td>
+                                                        <td>
+                                                            <div class="flex flex-col">
+                                                                <span x-text="'$' + product.price"></span>
+                                                                <template x-if="product.discount_info.has_discount">
+                                                                    <span
+                                                                        class="text-xs text-success"
+                                                                        x-text="'Final: $' + product.discount_info.final_price"
+                                                                    ></span>
+                                                                </template>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <template x-if="product.discount_info.has_discount">
+                                                                <span class="badge bg-success">
+                                                                    <span x-text="calculateDiscountPercentage(product) + '%'"></span>
+                                                                </span>
+                                                            </template>
+                                                            <template x-if="!product.discount_info.has_discount">
+                                                                <span class="badge bg-gray-200 dark:bg-gray-700">No discount</span>
+                                                            </template>
+                                                        </td>
+                                                        <td x-text="getProviderName(product)"></td>
+                                                        <td x-text="getCategoryName(product.category_id)"></td>
+                                                    </tr>
+                                                </template>
+                                                <template x-if="products.data && products.data.length === 0">
+                                                    <tr>
+                                                        <td colspan="9" class="py-4 text-center">No products found</td>
+                                                    </tr>
+                                                </template>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
 
                                 <!-- Pagination -->
                                 <div class="mt-4 flex items-center justify-between">
-                                    <div class="text-sm text-gray-600">
+                                    <div class="text-sm text-gray-600 dark:text-gray-400">
                                         Showing <span x-text="(currentPage - 1) * perPage + 1"></span> to
-                                        <span x-text="Math.min(currentPage * perPage, total)"></span> of <span x-text="total"></span> Reservation
+                                        <span x-text="Math.min(currentPage * perPage, products.pagination?.total || 0)"></span> of
+                                        <span x-text="products.pagination?.total || 0"></span> products
                                     </div>
 
                                     <div class="flex space-x-2">
                                         <button @click="prevPage()" :disabled="currentPage === 1" class="btn btn-outline-primary px-3 py-1">Previous</button>
 
-                                        <template x-for="page in Array.from({length: lastPage}, (_, i) => i + 1)">
+                                        <template x-for="page in getVisiblePages()" :key="page">
                                             <button
                                                 @click="goToPage(page)"
                                                 class="btn px-3 py-1"
                                                 :class="page === currentPage ? 'btn-primary' : 'btn-outline-primary'"
-                                            >
-                                                <span x-text="page"></span>
-                                            </button>
+                                                x-text="page"
+                                            ></button>
                                         </template>
 
                                         <button @click="nextPage()" :disabled="currentPage === lastPage" class="btn btn-outline-primary px-3 py-1">Next</button>
@@ -1533,44 +1584,171 @@
                         this.messages = this.messages.filter((d) => d.id !== value);
                     },
                 }));
-                Alpine.data('multipleTable', () => ({
-                    orders: [],
+
+                Alpine.data('productsManagement', () => ({
+                    apiBaseUrl: API_CONFIG.BASE_URL,
+                    products: { data: [], pagination: {} },
+                    serviceProviders: [],
+                    productProviders: [],
+                    categories: [],
+                    currentFilter: 'all',
                     currentPage: 1,
-                    lastPage: 1,
                     perPage: 10,
+                    lastPage: 1,
                     total: 0,
                     loading: false,
-                    apiBaseUrl: API_CONFIG.BASE_URL,
-                    currentFilter: 'all',
                     minPrice: null,
                     maxPrice: null,
-                    priceFilterApplied: false,
+                    activeServiceProvider: null,
+                    activeProductProvider: null,
+                    activeCategory: null,
+                    providerNames: {},
+                    categoryNames: {},
 
                     async init() {
-                        await this.fetchOrders();
-                        window.orderApp = this;
+                        await Promise.all([this.fetchProducts(), this.fetchServiceProviders(), this.fetchProductProviders(), this.fetchCategories()]);
                     },
 
-                    async fetchOrders(page = 1) {
+                    async fetchProducts() {
                         this.loading = true;
                         try {
                             const token = localStorage.getItem('authToken');
-                            if (!token) {
-                                coloredToast('error', 'Authentication token is missing. Please log in.');
-                                window.location.href = '/auth-boxed-signin.html';
-                                return;
+                            let url;
+                            let method = 'GET';
+                            const params = new URLSearchParams();
+
+                            // بناء URL واختيار method حسب الفلتر
+                            if (this.activeServiceProvider) {
+                                url = `${this.apiBaseUrl}/api/admin/product/product_by_service_provider/${this.activeServiceProvider}`;
+                                method = 'POST';
+                            } else if (this.activeProductProvider) {
+                                url = `${this.apiBaseUrl}/api/admin/product/product_by_product_provider/${this.activeProductProvider}`;
+                                method = 'POST';
+                            } else if (this.activeCategory) {
+                                console.log(this.activeCategory);
+                                url = `${this.apiBaseUrl}/api/admin/product/product_by_category/${this.activeCategory}`;
+                                method = 'POST';
+                            } else {
+                                url = `${this.apiBaseUrl}/api/admin/product/get_all_latest`;
+                                method = 'GET';
                             }
 
-                            let url = `${this.apiBaseUrl}/api/admin/reservation/get_all_by_status?status=${this.currentFilter}&page=${page}`;
+                            // إضافة معاملات التقسيم الصفحي والسعر
+                            params.append('page', this.currentPage);
+                            if (this.minPrice !== null) params.append('min_price', this.minPrice);
+                            if (this.maxPrice !== null) params.append('max_price', this.maxPrice);
 
-                            if (this.priceFilterApplied && (this.minPrice || this.maxPrice)) {
-                                url = `${this.apiBaseUrl}/api/admin/reservation/get_all_by_price?`;
-                                if (this.minPrice) url += `&min_price=${this.minPrice}`;
-                                if (this.maxPrice) url += `&max_price=${this.maxPrice}`;
-                                if (this.currentFilter !== 'all') url += `&status=${this.currentFilter}`;
+                            const response = await fetch(`${url}?${params.toString()}`, {
+                                method,
+                                headers: {
+                                    Accept: 'application/json',
+                                    Authorization: `Bearer ${token}`,
+                                },
+                            });
+
+                            console.log(response);
+                            const responseData = await response.json();
+                            // معالجة البيانات الواردة بشكل موحد
+                            this.processApiResponse(responseData);
+                        } catch (error) {
+                            console.error('Error fetching products:', error);
+                            coloredToast('error', error.message || 'Failed to fetch products. Please try again later.');
+                        } finally {
+                            this.loading = false;
+                        }
+                    },
+
+                    processApiResponse(responseData) {
+                        // الحالة 1: إذا كانت البيانات تحتوي على خاصية data (API منظم)
+                        if (responseData && typeof responseData === 'object' && 'data' in responseData) {
+                            this.products = {
+                                data: Array.isArray(responseData.data) ? responseData.data : [responseData.data],
+                                pagination: responseData.pagination || {},
+                            };
+                        }
+                        // الحالة 2: إذا كانت البيانات مصفوفة مباشرة (API غير منظم)
+                        else if (Array.isArray(responseData)) {
+                            console.log(responseData, 'd');
+
+                            this.products = {
+                                data: responseData,
+                                pagination: {},
+                            };
+                        }
+                        // الحالة 3: إذا كانت البيانات كائن مفرد
+                        else if (responseData && typeof responseData === 'object') {
+                            this.products = {
+                                data: [responseData],
+                                pagination: {},
+                            };
+                        }
+                        // الحالة 4: إذا كانت البيانات غير متوقعة
+                        else {
+                            console.error('Unexpected API response format:', responseData);
+                            this.products = {
+                                data: [],
+                                pagination: {},
+                            };
+                        }
+
+                        // تحديث معلومات التقسيم الصفحي
+                        if (this.products.pagination) {
+                            this.perPage = this.products.pagination.per_page || this.products.data.length || 10;
+                            this.lastPage = this.products.pagination.last_page || 1;
+                            this.total = this.products.pagination.total || this.products.data.length || 0;
+                        }
+
+                        this.cacheProviderAndCategoryNames();
+                    },
+                    cacheProviderAndCategoryNames() {
+                        // التأكد من أن products.data موجود وهو مصفوفة
+                        if (!this.products.data || !Array.isArray(this.products.data)) {
+                            console.error('Invalid products data format');
+                            return;
+                        }
+
+                        this.products.data.forEach((product) => {
+                            // For service providers
+                            if (product.providerable_type === 'App\\Models\\Provider_Product') {
+                                const provider = this.serviceProviders.find((p) => p.provider_Servive?.id === product.providerable_id);
+                                if (provider?.user?.name) {
+                                    this.providerNames[product.providerable_id] = provider.user.name;
+                                }
                             }
+                            // For product providers
+                            else if (product.providerable_type === 'App\\Models\\Vendor') {
+                                const provider = this.productProviders.find((p) => p.vendor?.id === product.providerable_id);
+                                if (provider?.user?.name) {
+                                    this.providerNames[product.providerable_id] = provider.user.name;
+                                }
+                            }
+                        });
+                    },
 
-                            const response = await fetch(url, {
+                    applyServiceProviderFilter() {
+                        this.activeProductProvider = null;
+                        this.activeCategory = null;
+                        this.currentPage = 1;
+                        this.fetchProducts();
+                    },
+
+                    applyProductProviderFilter() {
+                        this.activeServiceProvider = null;
+                        this.activeCategory = null;
+                        this.currentPage = 1;
+                        this.fetchProducts();
+                    },
+
+                    applyCategoryFilter() {
+                        this.activeServiceProvider = null;
+                        this.activeProductProvider = null;
+                        this.currentPage = 1;
+                        this.fetchProducts();
+                    },
+                    async fetchServiceProviders() {
+                        try {
+                            const token = localStorage.getItem('authToken');
+                            const response = await fetch(`${this.apiBaseUrl}/api/admin/provider_service/get_by_status`, {
                                 method: 'GET',
                                 headers: {
                                     Accept: 'application/json',
@@ -1578,132 +1756,175 @@
                                 },
                             });
 
-                            if (!response.ok) {
-                                const errorData = await response.json().catch(() => ({}));
-                                throw new Error(errorData.message || `Request failed with status ${response.status}`);
-                            }
-                            console.log(response);
                             const data = await response.json();
-                            console.log(data);
-                            if (data.orders.original) {
-                                this.current_page = data.orders.original.orders.current_page;
-                                this.orders = data.orders.original.orders.data || [];
-                                this.lastPage = data.orders.original.orders.last_page;
-                                this.perPage = data.orders.original.orders.per_page;
-                                this.total = data.orders.original.orders.total;
-                            } else {
-                                this.current_page = data.orders.current_page;
-                                this.orders = data.orders.data || [];
-                                this.lastPage = data.orders.last_page;
-                                this.perPage = data.orders.per_page;
-                                this.total = data.orders.total;
-                            }
-                            this.populateTable();
+                            this.serviceProviders = data.data || [];
+                            console.log(this.serviceProviders);
                         } catch (error) {
-                            console.error('Error fetching orders:', error);
-                            coloredToast('error', error.message || 'Failed to fetch Reservatin data. Please try again later.');
-                        } finally {
-                            this.loading = false;
+                            coloredToast('error', error.message || 'Failed to fetch service providers.');
                         }
                     },
+
+                    async fetchProductProviders() {
+                        try {
+                            const token = localStorage.getItem('authToken');
+                            const response = await fetch(`${this.apiBaseUrl}/api/admin/vendores/get_by_status`, {
+                                method: 'GET',
+                                headers: {
+                                    Accept: 'application/json',
+                                    Authorization: `Bearer ${token}`,
+                                },
+                            });
+
+                            const data = await response.json();
+                            this.productProviders = data.data || [];
+                        } catch (error) {
+                            coloredToast('error', error.message || 'Failed to fetch product providers.');
+                        }
+                    },
+
+                    async fetchCategories() {
+                        try {
+                            const token = localStorage.getItem('authToken');
+                            const response = await fetch(`${this.apiBaseUrl}/api/admin/categories/get_all`, {
+                                method: 'GET',
+                                headers: {
+                                    Accept: 'application/json',
+                                    Authorization: `Bearer ${token}`,
+                                },
+                            });
+
+                            const data = await response.json();
+                            this.categories = data || [];
+
+                            // Cache category names
+                            this.categories.forEach((category) => {
+                                this.categoryNames[category.id] = category.name;
+                            });
+                        } catch (error) {
+                            coloredToast('error', error.message || 'Failed to fetch categories.');
+                        }
+                    },
+
+                    filterByServiceProvider(providerId) {
+                        this.activeServiceProvider = providerId;
+                        this.activeProductProvider = null;
+                        this.activeCategory = null;
+                        this.currentPage = 1;
+                        this.fetchProducts();
+                    },
+
+                    filterByProductProvider(providerId) {
+                        this.activeProductProvider = providerId;
+                        this.activeServiceProvider = null;
+                        this.activeCategory = null;
+                        this.currentPage = 1;
+                        this.fetchProducts();
+                    },
+
+                    filterByCategory(categoryId) {
+                        this.activeCategory = categoryId;
+                        this.activeServiceProvider = null;
+                        this.activeProductProvider = null;
+                        this.currentPage = 1;
+                        this.fetchProducts();
+                    },
+
                     applyPriceFilter() {
-                        if ((this.minPrice && isNaN(this.minPrice)) || (this.maxPrice && isNaN(this.maxPrice))) {
-                            coloredToast('error', 'Please enter valid numbers for price range');
-                            return;
+                        this.currentPage = 1;
+                        this.fetchProducts();
+                    },
+
+                    resetFilters() {
+                        this.currentFilter = 'all';
+                        this.activeServiceProvider = null;
+                        this.activeProductProvider = null;
+                        this.activeCategory = null;
+                        this.currentPage = 1;
+                        this.fetchProducts();
+                    },
+
+                    getProviderName(product) {
+                        if (product.providerable_type && product.providerable_id) {
+                            return this.providerNames[product.providerable_id] || 'Unknown';
                         }
-                        this.priceFilterApplied = true;
-                        this.fetchOrders(1);
+                        return 'N/A';
                     },
 
-                    resetPriceFilter() {
-                        this.minPrice = null;
-                        this.maxPrice = null;
-                        this.priceFilterApplied = false;
-                        this.fetchOrders(1);
-                    },
-                    populateTable() {
-                        const tableElement = document.getElementById('ordersTable');
-                        if (!tableElement) return;
-
-                        tableElement.innerHTML = `
-                        <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Service/Product</th>
-                    <th>description</th>
-                    <th>User</th>
-                    <th>Email</th>
-
-                    <th>Price</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${
-                    this.orders.length > 0
-                        ? this.orders
-                              .map(
-                                  (reservation, index) => `
-                        <tr>
-                            <td>${(this.currentPage - 1) * this.perPage + index + 1}</td>
-                            <td>
-                                ${reservation.product?.name || reservation.service?.name || 'N/A'}
-                            </td>
-                            <td>
-                                ${reservation.product?.description || reservation.service?.description || 'N/A'}
-                            </td>
-                            <td>${reservation.user?.name || 'N/A'}</td>
-                            <td>${reservation.user?.email || 'N/A'}</td>
-
-                            <td>${reservation.total_price || 'N/A'}</td>
-                            <td>
-                                <span class="badge ${this.getStatusClass(reservation.status)}">
-                                    ${reservation.status}
-                                </span>
-                            </td>
-                            <td>${new Date(reservation.created_at).toLocaleDateString()}</td>
-                           
-                        </tr>
-                    `
-                              )
-                              .join('')
-                        : `
-                    <tr>
-                        <td colspan="7" class="text-center py-4">No reservations found</td>
-                    </tr>
-                `
-                }
-            </tbody>
-        `;
+                    getCategoryName(categoryId) {
+                        return this.categoryNames[categoryId] || 'Unknown';
                     },
 
-                    getStatusClass(status) {
-                        const classes = {
-                            complete: 'bg-success',
-                            pending: 'bg-warning',
-                            cancelled: 'bg-danger',
-                            processing: 'bg-info',
-                        };
-                        return classes[status] || 'bg-primary';
+                    calculateDiscountPercentage(product) {
+                        if (!product.discount_info.has_discount) return 0;
+                        const original = parseFloat(product.discount_info.original_price);
+                        const final = parseFloat(product.discount_info.final_price);
+                        return Math.round(((original - final) / original) * 100);
                     },
 
-                    // Pagination functions
-                    goToPage(page) {
-                        if (page < 1 || page > this.lastPage) return;
-                        this.fetchOrders(page);
+                    getAverageRating(product) {
+                        if (!product.rating || product.rating.length === 0) return 0;
+                        const sum = product.rating.reduce((total, rating) => total + parseInt(rating.num), 0);
+                        return sum / product.rating.length;
                     },
 
-                    nextPage() {
-                        if (this.currentPage < this.lastPage) {
-                            this.fetchOrders(this.currentPage + 1);
+                    renderStars(num) {
+                        const starCount = num || 0;
+                        let stars = '';
+                        for (let i = 1; i <= 5; i++) {
+                            stars +=
+                                i <= starCount
+                                    ? '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>'
+                                    : '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 fill-current text-gray-300" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>';
                         }
+                        return stars;
+                    },
+
+                    getVisiblePages() {
+                        const pages = [];
+                        const maxVisible = 5;
+                        let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+                        let end = Math.min(this.lastPage, start + maxVisible - 1);
+
+                        if (end - start + 1 < maxVisible) {
+                            start = Math.max(1, end - maxVisible + 1);
+                        }
+
+                        for (let i = start; i <= end; i++) {
+                            pages.push(i);
+                        }
+
+                        return pages;
                     },
 
                     prevPage() {
                         if (this.currentPage > 1) {
-                            this.fetchOrders(this.currentPage - 1);
+                            this.currentPage--;
+                            this.fetchProducts();
                         }
+                    },
+
+                    nextPage() {
+                        if (this.currentPage < this.lastPage) {
+                            this.currentPage++;
+                            this.fetchProducts();
+                        }
+                    },
+
+                    goToPage(page) {
+                        if (page >= 1 && page <= this.lastPage) {
+                            this.currentPage = page;
+                            this.fetchProducts();
+                        }
+                    },
+
+                    viewProduct(productId) {
+                        // Implement view product functionality
+                        console.log('View product:', productId);
+                    },
+
+                    editProduct(productId) {
+                        // Implement edit product functionality
+                        console.log('Edit product:', productId);
                     },
                 }));
                 Alpine.data('logout', () => ({

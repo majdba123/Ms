@@ -222,12 +222,12 @@ public function getProfile(): JsonResponse
                     'phone' => $user->phone ?? 'N/A',
                     'national_id' => $user->national_id ?? 'N/A', // إضافة الرقم القومي هنا
                     'image_national_id' => $user->image_path ?? 'N/A', // إضافة الرقم القومي هنا
-
+                    'lang' => $user->lang ?? 'N/A',
+                    'lat' => $user->lat ?? 'N/A',
                     'type' => $user->type ?? 'N/A',
                 ],
                 'profile' => [
-                    'lang' => $user->Profile->lang ?? 'N/A',
-                    'lat' => $user->Profile->lat ?? 'N/A',
+
                     'image' => $user->Profile->image ?? 'N/A',
                     'address' => $user->Profile->address ?? 'N/A',
                 ]
@@ -294,7 +294,7 @@ public function getProfile(): JsonResponse
         }
 
         // تحديث بيانات المستخدم الأساسية
-        $userData = $request->only(['name', 'email', 'phone', 'national_id']);
+        $userData = $request->only(['name', 'email', 'phone', 'national_id','lang','lat']);
 
         if ($request->has('password')) {
             $userData['password'] = bcrypt($request->password);
@@ -307,7 +307,7 @@ public function getProfile(): JsonResponse
         $shouldUpdateProfile = false;
 
         // إضافة الحقول المرسلة فقط
-        $profileFields = ['lat', 'lang', 'address'];
+        $profileFields = ['address'];
         foreach ($profileFields as $field) {
             if ($request->has($field)) {
                 $profileData[$field] = $request->$field;
@@ -339,8 +339,6 @@ public function getProfile(): JsonResponse
                 $user->Profile->update($profileData);
             } else {
                 $profileData['user_id'] = $user->id;
-                $profileData['lat'] = $profileData['lat'] ?? 0;
-                $profileData['lang'] = $profileData['lang'] ?? 0;
                 $profileData['address'] = $profileData['address'] ?? '';
                 Profile::create($profileData);
                 $user->load('Profile');

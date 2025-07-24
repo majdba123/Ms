@@ -12,6 +12,7 @@ use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\FoodTypeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DriverPriceController;
 
 use App\Services\Driver\DriverServic;
 
@@ -173,6 +174,13 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     });
 
 
+    Route::prefix('driver_price')->group(function () {
+        Route::get('index/', [DriverPriceController::class, 'index']);
+        Route::post('store/', [DriverPriceController::class, 'store']);
+        Route::get('show/{coupon}', [DriverPriceController::class, 'show']);
+        Route::put('update/{coupon}', [DriverPriceController::class, 'update']);
+        Route::delete('delete/{coupon}', [CouponController::class, 'destroy']);
+    });
 
 
 

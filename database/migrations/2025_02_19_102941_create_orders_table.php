@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('total_price');
             $table->string('status')->default('pending');
             $table->text('note')->nullable();
+            $table->text('delivery_fee')->nullable();
+
 
             $table->timestamps();
         });

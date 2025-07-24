@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('profiles', function (Blueprint $table) {
+        Schema::create('driver__prices', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete()->cascadeOnUpdate();
-
-            $table->string('address');
-            $table->string('image');
-
+            $table->decimal('from_distance', 10, 2); // المسافة البدائية (كيلومتر)
+            $table->decimal('to_distance', 10, 2);   // المسافة النهائية (كيلومتر)
+            $table->decimal('price', 10, 2);         // السعر
             $table->timestamps();
         });
     }
@@ -28,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('profiles');
+        Schema::dropIfExists('driver__prices');
     }
 };

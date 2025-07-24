@@ -19,6 +19,13 @@ class RservationService
 
         try {
             $userId = Auth::id();
+            $user = Auth::user(); // الحصول على بيانات المستخدم
+
+            // التحقق من وجود الإحداثيات الجغرافية للمستخدم
+            if (empty($user->lat) || empty($user->lang)) {
+                throw new \Exception('يجب عليك إضافة موقعك الجغرافي (خط الطول وخط العرض) قبل إنشاء الطلب');
+            }
+
             $couponCode = $validatedData['coupon_code'] ?? null;
             $note = $validatedData['note'] ?? null;
             $coupon = null;

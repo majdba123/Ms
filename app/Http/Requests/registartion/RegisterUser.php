@@ -35,6 +35,8 @@ class RegisterUser extends FormRequest
         if (in_array($this->type, [1, 2, 3, 4])) {
             $rules['national_id'] = 'required|string|size:14|unique:users';
             $rules['image'] = 'required|image|mimes:jpeg,png,jpg,gif|max:2048';
+            $rules['lat'] = 'required|numeric|between:-90,90';
+            $rules['lang'] = 'required|numeric|between:-180,180';
         }
 
         // إضافة القاعدة لمصفوفة food_type_ids إذا كان النوع 4
@@ -67,6 +69,12 @@ class RegisterUser extends FormRequest
             'food_type_ids.required' => 'Food types are required for this user type.',
             'food_type_ids.array' => 'Food types must be provided as an array.',
             'food_type_ids.*.exists' => 'One or more selected food types are invalid.',
+            'lat.required' => 'Latitude is required for this user type.',
+            'lat.numeric' => 'Latitude must be a number.',
+            'lat.between' => 'Latitude must be between -90 and 90 degrees.',
+            'lang.required' => 'Longitude is required for this user type.',
+            'lang.numeric' => 'Longitude must be a number.',
+            'lang.between' => 'Longitude must be between -180 and 180 degrees.',
         ];
     }
 

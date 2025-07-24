@@ -48,4 +48,10 @@ class Order_Product extends Model
 
         return $this->original_price * $this->quantity - $this->total_price;
     }
+
+
+    public function Order_Product_Driver()
+    {
+        return $this->hasMany(Order_Product_Driver::class);
+    }
 }

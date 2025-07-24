@@ -26,6 +26,11 @@ class Order extends Model
         return $this->hasMany(Order_Product::class);
     }
 
+    public function Order_Driver()
+    {
+        return $this->hasMany(Order_Driver::class);
+    }
+
     public function Order_Coupon()
     {
         return $this->hasMany(Coupon::class);

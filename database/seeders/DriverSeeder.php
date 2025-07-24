@@ -14,7 +14,7 @@ class DriverSeeder extends Seeder
     public function run()
     {
         Driver::create([
-            'user_id' => 5,
+            'user_id' => 6,
         ]);
 
     }

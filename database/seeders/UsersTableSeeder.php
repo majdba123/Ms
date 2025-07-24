@@ -22,8 +22,8 @@ class UsersTableSeeder extends Seeder
 
             'password' => Hash::make('password'),
             'type' => 0,
-            'lat' => '30.0444',
-            'lang' => '31.2357',
+            'lat' => '33.5117',
+            'lang' => '36.3064',
 
         ]);
 
@@ -56,8 +56,8 @@ class UsersTableSeeder extends Seeder
             'national_id' => '00000000000000',
             'password' => Hash::make('password'),
             'type' => "product_provider",
-            'lat' => '31.2565',
-            'lang' => '32.2841',
+            'lat' => '33.4869',
+            'lang' => '36.3083',
         ]);
         User::create([
             'id' => 5,
@@ -66,8 +66,8 @@ class UsersTableSeeder extends Seeder
             'email' => 'product2@example.com',
             'password' => Hash::make('password'),
             'type' => "product_provider",
-            'lat' => '25.6872',
-            'lang' => '32.6396',
+            'lat' => '33.5350',
+            'lang' => '36.2950',
         ]);
 
         User::create([

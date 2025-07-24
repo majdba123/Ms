@@ -179,7 +179,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::post('store/', [DriverPriceController::class, 'store']);
         Route::get('show/{coupon}', [DriverPriceController::class, 'show']);
         Route::put('update/{coupon}', [DriverPriceController::class, 'update']);
-        Route::delete('delete/{coupon}', [CouponController::class, 'destroy']);
+        Route::delete('delete/{coupon}', [DriverPriceController::class, 'destroy']);
     });
 
 

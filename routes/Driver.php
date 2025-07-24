@@ -28,9 +28,9 @@ Route::middleware(['auth:sanctum' ,'driver'])->group(function () {
 
 
     Route::prefix('order')->group(function () {
-        Route::get('get_all', [OrderProductController::class, 'getAllVendorsOrders']);
+        Route::get('get_all', [OrderProductController::class, 'index']);
         Route::post('accept_order', [OrderDriverController::class, 'acceptOrderProducts']);
-        Route::post('update_to_on_way', [OrderDriverController::class, 'updateOrderToOnWay']);
+        Route::post('update_status', [OrderDriverController::class, 'updateOrderProductStatus']);
 
         Route::get('all_my_order', [OrderDriverController::class, 'getDriverOrders']);
 

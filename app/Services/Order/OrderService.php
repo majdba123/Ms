@@ -166,8 +166,6 @@ class OrderService
         }
     }*/
 
-
-
 public function createOrder(array $validatedData)
 {
     DB::beginTransaction();
@@ -188,6 +186,7 @@ public function createOrder(array $validatedData)
         $originalTotalPrice = 0;
         $couponApplied = false;
 
+        // التحقق من الكوبون
         if ($couponCode) {
             $coupon = Coupon::where('code', $couponCode)->first();
             if (!$coupon || !$coupon->isActive()) {
@@ -217,7 +216,11 @@ public function createOrder(array $validatedData)
 
                 $vendors[$vendorId] = [
                     'distance' => $distance,
-                    'provider' => $provider
+                    'provider' => $provider,
+                    'coordinates' => [
+                        'lat' => $provider->user->lat,
+                        'lng' => $provider->user->lang
+                    ]
                 ];
             }
         }
@@ -234,22 +237,52 @@ public function createOrder(array $validatedData)
         $nearestVendor = $vendors[0];
         $furthestVendor = count($vendors) > 1 ? $vendors[1] : null;
 
-        // حساب المسافة من التاجر الأقرب إلى التاجر الأبعد
+        // حساب جميع المسافات المطلوبة
         $nearestToFurthestDistance = 0;
+        $userToFurthestDistance = 0;
+        $totalDistance = 0;
+        $deliveryFee = 0;
+        $calculationNote = '';
+
+        // المسافة الثابتة: من المستخدم إلى التاجر الأقرب
+        $userToNearestDistance = $nearestVendor['distance'];
+        $totalDistance = $userToNearestDistance;
+        $deliveryFee = $this->getDeliveryPrice($userToNearestDistance);
+
         if ($furthestVendor) {
+            // المسافة من الأقرب إلى الأبعد
             $nearestToFurthestDistance = $this->calculateDistance(
-                $nearestVendor['provider']->user->lat,
-                $nearestVendor['provider']->user->lang,
-                $furthestVendor['provider']->user->lat,
-                $furthestVendor['provider']->user->lang
+                $nearestVendor['coordinates']['lat'],
+                $nearestVendor['coordinates']['lng'],
+                $furthestVendor['coordinates']['lat'],
+                $furthestVendor['coordinates']['lng']
             );
-        }
 
-        // حساب سعر التوصيل الإجمالي
-        $deliveryFee = $this->getDeliveryPrice($nearestVendor['distance']);
+            // المسافة من المستخدم إلى الأبعد
+            $userToFurthestDistance = $this->calculateDistance(
+                $user->lat,
+                $user->lang,
+                $furthestVendor['coordinates']['lat'],
+                $furthestVendor['coordinates']['lng']
+            );
 
-        if ($furthestVendor) {
-            $deliveryFee += $this->getDeliveryPrice($nearestToFurthestDistance);
+            // نأخذ الأقل بين المسافتين
+            $minDistance = min($userToFurthestDistance, $nearestToFurthestDistance);
+            $totalDistance += $minDistance;
+            $deliveryFee += $this->getDeliveryPrice($minDistance);
+
+            $calculationNote = sprintf(
+                "حساب التوصيل: %s كم (منك إلى الأقرب) + %s كم (الأقل بين [منك إلى الأبعد (%s كم) أو من الأقرب إلى الأبعد (%s كم)])",
+                round($userToNearestDistance, 2),
+                round($minDistance, 2),
+                round($userToFurthestDistance, 2),
+                round($nearestToFurthestDistance, 2)
+            );
+        } else {
+            $calculationNote = sprintf(
+                "حساب التوصيل: %s كم (منك إلى التاجر الوحيد)",
+                round($userToNearestDistance, 2)
+            );
         }
 
         // إنشاء الطلب
@@ -320,6 +353,38 @@ public function createOrder(array $validatedData)
 
         DB::commit();
 
+        // إعداد تفاصيل المسافات للإرجاع
+        $distanceDetails = [
+            'user_to_nearest' => [
+                'distance_km' => round($userToNearestDistance, 2),
+                'price' => $this->getDeliveryPrice($userToNearestDistance),
+                'vendor_id' => $nearestVendor['provider']->id,
+                'vendor_name' => $nearestVendor['provider']->user->name,
+                'coordinates' => [
+                    'user' => ['lat' => $user->lat, 'lng' => $user->lang],
+                    'vendor' => $nearestVendor['coordinates']
+                ]
+            ],
+            'user_to_furthest' => $furthestVendor ? [
+                'distance_km' => round($userToFurthestDistance, 2),
+                'price' => $this->getDeliveryPrice($userToFurthestDistance),
+                'coordinates' => [
+                    'user' => ['lat' => $user->lat, 'lng' => $user->lang],
+                    'vendor' => $furthestVendor['coordinates']
+                ]
+            ] : null,
+            'nearest_to_furthest' => $furthestVendor ? [
+                'distance_km' => round($nearestToFurthestDistance, 2),
+                'price' => $this->getDeliveryPrice($nearestToFurthestDistance),
+                'vendor_id' => $furthestVendor['provider']->id,
+                'vendor_name' => $furthestVendor['provider']->user->name,
+                'coordinates' => [
+                    'start' => $nearestVendor['coordinates'],
+                    'end' => $furthestVendor['coordinates']
+                ]
+            ] : null
+        ];
+
         return response()->json([
             'success' => true,
             'order' => [
@@ -327,24 +392,15 @@ public function createOrder(array $validatedData)
                 'total_price' => $order->total_price,
                 'products_price' => $totalPrice,
                 'delivery_fee' => $deliveryFee,
-                'distances' => [
-                    'user_to_nearest' => [
-                        'distance_km' => round($nearestVendor['distance'], 2),
-                        'delivery_fee' => $this->getDeliveryPrice($nearestVendor['distance'])
-                    ],
-                    'nearest_to_furthest' => $furthestVendor ? [
-                        'distance_km' => round($nearestToFurthestDistance, 2),
-                        'delivery_fee' => $this->getDeliveryPrice($nearestToFurthestDistance)
-                    ] : null
-                ],
-                'vendors_info' => [
-                    'nearest' => [
-                        'id' => $nearestVendor['provider']->id,
-                        'name' => $nearestVendor['provider']->user->name
-                    ],
-                    'furthest' => $furthestVendor ? [
-                        'id' => $furthestVendor['provider']->id,
-                        'name' => $furthestVendor['provider']->user->name
+                'distance_details' => $distanceDetails,
+                'delivery_calculation' => [
+                    'total_distance' => round($totalDistance, 2),
+                    'calculation_note' => $calculationNote,
+                    'selected_route' => $furthestVendor ? [
+                        'user_to_nearest' => round($userToNearestDistance, 2),
+                        'additional_leg' => round(min($userToFurthestDistance, $nearestToFurthestDistance), 2),
+                        'chosen_route' => $userToFurthestDistance <= $nearestToFurthestDistance ?
+                                          'user_to_furthest' : 'nearest_to_furthest'
                     ] : null
                 ]
             ],
@@ -365,79 +421,43 @@ public function createOrder(array $validatedData)
  */
 private function getDeliveryPrice($distance)
 {
-    // إذا كانت المسافة صفر، لا توجد تكلفة توصيل
-    if ($distance <= 0) {
-        return 0;
-    }
-
     // الحصول على النطاق المناسب من جدول الأسعار
     $priceRange = Driver_Price::where('from_distance', '<=', $distance)
         ->where('to_distance', '>=', $distance)
         ->first();
 
-    // إذا لم يتم العثور على نطاق، نستخدم آخر نطاق للمسافات الكبيرة
-    if (!$priceRange) {
-        $priceRange = Driver_Price::orderBy('to_distance', 'desc')->first();
-        if (!$priceRange) {
-            return 0;
-        }
-
-        // إذا كانت المسافة أكبر من النطاق الأقصى، نحسب عدد النطاقات المطلوبة
-        if ($distance > $priceRange->to_distance) {
-            $rangeSize = $priceRange->to_distance - $priceRange->from_distance;
-            if ($rangeSize > 0) {
-                $numberOfRanges = ceil($distance / $rangeSize);
-                return $priceRange->price * $numberOfRanges;
-            }
-        }
-    }
-
     return $priceRange ? $priceRange->price : 0;
 }
 
-    /**
-     * حساب المسافة بين موقعين باستخدام Google Maps API
-     */
-    private function calculateDistance($lat1, $lng1, $lat2, $lng2)
-    {
-        $client = new \GuzzleHttp\Client();
-        $response = $client->get('https://maps.googleapis.com/maps/api/distancematrix/json', [
-            'query' => [
-                'origins' => "$lat1,$lng1",
-                'destinations' => "$lat2,$lng2",
-                'key' => env('GOOGLE_MAPS_API_KEY'),
-                'units' => 'metric',
-                'language' => 'ar'
-            ],
-            'timeout' => 10
-        ]);
+/**
+ * حساب المسافة بين موقعين باستخدام Google Maps API
+ */
+private function calculateDistance($lat1, $lng1, $lat2, $lng2)
+{
+    $client = new \GuzzleHttp\Client();
+    $response = $client->get('https://maps.googleapis.com/maps/api/distancematrix/json', [
+        'query' => [
+            'origins' => "$lat1,$lng1",
+            'destinations' => "$lat2,$lng2",
+            'key' => env('GOOGLE_MAPS_API_KEY'),
+            'units' => 'metric',
+            'language' => 'ar'
+        ],
+        'timeout' => 10
+    ]);
 
-        $data = json_decode($response->getBody(), true);
+    $data = json_decode($response->getBody(), true);
 
-        if ($data['status'] !== 'OK') {
-            throw new \Exception('فشل في حساب المسافة: ' . ($data['error_message'] ?? ''));
-        }
-
-        if (empty($data['rows'][0]['elements'][0]['distance']['value'])) {
-            throw new \Exception('لا توجد بيانات مسافة صالحة');
-        }
-
-        return $data['rows'][0]['elements'][0]['distance']['value'] / 1000;
+    if ($data['status'] !== 'OK') {
+        throw new \Exception('فشل في حساب المسافة: ' . ($data['error_message'] ?? ''));
     }
 
+    if (empty($data['rows'][0]['elements'][0]['distance']['value'])) {
+        throw new \Exception('لا توجد بيانات مسافة صالحة');
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
+    return $data['rows'][0]['elements'][0]['distance']['value'] / 1000;
+}
 
 
 

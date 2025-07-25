@@ -31,10 +31,14 @@ Route::middleware(['auth:sanctum' ,'driver'])->group(function () {
         Route::get('get_all', [OrderProductController::class, 'index']);
         Route::post('accept_order', [OrderDriverController::class, 'acceptOrderProducts']);
         Route::post('update_status', [OrderDriverController::class, 'updateOrderProductStatus']);
+        Route::get('show/{id}', [OrderDriverController::class, 'showDriverOrder']);
 
         Route::get('all_my_order', [OrderDriverController::class, 'getDriverOrders']);
 
     });
+
+
+    Route::get('dashboard', [OrderDriverController::class, 'driverStatistics']);
 
 
 });

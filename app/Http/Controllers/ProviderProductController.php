@@ -26,7 +26,7 @@ class ProviderProductController extends Controller
 
         // الحصول على الطلبات مع العلاقات
         $orders = $vendor->orders()
-            ->with(['order:id,user_id,status,created_at', 'product:id,name'])
+            ->with(['order:id,delivery_fee,user_id,status,created_at', 'product:id,name'])
             ->get();
 
         // تجميع العناصر حسب order_id
@@ -54,7 +54,7 @@ class ProviderProductController extends Controller
 public function getVendorOrdersByStatus(Request $request)
 {
     $request->validate([
-        'status' => 'required|string|in:pending,complete,cancelled',
+        'status' => 'required|string|in:pending,complete,cancelled,on_way,accepted',
     ]);
 
     $status = $request->status;
@@ -64,7 +64,7 @@ public function getVendorOrdersByStatus(Request $request)
     // جلب الطلبات مع الفلترة حسب الحالة
     $orders = $vendor->orders()
         ->where('status', $status)
-        ->with(['order:id,user_id,status,created_at', 'product:id,name'])
+        ->with(['order:id,delivery_fee,user_id,status,created_at', 'product:id,name'])
         ->get();
 
     // تجميع العناصر حسب order_id

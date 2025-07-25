@@ -196,7 +196,8 @@ class ProductService
         ];
     }
 
-    public function getProductsByCategory($categoryId, $request = null, $perPage = 10)
+
+    /*public function getProductsByCategory($categoryId, $request = null, $perPage = 10)
     {
         $query = Product::with(['images', 'category', 'discount', 'rating'])
             ->where('category_id', $categoryId);
@@ -226,6 +227,267 @@ class ProductService
             'total' => $products->total(),
         ];
     }
+
+    */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function getProductsByCategory($categoryId, $request = null, $perPage = 10)
+    {
+        $user = auth()->user();
+        $userLat = $user->lat ?? null;
+        $userLng = $user->lang ?? null;
+
+        $query = Product::with([
+                'images',
+                'category',
+                'discount',
+                'rating',
+                'providerable.user' // لاستخراج إحداثيات التاجر
+            ])
+            ->where('category_id', $categoryId);
+
+        if ($request && $request->is('api/user*')) {
+            $query->where(function($q) {
+                $q->where('providerable_type', 'App\\Models\\Provider_Service')
+                ->orWhere(function($sub) {
+                    $sub->where('providerable_type', 'App\\Models\\Provider_Product')
+                        ->where(function($inner) {
+                            $inner->whereNull('quantity')
+                                    ->orWhere('quantity', '>', 0);
+                        });
+                });
+            });
+        }
+
+        $products = $query->orderBy('created_at', 'desc')
+                        ->paginate($perPage);
+
+        // تنسيق النتائج مع إضافة معلومات المسافة إذا كانت الإحداثيات متوفرة
+        $formattedProducts = $products->map(function($product) use ($userLat, $userLng) {
+            $formatted = $this->formatProductResponse($product);
+
+            if ($userLat && $userLng && $product->providerable && $product->providerable->user) {
+                $provider = $product->providerable;
+                $providerUser = $provider->user;
+
+                if ($providerUser->lat && $providerUser->lang) {
+                    try {
+                        $distance = $this->calculateDistance(
+                            $userLat,
+                            $userLng,
+                            $providerUser->lat,
+                            $providerUser->lang
+                        );
+
+                        $formatted['distance'] = [
+                            'km' => round($distance, 2),
+                            'provider_location' => [
+                                'lat' => $providerUser->lat,
+                                'lng' => $providerUser->lang
+                            ]
+                        ];
+                    } catch (\Exception $e) {
+                        // في حالة فشل حساب المسافة، نضيف رسالة الخطأ
+                        $formatted['distance'] = [
+                            'error' => $e->getMessage()
+                        ];
+                    }
+                }
+            }
+
+            return $formatted;
+        });
+
+        // ترتيب المنتجات حسب المسافة إذا كانت متوفرة
+        if ($userLat && $userLng) {
+            $formattedProducts = $formattedProducts->sortBy(function($product) {
+                return $product['distance']['km'] ?? PHP_FLOAT_MAX;
+            })->values();
+        }
+
+        return [
+            'data' => $formattedProducts,
+            'current_page' => $products->currentPage(),
+            'per_page' => $products->perPage(),
+            'total' => $products->total(),
+            'user_location' => $userLat && $userLng ? [
+                'lat' => $userLat,
+                'lng' => $userLng
+            ] : null
+        ];
+    }
+
+    /**
+     * حساب المسافة بين موقعين باستخدام Haversine formula (بدون الاعتماد على Google API)
+     */
+    private function calculateDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $earthRadius = 6371; // نصف قطر الأرض بالكيلومترات
+
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+
+        $a = sin($dLat/2) * sin($dLat/2) +
+            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+            sin($dLon/2) * sin($dLon/2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1-$a));
+
+        return $earthRadius * $c;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public function getProductsByProviderProduct($id, $request = null, $perPage = 10)
     {

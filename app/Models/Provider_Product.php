@@ -50,6 +50,22 @@ class Provider_Product extends Model
         return $this->orders()->where('status', 'complete')->count();
     }
 
+        public function getAcceptedOrdersCountAttribute()
+    {
+        return $this->orders()->where('status', 'accepted')->count();
+    }
+
+        public function getOnwayOrdersCountAttribute()
+    {
+        return $this->orders()->where('status', 'on_way')->count();
+    }
+        public function getDoneOrdersCountAttribute()
+    {
+        return $this->orders()->where('status', 'done')->count();
+    }
+
+
+
     public function getPendingOrdersCountAttribute()
     {
         return $this->orders()->where('status', 'pending')->count();
@@ -67,6 +83,12 @@ class Provider_Product extends Model
     }
 
 
+    public function getTotalSalesDoneAttribute()
+    {
+        return $this->orders()->where('status', 'done')->sum('total_price');
+    }
+
+
     public function getTotalSalesPendingAttribute()
     {
         return $this->orders()->where('status', 'pending')->sum('total_price');
@@ -76,6 +98,17 @@ class Provider_Product extends Model
     public function getTotalCommissionsAttribute()
     {
         return $this->orders()->where('status', 'complete')
+            ->with(['product.category'])
+            ->get()
+            ->sum(function($order) {
+                $rate = $order->product->category->price / 100;
+                return $order->total_price * $rate;
+            });
+    }
+
+    public function getTotalCommissionsDoneAttribute()
+    {
+        return $this->orders()->where('status', 'done')
             ->with(['product.category'])
             ->get()
             ->sum(function($order) {

@@ -52,7 +52,22 @@ class RegisterController extends Controller
     }
 
 
+    public function resendOtp()
+    {
+        $user = Auth::user();
 
+        // إذا كان هناك OTP موجود وفعال، لا نرسل جديد
+        if ($user->otp == 1) {
+            return response()->json([
+                'message' => 'you are  active OTP already ',
+            ], 201);
+        }
+        OtpHelper::sendOtpEmail($user->id);
+        // إذا لم يكن هناك OTP أو انتهت صلاحيته، نرسل جديد
+        return response()->json([
+                'message' => 'OTP send successfully',
+            ], 201);
+    }
 
 
     private function sendOtp_mobile($id)

@@ -21,7 +21,7 @@ use App\Http\Controllers\FoodTypeProductProviderController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-Route::middleware(['auth:sanctum' , 'product_provider'])->group(function () {
+Route::middleware(['auth:sanctum' , 'product_provider','pand','otp'])->group(function () {
 
     Route::get('/dashboard', [AdminController::class, 'VendorDashboard']);
 

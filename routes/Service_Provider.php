@@ -23,7 +23,7 @@ use App\Http\Controllers\DisccountController;
 |
 */
 
-Route::middleware(['auth:sanctum' , 'services_provider'])->group(function () {
+Route::middleware(['auth:sanctum' , 'services_provider','pand','otp'])->group(function () {
 
 
     Route::get('dashboard', [AdminController::class, 'Provider_service_dash']);
@@ -62,6 +62,8 @@ Route::middleware(['auth:sanctum' , 'services_provider'])->group(function () {
         Route::get('get_all', [ProviderServiceController::class, 'getVendorOrders']);
         Route::get('get_all_by_status', [ProviderServiceController::class, 'getVendorOrdersByStatus']);
         Route::get('/get_all_by_produt_id/{product_id}', [ProviderServiceController::class, 'getOrdersByProductId']);
+        Route::post('update_status/{id}', [ProviderServiceController::class, 'update_status_reservation']);
+
     });
 
     Route::prefix('profile')->group(function () {

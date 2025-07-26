@@ -9,9 +9,13 @@ use App\Models\Rseevation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Models\UserNotification;
+use App\Events\PrivateNotification;
+
 class ProviderServiceController extends Controller
 {
     public function getVendorOrders($vendor_id = null)
@@ -63,6 +67,111 @@ class ProviderServiceController extends Controller
             ]
         ], 200);
     }
+
+    public function update_status_reservation(Request $request, $reser_id)
+    {
+        $request->validate([
+            'status' => 'required|string|in:pending,complete,cancelled',
+        ]);
+
+        $status = $request->status;
+        $user_id = Auth::user();
+
+        // التأكد من أن المستخدم لديه خدمة مزود
+        if (!$user_id->Provider_service) {
+            return response()->json(['error' => 'User is not a service provider'], 403);
+        }
+
+        $vendor = Provider_Service::findOrFail($user_id->Provider_service->id);
+
+        // البحث عن الحجز مع معلومات المستخدم والمنتج
+        $reservation = $vendor->reservations()
+            ->with(['user', 'product'])
+            ->where('id', $reser_id)
+            ->first();
+
+        if (!$reservation) {
+            return response()->json(['error' => 'Reservation not found'], 404);
+        }
+
+        DB::beginTransaction();
+        try {
+            // تحديث حالة الحجز
+            $reservation->status = $status;
+            $reservation->save();
+
+            // إرسال إشعار للمستخدم
+            $this->sendReservationStatusNotification($reservation, $status);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Reservation status updated successfully',
+                'reservation' => $reservation
+            ], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Failed to update reservation status',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+
+
+
+
+
+
+
+    protected function sendReservationStatusNotification($reservation, $status)
+    {
+        $user = $reservation->user;
+        $product = $reservation->product;
+
+        $statusMessages = [
+            'complete' => 'تم إكمال حجزك للمنتج: ' . $product->name,
+            'cancelled' => 'تم إلغاء حجزك للمنتج: ' . $product->name,
+            'pending' => 'تم تحديث حالة حجزك للمنتج: ' . $product->name . ' إلى قيد الانتظار'
+        ];
+
+        $message = $statusMessages[$status] ?? 'تم تحديث حالة طلبك رقم #'.$reservation->id.' إلى '.$status;
+
+        // إرسال الإشعار الفوري
+        event(new PrivateNotification($user->id, $message));
+
+        // تخزين الإشعار في قاعدة البيانات
+        UserNotification::create([
+            'user_id' => $user->id,
+            'notification' => $message,
+
+        ]);
+
+        // إذا كنت تستخدم Firebase أو خدمات推送 notification
+        if ($user->fcm_token) {
+            $this->sendFcmNotification(
+                $user->fcm_token,
+                'تحديث حالة الحجز',
+                $message,
+                [
+                    'reservation_id' => $reservation->id,
+                    'type' => 'reservation_update'
+                ]
+            );
+        }
+    }
+
+
+
+
+
+
+
+
+
 
     public function getOrdersByProductId($id)
     {
@@ -127,12 +236,12 @@ public function getProfile(): JsonResponse
                     'phone' => $user->phone ?? 'N/A',
                     'national_id' => $user->national_id ?? 'N/A', // إضافة الرقم القومي
                     'image_national_id' => $user->image_path ?? 'N/A', // إضافة الرقم القومي هنا
+                    'lang' => $user->lang ?? 'N/A',
+                    'lat' => $user->lat ?? 'N/A',
 
                     // أي معلومات إضافية أخرى من نموذج User
                 ],
                 'profile' => [
-                    'lang' => $user->Profile->lang ?? 'N/A',
-                    'lat' => $user->Profile->lat ?? 'N/A',
                     'image' => $user->Profile->image ?? 'N/A',
                     'address' => $user->Profile->address ?? 'N/A',
                     // أي معلومات إضافية أخرى من نموذج Profile
@@ -200,7 +309,7 @@ public function getProfile(): JsonResponse
         }
 
         // تحديث بيانات المستخدم الأساسية
-        $userData = $request->only(['name', 'email', 'phone', 'national_id']);
+        $userData = $request->only(['name', 'email', 'phone','lat', 'lang', 'national_id']);
 
         if ($request->has('password')) {
             $userData['password'] = bcrypt($request->password);
@@ -213,7 +322,7 @@ public function getProfile(): JsonResponse
         $shouldUpdateProfile = false;
 
         // إضافة الحقول المرسلة فقط
-        $profileFields = ['lat', 'lang', 'address'];
+        $profileFields = ['address'];
         foreach ($profileFields as $field) {
             if ($request->has($field)) {
                 $profileData[$field] = $request->$field;

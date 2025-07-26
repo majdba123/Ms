@@ -36,7 +36,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('/forget-password', [ForgetPasswordController::class, 'forgetPassword']);
 Route::post('/reset-password', [ForgetPasswordController::class, 'resetPasswordByVerifyOtp']);
-
+Route::post('/resend-otp', [RegisterController::class, 'resendOtp'])->middleware('auth:sanctum');
 
 Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/login', [LoginController::class, 'login']);

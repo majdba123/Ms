@@ -24,7 +24,7 @@ use App\Http\Controllers\OrderProductController;
 |
 */
 
-Route::middleware(['auth:sanctum' ,'driver'])->group(function () {
+Route::middleware(['auth:sanctum' ,'driver','pand','otp'])->group(function () {
 
 
     Route::prefix('order')->group(function () {

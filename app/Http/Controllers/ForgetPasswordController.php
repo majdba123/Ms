@@ -33,7 +33,7 @@ class ForgetPasswordController extends Controller
             return response()->json(['message' => 'Email Sent successfully !'], 200);
         }
 
-        OtpHelper::sendOtpEmail($user -> id);
+        OtpHelper::sendOtpEmail($user->id);
 
         return response()->json(['message' => 'OTP sent successfully']);
     }

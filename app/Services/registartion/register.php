@@ -92,7 +92,7 @@ public function register(array $data): User
             case 4:
                 // إنشاء سجل مزود المنتجات (الطعام)
                 $providerProduct = Provider_Product::create(['user_id' => $user->id]);
-                
+
                 // ربط أنواع الطعام المختارة بالمزود
                 if (isset($data['food_type_ids']) && is_array($data['food_type_ids'])) {
                     foreach ($data['food_type_ids'] as $foodTypeId) {
@@ -141,5 +141,18 @@ public function register(array $data): User
         Cache::forget('otp_' . $user->id);
 
         return true; // Return true if OTP verification is successful
+    }
+
+
+
+    public function generateRandomPassword($length = 10)
+    {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomPassword = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomPassword .= $characters[rand(0, $charactersLength - 1)];
+        }
+        return $randomPassword;
     }
 }

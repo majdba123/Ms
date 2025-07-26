@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\PrivateNotification;
 use App\Models\Driver;
 use App\Models\Order;
 use App\Models\Order_Driver;
 use App\Models\Order_Product;
 use App\Models\Order_Product_Driver;
+use App\Models\UserNotification;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,198 +20,231 @@ class OrderDriverController extends Controller
 {
 
 
-public function acceptOrderProducts(Request $request)
-{
-    // التحقق من وجود سجل Driver للمستخدم المصادق عليه
-    $driver = Auth::user()->driver;
-
-    if (!$driver) {
-        return response()->json([
-            'message' => 'المستخدم ليس لديه صلاحيات سائق'
-        ], 403);
-    }
-
-    $request->validate([
-        'order_id' => 'required|exists:orders,id',
-    ]);
-
-    // التحقق من أن الطلب بحالة pending
-    $order = Order::find($request->order_id);
-
-    if ($order->status != 'pending') {
-        return response()->json([
-            'message' => 'الطلب ليس بحالة pending'
-        ], 400);
-    }
-
-    // جلب جميع منتجات الطلب التي بحالة pending
-    $orderProducts = Order_Product::where('order_id', $request->order_id)
-        ->where('status', 'pending')
-        ->get();
-
-    if ($orderProducts->isEmpty()) {
-        return response()->json([
-            'message' => 'لا توجد منتجات pending في هذا الطلب'
-        ], 400);
-    }
-
-    // بدء المعاملة
-    DB::beginTransaction();
-
-    try {
-        // تحديث حالة الطلب إلى accepted
-        $order->update(['status' => 'accepted']);
-
-        // إنشاء سجل Order_Driver
-        $orderDriver = Order_Driver::create([
-            'order_id' => $request->order_id,
-            'driver_id' => $driver->id, // استخدام $driver->id بدلاً من $driver مباشرة
-            'status' => 'pending',
-        ]);
-
-        // إنشاء سجلات Order_Product_Driver لكل المنتجات
-        $orderProductDrivers = [];
-        foreach ($orderProducts as $product) {
-            $orderProductDrivers[] = [
-                'order__driver_id' => $orderDriver->id,
-                'order__product_id' => $product->id,
-                'status' => 'pending',
-                'created_at' => now(),
-                'updated_at' => now()
-            ];
-        }
-
-        Order_Product_Driver::insert($orderProductDrivers);
-
-        DB::commit();
-
-        return response()->json([
-            'message' => 'تم قبول الطلب بنجاح',
-            'order' => $order,
-            'order_driver' => $orderDriver,
-            'accepted_products_count' => $orderProducts->count()
-        ], 200);
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json([
-            'message' => 'حدث خطأ أثناء معالجة الطلب',
-            'error' => $e->getMessage()
-        ], 500);
-    }
-}
-
-
-
-
-
-
-public function getDriverOrders(Request $request)
-{
-    $user = Auth::user();
-    $query = Order_Driver::with([
-            'order:id,user_id,status,created_at,delivery_fee,total_price',
-            'Order_Product_Driver.Order_Product.product.providerable.user:id,name,lat,lang',
-            'driver.user'
-        ]);
-
-    // إذا كان المستخدم ليس أدمن (type != 1) يرى فقط طلباته
-    if ($user->type != 1) {
-        $query->where('driver_id', $user->Driver->id);
-    }
-    // إذا كان أدمن (type == 1) يجب إرسال driver_id
-    else {
-        $request->validate([
-            'driver_id' => 'required|exists:drivers,id'
-        ]);
-        $query->where('driver_id', $request->driver_id);
-    }
-
-    // فلترة حسب حالة الطلب إذا موجودة
-    if ($request->has('status')) {
-        $query->whereHas('order', function($q) use ($request) {
-            $q->where('status', $request->status);
-        });
-    }
-
-    // فلترة حسب حالة order_driver إذا موجودة
-    if ($request->has('order_driver_status')) {
-        $query->where('status', $request->order_driver_status);
-    }
-
-    $driverOrders = $query->get();
-
-    // تجميع البيانات
-    $formattedOrders = $driverOrders->map(function ($orderDriver) use ($user) {
-        $productsData = $orderDriver->Order_Product_Driver->map(function ($productDriver) {
-            $orderProduct = $productDriver->Order_Product;
-            $product = $orderProduct->product;
-            $vendor = $product->providerable;
-            $vendorUser = $vendor->user;
-
-            return [
-                'product_info' => [
-                    'order_product_id' => $orderProduct->id,
-                    'product_id' => $product->id,
-                    'product_name' => $product->name,
-                    'total_price' => $orderProduct->total_price,
-                    'quantity' => $orderProduct->quantity,
-                    'status' => $orderProduct->status,
-                    'created_at' => $orderProduct->created_at
-                ],
-                'vendor_info' => [
-                    'vendor_id' => $vendor->id,
-                    'vendor_name' => $vendorUser->name ?? 'Unknown Vendor',
-                    'lat' => $vendorUser->lat ?? null,
-                    'lang' => $vendorUser->lang ?? null,
-                ]
-            ];
-        });
-
-        $response = [
-            'order_id' => $orderDriver->order_id,
-            'order_driver_id' => $orderDriver->id,
-            'order_driver_status' => $orderDriver->status,
-            'order_status' => $orderDriver->order->status,
-            'total_price' => $orderDriver->order->total_price,
-            'delivery_fee' => $orderDriver->order->delivery_fee,
-            'order_created_at' => $orderDriver->order->created_at,
-            'products' => $productsData
+ private function sendOrderStatusNotification($order, $status)
+    {
+        $statusMessages = [
+            'pending' => 'طلبك رقم #'.$order->id.' قيد الانتظار',
+            'accepted' => 'تم قبول طلبك رقم #'.$order->id.' وسيتم تجهيزه قريباً',
+            'on_way' => 'طلبك رقم #'.$order->id.' في الطريق إليك',
+            'complete' => 'تم تسليم طلبك رقم #'.$order->id.' بنجاح',
+            'cancelled' => 'تم إلغاء طلبك رقم #'.$order->id,
+            'partial_complete' => 'تم تسليم جزء من طلبك رقم #'.$order->id
         ];
 
-        // إضافة معلومات السائق للأدمن
-        if ($user->type == 1 && isset($orderDriver->driver)) {
-            $response['driver_info'] = [
-                'driver_id' => $orderDriver->driver->id,
-                'driver_name' => $orderDriver->driver->user->name ?? 'Unknown Driver',
-                'driver_phone' => $orderDriver->driver->user->phone ?? null,
-                'driver_lat' => $orderDriver->driver->user->lat ?? null,
-                'driver_lang' => $orderDriver->driver->user->lang ?? null
-            ];
-        }
+        $message = $statusMessages[$status] ?? 'تم تحديث حالة طلبك رقم #'.$order->id.' إلى '.$status;
 
-        return $response;
-    });
+        // إرسال الإشعار الفوري
+        event(new PrivateNotification($order->user_id, $message));
 
-    return response()->json(['orders' => $formattedOrders], 200);
-}
-
-
-
-
-    public function updateOrderProductStatus(Request $request)
-    {
-        $request->validate([
-            'order_product_id' => 'required|exists:order__products,id',
-            'status' => 'required|in:on_way,complete,cancelled'
+        // تخزين الإشعار في قاعدة البيانات
+        UserNotification::create([
+            'user_id' => $order->user_id,
+            'notification' => $message,
         ]);
+    }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * قبول طلب المنتجات من قبل السائق
+     */
+    public function acceptOrderProducts(Request $request)
+    {
+        // التحقق من صلاحيات السائق
         $driver = Auth::user()->Driver;
         if (!$driver) {
             return response()->json(['message' => 'المستخدم ليس لديه صلاحيات سائق'], 403);
         }
 
-        // البحث عن سجل Order_Product_Driver الخاص بالسائق الحالي والمنتج المطلوب
+        // التحقق من صحة البيانات
+        $request->validate(['order_id' => 'required|exists:orders,id']);
+
+        // جلب بيانات الطلب
+        $order = Order::find($request->order_id);
+        if ($order->status != 'pending') {
+            return response()->json(['message' => 'الطلب ليس بحالة انتظار'], 400);
+        }
+
+        // جلب منتجات الطلب
+        $orderProducts = Order_Product::where('order_id', $request->order_id)
+            ->where('status', 'pending')
+            ->get();
+
+        if ($orderProducts->isEmpty()) {
+            return response()->json(['message' => 'لا توجد منتجات قيد الانتظار في هذا الطلب'], 400);
+        }
+
+        DB::beginTransaction();
+        try {
+            // تحديث حالة الطلب
+            $order->update(['status' => 'accepted']);
+
+            // إرسال إشعار للمستخدم
+            $this->sendOrderStatusNotification($order, 'accepted');
+
+            // إنشاء سجل Order_Driver
+            $orderDriver = Order_Driver::create([
+                'order_id' => $request->order_id,
+                'driver_id' => $driver->id,
+                'status' => 'pending',
+            ]);
+
+            // إضافة منتجات الطلب للسائق
+            $orderProductDrivers = $orderProducts->map(function ($product) use ($orderDriver) {
+                return [
+                    'order__driver_id' => $orderDriver->id,
+                    'order__product_id' => $product->id,
+                    'status' => 'pending',
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+            });
+
+            Order_Product_Driver::insert($orderProductDrivers->toArray());
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'تم قبول الطلب بنجاح',
+                'order' => $order,
+                'order_driver' => $orderDriver,
+                'accepted_products_count' => $orderProducts->count()
+            ], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'حدث خطأ أثناء معالجة الطلب',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+
+    public function getDriverOrders(Request $request)
+    {
+        $user = Auth::user();
+        $query = Order_Driver::with([
+                'order:id,user_id,status,created_at,delivery_fee,total_price',
+                'Order_Product_Driver.Order_Product.product.providerable.user:id,name,lat,lang',
+                'driver.user'
+            ]);
+
+        // إذا كان المستخدم ليس أدمن (type != 1) يرى فقط طلباته
+        if ($user->type != 1) {
+            $query->where('driver_id', $user->Driver->id);
+        }
+        // إذا كان أدمن (type == 1) يجب إرسال driver_id
+        else {
+            $request->validate([
+                'driver_id' => 'required|exists:drivers,id'
+            ]);
+            $query->where('driver_id', $request->driver_id);
+        }
+
+        // فلترة حسب حالة الطلب إذا موجودة
+        if ($request->has('status')) {
+            $query->whereHas('order', function($q) use ($request) {
+                $q->where('status', $request->status);
+            });
+        }
+
+        // فلترة حسب حالة order_driver إذا موجودة
+        if ($request->has('order_driver_status')) {
+            $query->where('status', $request->order_driver_status);
+        }
+
+        $driverOrders = $query->get();
+
+        // تجميع البيانات
+        $formattedOrders = $driverOrders->map(function ($orderDriver) use ($user) {
+            $productsData = $orderDriver->Order_Product_Driver->map(function ($productDriver) {
+                $orderProduct = $productDriver->Order_Product;
+                $product = $orderProduct->product;
+                $vendor = $product->providerable;
+                $vendorUser = $vendor->user;
+
+                return [
+                    'product_info' => [
+                        'order_product_id' => $orderProduct->id,
+                        'product_id' => $product->id,
+                        'product_name' => $product->name,
+                        'total_price' => $orderProduct->total_price,
+                        'quantity' => $orderProduct->quantity,
+                        'status' => $orderProduct->status,
+                        'created_at' => $orderProduct->created_at
+                    ],
+                    'vendor_info' => [
+                        'vendor_id' => $vendor->id,
+                        'vendor_name' => $vendorUser->name ?? 'Unknown Vendor',
+                        'lat' => $vendorUser->lat ?? null,
+                        'lang' => $vendorUser->lang ?? null,
+                    ]
+                ];
+            });
+
+            $response = [
+                'order_id' => $orderDriver->order_id,
+                'order_driver_id' => $orderDriver->id,
+                'order_driver_status' => $orderDriver->status,
+                'order_status' => $orderDriver->order->status,
+                'total_price' => $orderDriver->order->total_price,
+                'delivery_fee' => $orderDriver->order->delivery_fee,
+                'order_created_at' => $orderDriver->order->created_at,
+                'products' => $productsData
+            ];
+
+            // إضافة معلومات السائق للأدمن
+            if ($user->type == 1 && isset($orderDriver->driver)) {
+                $response['driver_info'] = [
+                    'driver_id' => $orderDriver->driver->id,
+                    'driver_name' => $orderDriver->driver->user->name ?? 'Unknown Driver',
+                    'driver_phone' => $orderDriver->driver->user->phone ?? null,
+                    'driver_lat' => $orderDriver->driver->user->lat ?? null,
+                    'driver_lang' => $orderDriver->driver->user->lang ?? null
+                ];
+            }
+
+            return $response;
+        });
+
+        return response()->json(['orders' => $formattedOrders], 200);
+    }
+
+
+    public function updateOrderProductStatus(Request $request)
+    {
+        // التحقق من صحة البيانات
+        $request->validate([
+            'order_product_id' => 'required|exists:order__products,id',
+            'status' => 'required|in:on_way,complete,cancelled'
+        ]);
+
+        // التحقق من صلاحيات السائق
+        $driver = Auth::user()->Driver;
+        if (!$driver) {
+            return response()->json(['message' => 'المستخدم ليس لديه صلاحيات سائق'], 403);
+        }
+
+        // البحث عن سجل المنتج
         $orderProductDriver = Order_Product_Driver::whereHas('Order_Product', function($query) use ($request) {
                 $query->where('id', $request->order_product_id);
             })
@@ -220,7 +255,7 @@ public function getDriverOrders(Request $request)
             ->first();
 
         if (!$orderProductDriver) {
-            return response()->json(['message' => 'Order product not found or does not belong to this driver'], 404);
+            return response()->json(['message' => 'المنتج غير موجود أو لا ينتمي لهذا السائق'], 404);
         }
 
         $orderProduct = $orderProductDriver->Order_Product;
@@ -229,10 +264,11 @@ public function getDriverOrders(Request $request)
 
         DB::beginTransaction();
         try {
+            // تحديث حالة المنتج حسب الحالة المطلوبة
             switch ($request->status) {
                 case 'on_way':
                     if ($orderProductDriver->status != 'pending') {
-                        throw new \Exception('Product status must be pending to change to on_way');
+                        throw new \Exception('حالة المنتج يجب أن تكون pending لتغييرها إلى on_way');
                     }
                     $orderProductDriver->update(['status' => 'on_way']);
                     $orderProduct->update(['status' => 'on_way']);
@@ -240,30 +276,19 @@ public function getDriverOrders(Request $request)
 
                 case 'complete':
                     if ($orderProductDriver->status != 'on_way') {
-                        throw new \Exception('Product status must be on_way to change to complete');
+                        throw new \Exception('حالة المنتج يجب أن تكون on_way لتغييرها إلى complete');
                     }
                     $orderProductDriver->update(['status' => 'complete']);
                     $orderProduct->update(['status' => 'complete']);
                     break;
 
                 case 'cancelled':
-                // تحديث حالة المنتج إلى cancel
-                $orderProductDriver->update(['status' => 'cancelled']);
-                $orderProduct->update(['status' => 'cancelled']);
-
-                // التحقق إذا كانت جميع منتجات الطلب ملغية
-                $allCanceled = Order_Product_Driver::where('order__driver_id', $orderDriver->id)
-                    ->where('status', '!=', 'cancelled')
-                    ->doesntExist();
-
-                if ($allCanceled) {
-                    $orderDriver->update(['status' => 'cancelled']);
-                    $order->update(['status' => 'cancelled']);
-                }
+                    $orderProductDriver->update(['status' => 'cancelled']);
+                    $orderProduct->update(['status' => 'cancelled']);
                     break;
             }
 
-            // التحقق من حالة جميع المنتجات
+            // التحقق من حالة جميع منتجات الطلب
             $remainingProducts = Order_Product_Driver::where('order__driver_id', $orderDriver->id)
                 ->whereNotIn('status', ['complete', 'cancelled'])
                 ->count();
@@ -275,36 +300,36 @@ public function getDriverOrders(Request $request)
             $totalProducts = Order_Product_Driver::where('order__driver_id', $orderDriver->id)
                 ->count();
 
-            // إذا كانت جميع المنتجات إما complete أو cancel
+            // تحديث حالة الطلب حسب حالة المنتجات
             if ($remainingProducts == 0) {
-                // إذا كان كلها complete
                 if ($canceledProducts == 0) {
                     $orderDriver->update(['status' => 'complete']);
                     $order->update(['status' => 'complete']);
+                    $this->sendOrderStatusNotification($order, 'complete');
                 }
-                // إذا كان كلها cancel
                 elseif ($canceledProducts == $totalProducts) {
                     $orderDriver->update(['status' => 'cancelled']);
                     $order->update(['status' => 'cancelled']);
+                    $this->sendOrderStatusNotification($order, 'cancelled');
                 }
-                // إذا كان مزيج من complete و cancel
                 else {
                     $orderDriver->update(['status' => 'partial_complete']);
                     $order->update(['status' => 'partial_complete']);
+                    $this->sendOrderStatusNotification($order, 'partial_complete');
                 }
             }
-            // إذا كانت جميع المنتجات on_way أو cancel
             elseif (Order_Product_Driver::where('order__driver_id', $orderDriver->id)
                 ->whereNotIn('status', ['on_way', 'cancelled'])
                 ->doesntExist()) {
                 $orderDriver->update(['status' => 'on_way']);
                 $order->update(['status' => 'on_way']);
+                $this->sendOrderStatusNotification($order, 'on_way');
             }
 
             DB::commit();
 
             return response()->json([
-                'message' => 'Order product status updated successfully',
+                'message' => 'تم تحديث حالة المنتج بنجاح',
                 'order_status' => $order->fresh()->status,
                 'order_driver_status' => $orderDriver->fresh()->status,
                 'product_status' => $orderProductDriver->fresh()->status
@@ -313,12 +338,11 @@ public function getDriverOrders(Request $request)
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
-                'message' => 'Failed to update order product status',
+                'message' => 'فشل في تحديث حالة المنتج',
                 'error' => $e->getMessage()
             ], 400);
         }
     }
-
 
 
 

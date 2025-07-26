@@ -22,3 +22,10 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 Broadcast::channel('chat-private-channel-{id}', function () {
     return true;
 });
+
+
+
+Broadcast::channel('notification-private-channel-{id}', function () {
+    return true;
+});
+

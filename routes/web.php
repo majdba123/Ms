@@ -23,9 +23,16 @@ Route::get('/', function () {
 
 Route::get('/chat', function () {
     return view('chat');
-});
+})->middleware('auth');
 
 
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+
+
+
+Route::get('/foruser', function () {
+    return view('foruser');
+})->middleware('auth');

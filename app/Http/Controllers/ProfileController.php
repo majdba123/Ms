@@ -67,6 +67,12 @@ public function UpdateInfo(UpdateUserInfoRequest $request , $user_id=null)
     if ($request->has('name')) {
         $user->name = $request->name;
     }
+        if ($request->has('lat')) {
+        $user->lat = $request->lat;
+    }
+        if ($request->has('lang')) {
+        $user->lang = $request->lang;
+    }
 
     if ($request->has('national_id')) {
         // التحقق من أن الرقم القومي يتكون من 14 رقمًا
@@ -118,12 +124,12 @@ public function UpdateInfo(UpdateUserInfoRequest $request , $user_id=null)
                 'phone' => $user->phone ?? 'N/A',
                 'national_id' => $user->national_id ?? 'N/A', // إضافة الرقم القومي
                 'national_id_image' => $user->image_path ?? 'N/A', // إضافة الرقم القومي
+                'lang' => $user->lang ?? 'N/A',
+                'lat' => $user->lat ?? 'N/A',
 
                 // أي معلومات إضافية أخرى من نموذج User
             ],
             'profile' => [
-                'lang' => $profile->lang ?? 'N/A',
-                'lat' => $profile->lat ?? 'N/A',
                 'image' => $profile->image ?? 'N/A',
                 'address' => $profile->address ?? 'N/A',
                 // أي معلومات إضافية أخرى من نموذج Profile
@@ -145,12 +151,12 @@ public function UpdateInfo(UpdateUserInfoRequest $request , $user_id=null)
                 'phone' => $user->phone ?? 'N/A',
                 'national_id' => $user->national_id ?? 'N/A', // إضافة الرقم القومي
                 'national_id_image' => $user->image_path ?? 'N/A', // إضافة الرقم القومي
+                                'lang' => $user->lang ?? 'N/A',
+                'lat' => $user->lat ?? 'N/A',
 
                 // أي معلومات إضافية أخرى من نموذج User
             ],
             'profile' => [
-                'lang' => $profile->lang ?? 'N/A',
-                'lat' => $profile->lat ?? 'N/A',
                 'image' => $profile->image ?? 'N/A',
                 'address' => $profile->address ?? 'N/A',
                 // أي معلومات إضافية أخرى من نموذج Profile
@@ -201,10 +207,10 @@ public function UpdateInfo(UpdateUserInfoRequest $request , $user_id=null)
                     'national_id' => $user->national_id ?? 'N/A',
                     'national_id_image' => $user->image_path ?? 'N/A',
                     'type' => $user->type ?? 'N/A',
+                    'lang' => $user->lang ?? 'N/A',
+                'lat' => $user->lat ?? 'N/A',
                 ],
                 'profile' => [
-                    'lang' => $user->profile->lang ?? 'N/A',
-                    'lat' => $user->profile->lat ?? 'N/A',
                     'image' => $user->profile->image ?? 'N/A',
                     'address' => $user->profile->address ?? 'N/A',
                 ] ?? null

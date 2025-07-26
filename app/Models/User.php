@@ -28,6 +28,8 @@ class User extends Authenticatable
         'otp',
         'type',
         'status',
+        'lat',
+        'lang',
         'password',
     ];
 

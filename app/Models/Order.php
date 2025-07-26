@@ -13,7 +13,7 @@ class Order extends Model
         'total_price',
         'status',
         'note',
-
+        'delivery_fee'
 
     ];
     public function user()
@@ -24,6 +24,11 @@ class Order extends Model
     public function Order_Product()
     {
         return $this->hasMany(Order_Product::class);
+    }
+
+    public function Order_Driver()
+    {
+        return $this->hasMany(Order_Driver::class);
     }
 
     public function Order_Coupon()
@@ -55,4 +60,8 @@ class Order extends Model
 
         return true;
     }
+
+
+
+
 }

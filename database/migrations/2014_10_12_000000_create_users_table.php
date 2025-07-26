@@ -19,6 +19,9 @@ return new class extends Migration
             $table->string('otp')->default(0);
             $table->string('status')->default("active");
 
+            $table->string('lang')->nullable();
+            $table->string('lat')->nullable();
+
             $table->string('email')->unique()->nullable();
             $table->string('national_id')->unique()->nullable();
             $table->string('image_path')->unique()->nullable();

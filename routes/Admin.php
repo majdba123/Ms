@@ -12,6 +12,8 @@ use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\FoodTypeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DriverPriceController;
+use App\Http\Controllers\OrderDriverController;
 
 use App\Services\Driver\DriverServic;
 
@@ -109,6 +111,14 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('/show_info/{vendor_id}', [DriverController::class, 'get_driver_info']);
        // Route::get('get_dashboard_vendor/{vendor_id}', [DriverController::class, 'Provider_service_dash']);
 
+
+        Route::get('all_my_order', [OrderDriverController::class, 'getDriverOrders']);
+        Route::get('order/show/{id}', [OrderDriverController::class, 'showDriverOrder']);
+
+    Route::get('dashboard', [OrderDriverController::class, 'driverStatistics']);
+
+
+
     });
 
 
@@ -145,6 +155,8 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::prefix('commissions')->group(function () {
         Route::get('calculate/{vendor_id}', [CommissionController::class, 'getVendorCommission']);
         Route::get('calculate/Vendor_Product/{poduct_id}', [CommissionController::class, 'calculateByProduct']);
+        Route::post('reset/{vendor_id}', [CommissionController::class, 'markVendorOrdersAsDone']);
+
     });
 
 
@@ -173,6 +185,13 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     });
 
 
+    Route::prefix('driver_price')->group(function () {
+        Route::get('index/', [DriverPriceController::class, 'index']);
+        Route::post('store/', [DriverPriceController::class, 'store']);
+        Route::get('show/{coupon}', [DriverPriceController::class, 'show']);
+        Route::put('update/{coupon}', [DriverPriceController::class, 'update']);
+        Route::delete('delete/{coupon}', [DriverPriceController::class, 'destroy']);
+    });
 
 
 

@@ -16,8 +16,7 @@ class UpdateProfileRequest extends FormRequest
     public function rules()
     {
         return [
-            'lang' => 'sometimes|required',
-            'lat' => 'sometimes|required',
+
             'image' => 'sometimes|required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'address' => 'sometimes|required|string',
         ];
@@ -26,8 +25,7 @@ class UpdateProfileRequest extends FormRequest
     public function messages()
     {
         return [
-            'lang.required' => 'The language field is required.',
-            'lat.required' => 'The latitude field is required.',
+
             'image.required' => 'The image field is required.',
             'image.image' => 'The uploaded file must be an image.',
             'image.mimes' => 'The image must be a file of type: jpeg, png, jpg, gif, svg.',

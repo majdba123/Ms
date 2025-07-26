@@ -16,9 +16,12 @@ class UpdateUserInfoRequest extends FormRequest
     public function rules()
     {
         return [
+
             'name' => 'sometimes|required|string|max:255',
             'current_password' => 'required_with:password|string',
             'national_id' => 'sometimes|string|size:14|unique:users,national_id,' . auth()->id(),
+            'lang' => 'sometimes',
+            'lat' => 'sometimes',
 
             'password' => 'sometimes|required|string|min:8|confirmed',
         ];
@@ -27,6 +30,8 @@ class UpdateUserInfoRequest extends FormRequest
     public function messages()
     {
         return [
+            'lang.required' => 'The language field is required.',
+            'lat.required' => 'The latitude field is required.',
             'name.required' => 'The name field is required when provided.',
             'name.string' => 'The name must be a string.',
             'name.max' => 'The name must not exceed 255 characters.',

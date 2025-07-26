@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\User;
+use App\Models\Order_Driver;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,13 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('profiles', function (Blueprint $table) {
+        Schema::create('order__product__drivers', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete()->cascadeOnUpdate();
-
-            $table->string('address');
-            $table->string('image');
-
+            $table->foreignIdFor(Order_Driver::class)->constrained()->cascadeOnDelete()->cascadeOnUpdate();
+            $table->string('status')->default('pending');
             $table->timestamps();
         });
     }
@@ -28,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('profiles');
+        Schema::dropIfExists('order__product__drivers');
     }
 };

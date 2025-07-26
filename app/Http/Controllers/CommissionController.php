@@ -28,7 +28,7 @@ class CommissionController extends Controller
     {
 
         $validator = Validator::make($request->all(), [
-            'status' => 'required|string|in:all,pending,complete,cancelled', // status مطلوب الآن
+            'status' => 'required|string|in:all,pending,complete,cancelled,on_way,accepted,done', // status مطلوب الآن
             'vendor_id' => 'nullable|exists:provider__products,id'
 
         ]);
@@ -69,7 +69,7 @@ class CommissionController extends Controller
 
 
         $validator = Validator::make($request->all(), [
-            'status' => 'required|string|in:all,pending,complete,cancelled', // status مطلوب الآن
+            'status' => 'required|string|in:all,pending,complete,cancelled,on_way,accepted,done', // status مطلوب الآن
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
@@ -99,4 +99,31 @@ class CommissionController extends Controller
 
         return response()->json($result, 200);
     }
+
+
+
+        public function markVendorOrdersAsDone($vendor_id)
+        {
+            try {
+                // البحث عن مزود المنتج
+                $vendor = Provider_Product::findOrFail($vendor_id);
+
+                // تحديث جميع طلبات التاجر المرتبطة
+                $updatedCount = $vendor->orders()
+                    ->where('status', '=', 'complete')
+                    ->update(['status' => 'done']);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => "تم تحديث $updatedCount طلب إلى حالة done",
+                    'vendor_id' => $vendor_id
+                ]);
+
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'فشل في تحديث الطلبات: ' . $e->getMessage()
+                ], 500);
+            }
+        }
 }

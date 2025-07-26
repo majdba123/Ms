@@ -16,11 +16,19 @@ class VendorDashboardService
         return [
             'stats' => [
                 'completed_orders' => $vendor->completed_orders_count,
+                'on_way_order' => $vendor->on_way_orders_count,
+                'accepted_orders' => $vendor->accepted_orders_count,
+                'done_orders' => $vendor->done_orders_count,
+
                 'pending_orders' => $vendor->pending_orders_count,
                 'cancelled_orders' => $vendor->cancelled_orders_count,
                 'total_sales_complete' => $vendor->total_sales,
+                'total_sales_done' => $vendor->total_sales_done,
+
                 'total_sales_pending' => $vendor->total_sales_pending,
                 'total_commissions_complete' => $vendor->total_commissions,
+                'total_commissions_done' => $vendor->total_commissions_done,
+
                 'balance' => $vendor->total_sales - $vendor->total_commissions
             ],
         ];

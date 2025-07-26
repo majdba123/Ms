@@ -54,6 +54,12 @@ class RouteServiceProvider extends ServiceProvider
                 Route::middleware('api') // اجعلها تحت ميدل وير API
                 ->prefix('api/service_provider')
                 ->group(base_path('routes/Service_Provider.php'));
+
+
+
+            Route::middleware('api') // اجعلها تحت ميدل وير API
+                ->prefix('api/driver')
+                ->group(base_path('routes/Driver.php'));
         });
     }
 }

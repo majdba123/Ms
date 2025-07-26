@@ -11,11 +11,15 @@ class Driver extends Model
     protected $fillable = [
         'user_id',
         'status',
-        'lat',
-        'lang',
+
     ];
     public function user()
     {
         return $this->belongsTo(User::class,'user_id');
+    }
+
+    public function Order_Driver()
+    {
+        return $this->hasMany(Order_Driver::class);
     }
 }

@@ -17,5 +17,9 @@ class ProductProviderSeeder extends Seeder
             'user_id' => 4,
         ]);
 
+        Provider_Product::create([
+            'user_id' => 5,
+        ]);
+
     }
 }

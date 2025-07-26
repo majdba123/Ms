@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete()->cascadeOnUpdate();
 
             $table->string('address');
-            $table->string('image');
+            $table->string('image')->nullable();
 
             $table->timestamps();
         });

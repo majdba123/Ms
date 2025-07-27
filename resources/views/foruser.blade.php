@@ -3,7 +3,7 @@
 <head>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>user Test</title>
-
+    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
@@ -21,18 +21,16 @@
             }
         });
 
-        var channel = pusher.subscribe('chat-private-channel-8');
-        channel.bind('Private_chat', function(data) {
+        var channel = pusher.subscribe('notification-private-channel-{{ auth()->id() }}');
+        channel.bind('PrivateNotification', function(data) {
             alert(JSON.stringify(data));
         });
     </script>
 </head>
 
-
-
 <body>
     <h1> user Test</h1>
-    <h1>User ID:{{ auth()->user()->id }}</h1>
+    <h1>User ID: {{ auth()->user()->id }}</h1>
     <p>
         Try Notification an event to channel <code>user.{{ auth()->user()->id }}</code>
         with event name <code>my-event</code>.

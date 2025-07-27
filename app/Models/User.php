@@ -86,4 +86,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(Rseevation::class);
     }
+
+
+    public function notification()
+    {
+        return $this->hasMany(UserNotification::class);
+    }
+
 }

@@ -95,11 +95,11 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
     Route::prefix('profile')->group(function () {
 
-    Route::post('/update/{user_id}', [ProfileController::class, 'updateProfile']);
-    Route::put('/info/update/{user_id}', [ProfileController::class, 'UpdateInfo']);
-    Route::get('/info/get/{user_id}', [ProfileController::class, 'getUserInfo']);
-    Route::get('/get_All', [ProfileController::class, 'getAllUsers']);
-    Route::put('/status/update/{user_id}', [ProfileController::class, 'updateUserStatus']);
+        Route::post('/update/{user_id}', [ProfileController::class, 'updateProfile']);
+        Route::put('/info/update/{user_id}', [ProfileController::class, 'UpdateInfo']);
+        Route::get('/info/get/{user_id}', [ProfileController::class, 'getUserInfo']);
+        Route::get('/get_All', [ProfileController::class, 'getAllUsers']);
+        Route::put('/status/update/{user_id}', [ProfileController::class, 'updateUserStatus']);
 
     });
 

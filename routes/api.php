@@ -12,6 +12,10 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\FoodTypeProductProviderController;
 use App\Http\Controllers\FoodTypeController;
+use App\Http\Controllers\UserNotificationController;
+use App\Http\Controllers\ForgetPasswordController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -29,6 +33,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
+
+Route::post('/forget-password', [ForgetPasswordController::class, 'forgetPassword']);
+Route::post('/reset-password', [ForgetPasswordController::class, 'resetPasswordByVerifyOtp']);
+Route::post('/resend-otp', [RegisterController::class, 'resendOtp'])->middleware('auth:sanctum');
 
 Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/login', [LoginController::class, 'login']);
@@ -69,6 +77,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user_info/{user_id}', [ProfileController::class, 'user_info']);
 
 
+
+    Route::get('/my_notification', [UserNotificationController::class, 'index'])->middleware('auth:sanctum');
+    Route::post('/read_notification', [UserNotificationController::class, 'read']);
+    Route::get('/readable_massege', [UserNotificationController::class, 'readable_massege']);
+
+
+
 });
 
 
@@ -77,3 +92,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/food-types/getProvidersByFoodType/{id}', [FoodTypeProductProviderController::class, 'getProvidersByFoodType']);
 
     Route::get('/food-types/index/', [FoodTypeController::class, 'index']);
+
+
+
+
+
+
+

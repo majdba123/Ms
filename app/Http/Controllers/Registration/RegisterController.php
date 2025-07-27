@@ -38,7 +38,7 @@ class RegisterController extends Controller
         // Pass the modified request data to the service
         $user = $this->userService->register($validatedData);
 
-      /*  if (isset($validatedData['email'])) {
+        if (isset($validatedData['email'])) {
             OtpHelper::sendOtpEmail($user->id);
         }/*elseif(isset($validatedData['phone']))
         {
@@ -52,7 +52,22 @@ class RegisterController extends Controller
     }
 
 
+    public function resendOtp()
+    {
+        $user = Auth::user();
 
+        // إذا كان هناك OTP موجود وفعال، لا نرسل جديد
+        if ($user->otp == 1) {
+            return response()->json([
+                'message' => 'you are  active OTP already ',
+            ], 201);
+        }
+        OtpHelper::sendOtpEmail($user->id);
+        // إذا لم يكن هناك OTP أو انتهت صلاحيته، نرسل جديد
+        return response()->json([
+                'message' => 'OTP send successfully',
+            ], 201);
+    }
 
 
     private function sendOtp_mobile($id)

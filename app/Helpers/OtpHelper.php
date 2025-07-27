@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use App\Mail\SendOtpMail;
+use App\Mail\ResetPasswordMail;
+
 use App\Models\User;
 
 class OtpHelper
@@ -22,4 +24,14 @@ class OtpHelper
         Mail::to($user->email)->send(new SendOtpMail($otp));
         return $otp;
     }
+
+
+    public static function resetPassword($id, $newPassword)
+    {
+        $user = User::findOrFail($id);
+        $user->password = bcrypt($newPassword);
+        $user->save();
+        Mail::to($user->email)->send(new ResetPasswordMail($newPassword));
+    }
+
 }

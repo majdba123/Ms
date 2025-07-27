@@ -23,7 +23,7 @@ use App\Http\Controllers\OrderDriverController;
 |
 */
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum','pand','otp'])->group(function () {
 
     Route::post('categories/get_all', [CategoryController::class, 'index']);
     Route::get('/categories/show/{id}', [CategoryController::class, 'show']);

@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
         $this->call(WebSubSeeder::class);
         $this->call(SubscribeSeeder::class);
         $this->call(DriverSeeder::class);
+        $this->call(DriverPricesSeeder::class);
 
 
     }

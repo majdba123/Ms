@@ -18,8 +18,8 @@ class UsersTableSeeder extends Seeder
             'id' => 1,
             'name' => 'User',
             'email' => 'user@example.com',
-                        'national_id' => '10000008600000',
-
+            'national_id' => '10000008600000',
+            'otp' => 1,
             'password' => Hash::make('password'),
             'type' => 0,
             'lat' => '33.5117',
@@ -36,6 +36,8 @@ class UsersTableSeeder extends Seeder
             'lang' => '29.9187',
             'password' => Hash::make('password'),
             'type' => 1,
+             'otp' => 1,
+
         ]);
 
         User::create([
@@ -47,6 +49,7 @@ class UsersTableSeeder extends Seeder
             'lang' => '31.2118',
             'password' => Hash::make('password'),
             'type' => "service_provider",
+             'otp' => 1,
         ]);
 
         User::create([
@@ -57,6 +60,7 @@ class UsersTableSeeder extends Seeder
             'password' => Hash::make('password'),
             'type' => "product_provider",
             'lat' => '33.4869',
+             'otp' => 1,
             'lang' => '36.3083',
         ]);
         User::create([
@@ -68,13 +72,14 @@ class UsersTableSeeder extends Seeder
             'type' => "product_provider",
             'lat' => '33.5350',
             'lang' => '36.2950',
+                       'otp' => 1,
         ]);
 
         User::create([
             'id' => 6,
             'name' => 'driver',
             'national_id' => '10000000000000',
-
+           'otp' => 1,
             'email' => 'driver@example.com',
             'password' => Hash::make('password'),
             'type' => "driver",

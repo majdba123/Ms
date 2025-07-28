@@ -13,47 +13,57 @@ class UpdateProductRequest extends FormRequest
         return true;
     }
 
-    public function rules()
-    {
-        $rules = [
-            'name' => 'sometimes|string|max:255',
-            'description' => 'sometimes|string',
-            'price' => 'sometimes|numeric|min:0',
-            'category_id' => 'sometimes|exists:categories,id',
-            'images' => 'sometimes|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
-        ];
-
-        // Add validation rules based on the route
-        if ($this->is('api/service_provider*')) {
-            $rules['time_of_service'] = 'sometimes|required|string|max:255';
-            $rules['quantity'] = 'nullable|integer|min:0';
-        } else {
-            $rules['time_of_service'] = 'nullable|string|max:255';
-            $rules['quantity'] = 'sometimes|required|integer|min:0';
-
-            // إذا كان نوع المستخدم food_provider
-            if (auth()->user()->type == 'food_provider') {
-                $rules['food_type_id'] = [
-                    'sometimes',
-                    'required',
-                    'integer',
-                    'exists:food_types,id',
-                    function ($attribute, $value, $fail) {
-                        $providerProductId = auth()->user()->provider_product->id ?? null;
-                        if (!FoodType_ProductProvider::where('food_type_id', $value)
-                            ->where('provider__product_id', $providerProductId)
-                            ->exists()) {
-                            $fail('This food type is not associated with your provider account.');
-                        }
+   public function rules()
+{
+    $rules = [
+        'name' => 'sometimes|string|max:255',
+        'description' => 'sometimes|string',
+        'price' => 'sometimes|numeric|min:0',
+        'category_id' => [
+            'sometimes',
+            'exists:categories,id',
+            function ($attribute, $value, $fail) {
+                if (auth()->user()->type == 'food_provider' && $this->has('category_id')) {
+                    $categoryType = \App\Models\Category::find($value)->type;
+                    if ($categoryType != 2) {
+                        $fail('For food providers, the category must be of type 2.');
                     }
-                ];
+                }
             }
-        }
+        ],
+        'images' => 'sometimes|array',
+        'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+    ];
 
-        return $rules;
+    // Add validation rules based on the route
+    if ($this->is('api/service_provider*')) {
+        $rules['time_of_service'] = 'sometimes|required|string|max:255';
+        $rules['quantity'] = 'nullable|integer|min:0';
+    } else {
+        $rules['time_of_service'] = 'nullable|string|max:255';
+        $rules['quantity'] = 'sometimes|required|integer|min:0';
+
+        // إذا كان نوع المستخدم food_provider
+        if (auth()->user()->type == 'food_provider') {
+            $rules['food_type_id'] = [
+                'sometimes',
+                'required',
+                'integer',
+                'exists:food_types,id',
+                function ($attribute, $value, $fail) {
+                    $providerProductId = auth()->user()->provider_product->id ?? null;
+                    if (!FoodType_ProductProvider::where('food_type_id', $value)
+                        ->where('provider__product_id', $providerProductId)
+                        ->exists()) {
+                        $fail('This food type is not associated with your provider account.');
+                    }
+                }
+            ];
+        }
     }
 
+    return $rules;
+}
     public function messages()
     {
         return [

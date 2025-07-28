@@ -66,30 +66,28 @@ class VendorDashboardService
         return [
             'stats' => [
                 // إحصائيات المستخدمين
-                'total_users' => User::count(),
-             //   'active_users' => User::where('stat', true)->count(),
-             //   'inactive_users' => User::where('is_active', false)->count(),
-             'active_users' => "not yet",
-             'inactive_users' => "not yet",
+            'total_users' => User::count(),
+            'active_users' => User::where('status', 'active')->count(),
+            'pand_users' => User::where('status', 'pand')->count(),
+
 
                 // إحصائيات التجار
                 'total_vendors' => Provider_Product::count(),
                 'active_vendors' => Provider_Product::where('status', 'active')->count(),
                 'pending_vendors' => Provider_Product::where('status', 'pending')->count(),
-                'banned_vendors' => Provider_Product::where('status', 'banned')->count(),
 
 
 
                 'total_service_provider' => Provider_Service::count(),
                 'active_service_provider' => Provider_Service::where('status', 'active')->count(),
                 'pending_service_provider' => Provider_Service::where('status', 'pending')->count(),
-                'banned_service_provider' => Provider_Service::where('status', 'banned')->count(),
+                'pand_service_provider' => Provider_Service::where('status', 'pand')->count(),
 
 
                 'total_Driver' => Driver::count(),
                 'active_Driver' => Driver::where('status', 'active')->count(),
                 'pending_Driver' => Driver::where('status', 'pending')->count(),
-                'banned_Driver' => Driver::where('status', 'banned')->count(),
+                'pand_Driver' => Driver::where('status', 'pand')->count(),
 
                 // إحصائيات المنتجات
                 // إحصائيات المنتجات
@@ -101,8 +99,8 @@ class VendorDashboardService
                     ],
                 ],
 
-                'active_products' =>"not yet",
-                'inactive_products' => "not yet",
+               // 'active_products' =>"not yet",
+               // 'inactive_products' => "not yet",
 
                 // إحصائيات الطلبات
                 'total_orders' => Order_Product::count(),

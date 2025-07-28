@@ -9,6 +9,7 @@ use App\Models\Provider_Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -249,7 +250,7 @@ public function getProfile(): JsonResponse
      * @param Request $request
      * @return JsonResponse
      */
-   public function updateProfile(Request $request): JsonResponse
+ public function updateProfile(Request $request): JsonResponse
 {
     try {
         $user = Auth::user();
@@ -315,22 +316,28 @@ public function getProfile(): JsonResponse
             }
         }
 
-        // معالجة رفع الصورة
+        // معالجة رفع الصورة بنفس طريقة ProfileService
         if ($request->hasFile('image')) {
             $shouldUpdateProfile = true;
+            $imageFile = $request->file('image');
 
             // حذف الصورة القديمة إن وجدت
             if ($user->Profile && $user->Profile->image) {
-                $oldImagePath = str_replace(asset('storage/profile_image/'), '', $user->Profile->image);
-                Storage::disk('public')->delete('profile_image/' . $oldImagePath);
+                $this->deleteOldImage($user->Profile->image);
             }
 
-            // حفظ الصورة الجديدة
-            $imageFile = $request->file('image');
+            // حفظ الصورة الجديدة بنفس الطريقة
             $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
-            $imagePath = 'profile_image/' . $imageName;
+            $imagePath = 'profile_images/' . $imageName;
             Storage::disk('public')->put($imagePath, file_get_contents($imageFile));
-            $profileData['image'] = asset('storage/profile_image/' . $imageName);
+            $profileData['image'] = url('api/storage/' . $imagePath);
+        } elseif ($request->has('image') && is_null($request->image)) {
+            // إذا كانت قيمة الصورة null (طلب حذف الصورة)
+            if ($user->Profile && $user->Profile->image) {
+                $this->deleteOldImage($user->Profile->image);
+                $profileData['image'] = null;
+                $shouldUpdateProfile = true;
+            }
         }
 
         // تحديث أو إنشاء البروفايل
@@ -354,7 +361,7 @@ public function getProfile(): JsonResponse
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
-                'national_id' => $user->national_id, // إضافة الرقم القومي للاستجابة
+                'national_id' => $user->national_id,
             ]
         ];
 
@@ -375,6 +382,21 @@ public function getProfile(): JsonResponse
             'success' => false,
             'message' => 'فشل في تحديث البيانات: ' . $e->getMessage()
         ], 500);
+    }
+}
+
+protected function deleteOldImage(string $imageUrl)
+{
+    try {
+        $basePath = url('api/storage');
+        $relativePath = str_replace($basePath, '', $imageUrl);
+        $relativePath = ltrim($relativePath, '/');
+
+        if (Storage::disk('public')->exists($relativePath)) {
+            Storage::disk('public')->delete($relativePath);
+        }
+    } catch (\Exception $e) {
+        Log::error("Failed to delete old profile image: " . $e->getMessage());
     }
 }
 }

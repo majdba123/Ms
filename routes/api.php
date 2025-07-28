@@ -15,7 +15,7 @@ use App\Http\Controllers\FoodTypeController;
 use App\Http\Controllers\UserNotificationController;
 use App\Http\Controllers\ForgetPasswordController;
 
-
+use Illuminate\Support\Facades\File;  // أضف هذا السطر في الأعلى
 
 /*
 |--------------------------------------------------------------------------
@@ -99,3 +99,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 
 
+Route::get('/storage/{path}', function ($path) {
+    $filePath = storage_path('app/public/' . $path);
+
+    if (!File::exists($filePath)) {
+        abort(404);
+    }
+
+    return response()->file($filePath);
+})->where('path', '.*');

@@ -15,7 +15,7 @@
     <p>Please log in using this new password and consider changing it to something you can easily remember.</p>
 
     <p>Thank you,</p>
-    <p>The LOKTA Team</p>
+    <p>The Mersal Team</p>
 </body>
 
 </html>

@@ -16,11 +16,40 @@ class Product_ProviderMiddleWare
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
+
+        // التحقق من وجود المستخدم ووجود Provider_Product
         if ($user && !$user->Provider_Product) {
-            // If the user is authenticated but doesn't have a corresponding entry in the drivers table,
-            // you can redirect them to a specific page or return a response with an error message.
-            return response()->json(['error' => 'You are not Provider_Product'], 403);
+            return response()->json(['error' => 'You are not a Product Provider'], 403);
         }
+
+        // إذا كان المستخدم مزود منتج، نتحقق من حالته
+        if ($user && $user->Provider_Product) {
+            $status = $user->Provider_Product->status;
+
+            switch ($status) {
+                case 'pending':
+                    return response()->json([
+                        'error' => 'Your account is pending admin approval',
+                        'status' => 'pending'
+                    ], 403);
+
+                case 'pand':
+                    return response()->json([
+                        'error' => 'Your account has been pand',
+                        'status' => 'pand'
+                    ], 403);
+
+                case 'active':
+                    return $next($request);
+
+                default:
+                    return response()->json([
+                        'error' => 'Your account status is invalid',
+                        'status' => $status
+                    ], 403);
+            }
+        }
+
         return $next($request);
     }
 }

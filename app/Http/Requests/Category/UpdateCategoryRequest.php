@@ -25,7 +25,8 @@ class UpdateCategoryRequest extends FormRequest
     {
         return [
             'name' => 'sometimes|string|max:255',
-            'type' => 'sometimes|boolean',
+            'type' => 'sometimes|in:0,1,2', // تغيير من boolean إلى in:0,1,2
+
             'price' => 'sometimes|numeric',
             'imag' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
 
@@ -39,7 +40,7 @@ class UpdateCategoryRequest extends FormRequest
             'name.string' => 'The name must be a string.',
             'name.max' => 'The name may not be greater than 255 characters.',
             'type.sometimes' => 'The type field is sometimes required.',
-            'type.boolean' => 'The type must be 0 or 1.',
+            'type.in' => 'The type must be 0, 1, or 2.', // تحديث رسالة الخطأ
             'price.sometimes' => 'The price field is sometimes required.',
             'price.numeric' => 'The price must be a number.',
             'imag.image' => 'The file must be an image.',
@@ -63,5 +64,8 @@ class UpdateCategoryRequest extends FormRequest
                 $validator->errors()->add('price', 'The price for a product type category may not be greater than 100.');
             }
         });
+        if ($this->input('type') == 2 && $this->input('price') > 100) {
+                $validator->errors()->add('price', 'The price for a food type category may not be greater than 100.');
+            }
     }
 }

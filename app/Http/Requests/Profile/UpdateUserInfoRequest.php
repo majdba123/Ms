@@ -22,6 +22,7 @@ class UpdateUserInfoRequest extends FormRequest
             'national_id' => 'sometimes|string|size:14|unique:users,national_id,' . auth()->id(),
             'lang' => 'sometimes',
             'lat' => 'sometimes',
+            'phone' => 'sometimes|required|string|max:255',
 
             'password' => 'sometimes|required|string|min:8|confirmed',
         ];

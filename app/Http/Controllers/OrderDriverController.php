@@ -18,9 +18,7 @@ use Illuminate\Validation\ValidationException;
 
 class OrderDriverController extends Controller
 {
-
-
- private function sendOrderStatusNotification($order, $status)
+    private function sendOrderStatusNotification($order, $status)
     {
         $statusMessages = [
             'pending' => 'طلبك رقم #'.$order->id.' قيد الانتظار',
@@ -43,24 +41,17 @@ class OrderDriverController extends Controller
         ]);
     }
 
+    private function sendVendorNotification($vendorUserId, $message)
+    {
+        // إرسال الإشعار الفوري
+        event(new PrivateNotification($vendorUserId, $message));
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        // تخزين الإشعار في قاعدة البيانات
+        UserNotification::create([
+            'user_id' => $vendorUserId,
+            'notification' => $message,
+        ]);
+    }
 
     /**
      * قبول طلب المنتجات من قبل السائق
@@ -136,8 +127,6 @@ class OrderDriverController extends Controller
             ], 500);
         }
     }
-
-
 
     public function getDriverOrders(Request $request)
     {
@@ -229,7 +218,6 @@ class OrderDriverController extends Controller
         return response()->json(['orders' => $formattedOrders], 200);
     }
 
-
     public function updateOrderProductStatus(Request $request)
     {
         // التحقق من صحة البيانات
@@ -251,7 +239,7 @@ class OrderDriverController extends Controller
             ->whereHas('Order_Driver', function($query) use ($driver) {
                 $query->where('driver_id', $driver->id);
             })
-            ->with(['Order_Product', 'Order_Driver.order'])
+            ->with(['Order_Product.product.providerable.user', 'Order_Driver.order'])
             ->first();
 
         if (!$orderProductDriver) {
@@ -261,6 +249,8 @@ class OrderDriverController extends Controller
         $orderProduct = $orderProductDriver->Order_Product;
         $orderDriver = $orderProductDriver->Order_Driver;
         $order = $orderDriver->order;
+        $product = $orderProduct->product;
+        $vendorUser = $product->providerable->user ?? null;
 
         DB::beginTransaction();
         try {
@@ -272,6 +262,14 @@ class OrderDriverController extends Controller
                     }
                     $orderProductDriver->update(['status' => 'on_way']);
                     $orderProduct->update(['status' => 'on_way']);
+
+                    // إرسال إشعار للمورد
+                    if ($vendorUser) {
+                        $this->sendVendorNotification(
+                            $vendorUser->id,
+                            'المنتج "'.$product->name.'" في الطريق إلى العميل (طلب رقم #'.$order->id.')'
+                        );
+                    }
                     break;
 
                 case 'complete':
@@ -280,11 +278,27 @@ class OrderDriverController extends Controller
                     }
                     $orderProductDriver->update(['status' => 'complete']);
                     $orderProduct->update(['status' => 'complete']);
+
+                    // إرسال إشعار للمورد
+                    if ($vendorUser) {
+                        $this->sendVendorNotification(
+                            $vendorUser->id,
+                            'تم تسليم المنتج "'.$product->name.'" للعميل (طلب رقم #'.$order->id.')'
+                        );
+                    }
                     break;
 
                 case 'cancelled':
                     $orderProductDriver->update(['status' => 'cancelled']);
                     $orderProduct->update(['status' => 'cancelled']);
+
+                    // إرسال إشعار للمورد
+                    if ($vendorUser) {
+                        $this->sendVendorNotification(
+                            $vendorUser->id,
+                            'تم إلغاء تسليم المنتج "'.$product->name.'" (طلب رقم #'.$order->id.')'
+                        );
+                    }
                     break;
             }
 
@@ -344,66 +358,59 @@ class OrderDriverController extends Controller
         }
     }
 
+    public function driverStatistics(Request $request)
+    {
+        $user = Auth::user();
+        $driverId = null;
 
-
-public function driverStatistics(Request $request)
-{
-    $user = Auth::user();
-    $driverId = null;
-
-    // تحديد driver_id بناءً على نوع المستخدم
-    if ($user->type == 1) { // إذا كان أدمن
-        $request->validate([
-            'driver_id' => 'required|exists:drivers,id'
-        ]);
-        $driverId = $request->driver_id;
-    } else { // إذا كان سائق عادي
-        if (!$user->Driver) {
-            return response()->json(['message' => 'Driver not found'], 404);
+        // تحديد driver_id بناءً على نوع المستخدم
+        if ($user->type == 1) { // إذا كان أدمن
+            $request->validate([
+                'driver_id' => 'required|exists:drivers,id'
+            ]);
+            $driverId = $request->driver_id;
+        } else { // إذا كان سائق عادي
+            if (!$user->Driver) {
+                return response()->json(['message' => 'Driver not found'], 404);
+            }
+            $driverId = $user->Driver->id;
         }
-        $driverId = $user->Driver->id;
+
+        // الحصول على إحصائيات الطلبات
+        $orderStats = Order_Driver::where('driver_id', $driverId)
+            ->selectRaw('count(*) as total_orders')
+            ->selectRaw('sum(case when status = "pending" then 1 else 0 end) as pending_orders')
+            ->selectRaw('sum(case when status = "on_way" then 1 else 0 end) as on_way_orders')
+            ->selectRaw('sum(case when status = "complete" then 1 else 0 end) as complete_orders')
+            ->selectRaw('sum(case when status = "cancelled" then 1 else 0 end) as cancelled_orders')
+            ->first();
+
+        // حساب الأرباح من أجور التوصيل (الطلبات المكتملة فقط)
+        $earnings = Order_Driver::where('driver_id', $driverId)
+            ->where('order__drivers.status', 'complete') // تحديد الجدول بشكل صريح
+            ->join('orders', 'order__drivers.order_id', '=', 'orders.id')
+            ->sum('orders.delivery_fee');
+
+        // الحصول على معلومات السائق الأساسية
+        $driver = Driver::find($driverId);
+
+        return response()->json([
+            'statistics' => [
+                'total_orders' => $orderStats->total_orders ?? 0,
+                'pending_orders' => $orderStats->pending_orders ?? 0,
+                'on_way_orders' => $orderStats->on_way_orders ?? 0,
+                'complete_orders' => $orderStats->complete_orders ?? 0,
+                'cancelled_orders' => $orderStats->cancelled_orders ?? 0,
+            ],
+            'earnings' => $earnings,
+            'driver_info' => [
+                'driver_id' => $driverId,
+                'driver_name' => $driver->user->name ?? 'Unknown Driver',
+                'phone' => $driver->user->phone ?? null,
+                'email' => $driver->user->email ?? null
+            ]
+        ], 200);
     }
-
-    // الحصول على إحصائيات الطلبات
-    $orderStats = Order_Driver::where('driver_id', $driverId)
-        ->selectRaw('count(*) as total_orders')
-        ->selectRaw('sum(case when status = "pending" then 1 else 0 end) as pending_orders')
-        ->selectRaw('sum(case when status = "on_way" then 1 else 0 end) as on_way_orders')
-        ->selectRaw('sum(case when status = "complete" then 1 else 0 end) as complete_orders')
-        ->selectRaw('sum(case when status = "cancelled" then 1 else 0 end) as cancelled_orders')
-        ->first();
-
-    // حساب الأرباح من أجور التوصيل (الطلبات المكتملة فقط)
-    $earnings = Order_Driver::where('driver_id', $driverId)
-        ->where('order__drivers.status', 'complete') // تحديد الجدول بشكل صريح
-        ->join('orders', 'order__drivers.order_id', '=', 'orders.id')
-        ->sum('orders.delivery_fee');
-
-    // الحصول على معلومات السائق الأساسية
-    $driver = Driver::find($driverId);
-
-    return response()->json([
-        'statistics' => [
-            'total_orders' => $orderStats->total_orders ?? 0,
-            'pending_orders' => $orderStats->pending_orders ?? 0,
-            'on_way_orders' => $orderStats->on_way_orders ?? 0,
-            'complete_orders' => $orderStats->complete_orders ?? 0,
-            'cancelled_orders' => $orderStats->cancelled_orders ?? 0,
-        ],
-        'earnings' => $earnings,
-        'driver_info' => [
-            'driver_id' => $driverId,
-            'driver_name' => $driver->user->name ?? 'Unknown Driver',
-            'phone' => $driver->user->phone ?? null,
-            'email' => $driver->user->email ?? null
-
-        ]
-    ], 200);
-}
-
-
-
-
 
     protected function getUpdatedOrderDetails($orderDriverId, $driverId)
     {
@@ -415,9 +422,6 @@ public function driverStatistics(Request $request)
             ->where('driver_id', $driverId)
             ->first();
     }
-
-
-
 
     public function showDriverOrder(Request $request, $orderId)
     {
@@ -497,9 +501,6 @@ public function driverStatistics(Request $request)
 
         return response()->json(['order' => $response], 200);
     }
-
-
-
 
     public function showOrder(Request $request, $orderId)
     {

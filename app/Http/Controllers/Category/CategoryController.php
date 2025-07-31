@@ -27,7 +27,7 @@ class CategoryController extends Controller
     {
         // إنشاء الفاليديتور للتحقق من صحة معامل الاستعلام type
         $validator = Validator::make($request->all(), [
-            'type' => 'sometimes|integer|in:0,1', // تحقق من أن type هو رقم صحيح ويجب أن يكون إما 0 أو 1
+            'type' => 'sometimes|integer|in:0,1,2', // تحقق من أن type هو رقم صحيح ويجب أن يكون إما 0 أو 1
         ]);
 
         // التحقق من صحة البيانات
@@ -80,7 +80,8 @@ class CategoryController extends Controller
         if ($request->is('api/service_provider*')) {
             $type = $request->query('type', 1); // يستخدم النوع المرسل في الطلب
         } elseif ($request->is('api/product_provider*')) {
-            $type = 0; // تعيين النوع 0 إذا كان الطلب يبدأ بـ product_provider
+            // إذا كان المستخدم من نوع food_provider نستخدم النوع 2، وإلا النوع 0
+            $type = auth()->user()->type == 'food_provider' ? 2 : 0;
         }
 
         $categories = $this->categoryService->getByType($type);
@@ -90,13 +91,12 @@ class CategoryController extends Controller
 
 
 
-
-   public function getProvidersByCategory($categoryId)
+public function getProvidersByCategory($categoryId)
 {
     $category = Category::findOrFail($categoryId);
 
     // تحديد نوع المزودين المطلوبين بناءً على نوع الفئة
-    $providerModel = $category->type == 0
+    $providerModel = $category->type == 0 || $category->type == 2
         ? Provider_Product::class
         : Provider_Service::class;
 
@@ -104,19 +104,25 @@ class CategoryController extends Controller
     $providers = $providerModel::whereHas('products', function($query) use ($categoryId) {
             $query->where('category_id', $categoryId);
         })
-        ->with('user') // جلب معلومات المستخدم المرتبطة
+        ->with(['user', 'user.provider_product'])
         ->get()
+        ->filter(function($provider) use ($category) {
+            // إذا كانت الفئة من النوع 2، نرجع فقط مزودي الطعام
+            if ($category->type == 2) {
+                return $provider->user->type == 'food_provider';
+            }
+            return true;
+        })
         ->map(function($provider) {
             return [
                 'id' => $provider->id,
                 'status' => $provider->status,
                 'user' => $provider->user,
+                'type' => $provider->user->type, // إضافة نوع المزود
                 'image' => $provider->user->Profile->image ?? null,
                 'address' => $provider->user->Profile->address ?? null,
                 'lat' => $provider->user->Profile->lat ?? null,
                 'lang' => $provider->user->Profile->lang ?? null,
-
-
                 // يمكن إضافة المزيد من الحقول حسب الحاجة
             ];
         });

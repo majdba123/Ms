@@ -67,6 +67,9 @@ public function UpdateInfo(UpdateUserInfoRequest $request , $user_id=null)
     if ($request->has('name')) {
         $user->name = $request->name;
     }
+        if ($request->has('phone')) {
+        $user->phone = $request->phone;
+    }
         if ($request->has('lat')) {
         $user->lat = $request->lat;
     }
@@ -204,11 +207,13 @@ public function UpdateInfo(UpdateUserInfoRequest $request , $user_id=null)
                     'name' => $user->name ?? 'N/A',
                     'email' => $user->email ?? 'N/A',
                     'phone' => $user->phone ?? 'N/A',
+                    'status' => $user->status ?? 'N/A',
+                    'otp' => $user->otp ?? 'N/A',
                     'national_id' => $user->national_id ?? 'N/A',
                     'national_id_image' => $user->image_path ?? 'N/A',
                     'type' => $user->type ?? 'N/A',
                     'lang' => $user->lang ?? 'N/A',
-                'lat' => $user->lat ?? 'N/A',
+                   'lat' => $user->lat ?? 'N/A',
                 ],
                 'profile' => [
                     'image' => $user->profile->image ?? 'N/A',

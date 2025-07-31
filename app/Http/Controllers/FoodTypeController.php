@@ -9,7 +9,7 @@ class FoodTypeController extends Controller
 {
   public function index()
     {
-        $foodTypes = FoodType::all();
+        $foodTypes = FoodType::with('FoodType_ProductProvider');
         return response()->json([
             'success' => true,
             'data' => $foodTypes
@@ -39,7 +39,7 @@ class FoodTypeController extends Controller
      */
     public function show($id)
     {
-        $foodType = FoodType::find($id);
+        $foodType = FoodType::with('FoodType_ProductProvider')->find($id);
 
         if (!$foodType) {
             return response()->json([

@@ -35,6 +35,14 @@ use App\Services\Driver\DriverServic;
 
 
 
+
+
+
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+
+
+
+
 Route::get('dashboard', [AdminController::class, 'adminDashboard']);
 
 
@@ -42,7 +50,16 @@ Route::get('dashboard', [AdminController::class, 'adminDashboard']);
 
 
 
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+
+
+
+
+
+
+
+
+
+
     Route::get('categories/get_all', [CategoryController::class, 'index']);
     Route::post('categories/store', [CategoryController::class, 'store']);
     Route::post('categories/update/{id}', [CategoryController::class, 'update']);

@@ -34,8 +34,8 @@ class DriverController extends Controller
 
             return response()->json([
                 'message' => $data['message'],
-                'vendor_id' => $data['vendor_id'],
-                'status' => $data['status'],
+               // 'driver' => $data['driver'],
+              //  'status' => $data['status'],
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Return a custom response for validation errors

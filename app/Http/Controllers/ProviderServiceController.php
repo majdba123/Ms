@@ -220,6 +220,16 @@ public function getProfile(): JsonResponse
             ], 401);
         }
 
+        if($user->Driver)
+        {
+            $x=$user->Driver->status;
+        }elseif($user->Provider_Product)
+        {
+            $x=$user->Provider_Product->status;
+        }else{
+            $x=$user->Provider_service->status;
+        }
+
         $response = [
             'success' => true,
             'data' => [
@@ -232,6 +242,8 @@ public function getProfile(): JsonResponse
                     'image_national_id' => $user->image_path ?? 'N/A', // إضافة الرقم القومي هنا
                     'lang' => $user->lang ?? 'N/A',
                     'lat' => $user->lat ?? 'N/A',
+                    'user_status' => $user->status ?? 'N/A',
+                    'status' => $x ?? 'N/A',
 
                     // أي معلومات إضافية أخرى من نموذج User
                 ],

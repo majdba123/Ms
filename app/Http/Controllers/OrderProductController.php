@@ -168,7 +168,7 @@ class OrderProductController extends Controller
         return response()->json([
             'success' => true,
             'driver_info' => [
-                'driver_id' => $driver->id,
+                'driver_id' => $driver->Driver->id,
                 'name' => $driver->name,
                 'coordinates' => [
                     'lat' => $driver->lat,

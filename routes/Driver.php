@@ -12,6 +12,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\OrderDriverController;
 use App\Http\Controllers\OrderProductController;
+use App\Http\Controllers\ProviderProductController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,12 @@ Route::middleware(['auth:sanctum' ,'driver','pand','otp'])->group(function () {
         Route::get('all_my_order', [OrderDriverController::class, 'getDriverOrders']);
 
     });
+
+    Route::prefix('profile')->group(function () {
+        Route::post('/update', [ProviderProductController::class, 'updateProfile']);
+        Route::get('/my_info', [ProviderProductController::class, 'getProfile']);
+    });
+
 
 
     Route::get('dashboard', [OrderDriverController::class, 'driverStatistics']);

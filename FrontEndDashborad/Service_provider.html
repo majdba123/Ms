@@ -1799,7 +1799,7 @@
         <button class="dropdown-toggle btn btn-sm ${this.getStatusClass(currentStatus)}">
             ${currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
         </button>
-        <ul class="dropdown-menu absolute hidden z-10 mt-1 w-28 bg-white shadow-lg rounded-md border border-gray-200">
+        <ul class="dropdown-menu absolute hidden z-10 mt-1 w-28 bg-white shadow-lg rounded-md border border-gray-200"                style="position: fixed; max-height: 300px; overflow-y: auto;">
             ${['active', 'pending', 'pand']
                 .map(
                     (status) => `

@@ -1,9 +1,9 @@
 // config.js
 window.API_CONFIG = {
-    BASE_URL: 'http://localhost:8000',
+    // BASE_URL: 'http://localhost:8000',
 
 
-    // BASE_URL: 'https://highleveltecknology.com/Ms', 
+    BASE_URL: 'https://mersal.site/Ms', 
     ENDPOINTS: {
         LOGIN: '/api/login',
     },

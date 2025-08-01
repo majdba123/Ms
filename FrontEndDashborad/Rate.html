@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en" dir="ltr" x-data="{ dir: $store.app.rtlClass }" :dir="dir">
     <head>
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <title>Dashboard - Mersal</title>
+        <title x-text="Alpine.store('i18n').t('dashboard')"> </title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" type="image/x-icon" href="favicon.png" />
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDkf2Hu6wGypUutGJwgyOCj9u6Ik3jYZZw&libraries=places"></script>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -230,7 +231,7 @@
                     </div>
 
                     <div class="mb-3 rounded-md border border-dashed border-[#e0e6ed] p-3 dark:border-[#1b2e4b]">
-                        <h5 class="mb-1 text-base leading-none dark:text-white">Navigation Position</h5>
+                        <h5 class="mb-1 text-base leading-none dark:text-white"><span x-text="Alpine.store('i18n').t('navigation_position')"></span></h5>
                         <p class="text-xs text-white-dark">Select the primary navigation paradigm for your app.</p>
                         <div class="mt-3 grid grid-cols-3 gap-2">
                             <button
@@ -239,7 +240,7 @@
                                 :class="[$store.app.menu === 'horizontal' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleMenu('horizontal')"
                             >
-                                Horizontal
+                                <span x-text="Alpine.store('i18n').t('horizontal')"></span>
                             </button>
                             <button
                                 type="button"
@@ -247,7 +248,7 @@
                                 :class="[$store.app.menu === 'vertical' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleMenu('vertical')"
                             >
-                                Vertical
+                                <span x-text="Alpine.store('i18n').t('vertical')"></span>
                             </button>
                             <button
                                 type="button"
@@ -255,7 +256,7 @@
                                 :class="[$store.app.menu === 'collapsible-vertical' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleMenu('collapsible-vertical')"
                             >
-                                Collapsible
+                                <span x-text="Alpine.store('i18n').t('collapsible')"></span>
                             </button>
                         </div>
                         <div class="mt-5 text-primary">
@@ -272,7 +273,7 @@
                         </div>
                     </div>
                     <div class="mb-3 rounded-md border border-dashed border-[#e0e6ed] p-3 dark:border-[#1b2e4b]">
-                        <h5 class="mb-1 text-base leading-none dark:text-white">Layout Style</h5>
+                        <h5 class="mb-1 text-base leading-none dark:text-white"><span x-text="Alpine.store('i18n').t('layout_style')"></span></h5>
                         <p class="text-xs text-white-dark">Select the primary layout style for your app.</p>
                         <div class="mt-3 flex gap-2">
                             <button
@@ -281,7 +282,7 @@
                                 :class="[$store.app.layout === 'boxed-layout' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleLayout('boxed-layout')"
                             >
-                                Box
+                                <span x-text="Alpine.store('i18n').t('box')"></span>
                             </button>
                             <button
                                 type="button"
@@ -289,12 +290,12 @@
                                 :class="[$store.app.layout === 'full' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleLayout('full')"
                             >
-                                Full
+                                <span x-text="Alpine.store('i18n').t('full')"></span>
                             </button>
                         </div>
                     </div>
                     <div class="mb-3 rounded-md border border-dashed border-[#e0e6ed] p-3 dark:border-[#1b2e4b]">
-                        <h5 class="mb-1 text-base leading-none dark:text-white">Direction</h5>
+                        <h5 class="mb-1 text-base leading-none dark:text-white"><span x-text="Alpine.store('i18n').t('direction')"></span></h5>
                         <p class="text-xs text-white-dark">Select the direction for your app.</p>
                         <div class="mt-3 flex gap-2">
                             <button
@@ -303,7 +304,7 @@
                                 :class="[$store.app.rtlClass === 'ltr' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleRTL('ltr')"
                             >
-                                LTR
+                                <span x-text="Alpine.store('i18n').t('ltr')"></span>
                             </button>
                             <button
                                 type="button"
@@ -311,18 +312,18 @@
                                 :class="[$store.app.rtlClass === 'rtl' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleRTL('rtl')"
                             >
-                                RTL
+                                <span x-text="Alpine.store('i18n').t('rtl')"></span>
                             </button>
                         </div>
                     </div>
 
                     <div class="mb-3 rounded-md border border-dashed border-[#e0e6ed] p-3 dark:border-[#1b2e4b]">
-                        <h5 class="mb-1 text-base leading-none dark:text-white">Navbar Type</h5>
+                        <h5 class="mb-1 text-base leading-none dark:text-white"><span x-text="Alpine.store('i18n').t('navbar_type')"></span></h5>
                         <p class="text-xs text-white-dark">Sticky or Floating.</p>
                         <div class="mt-3 flex items-center gap-3 text-primary">
                             <label class="mb-0 inline-flex">
                                 <input x-model="$store.app.navbar" type="radio" value="navbar-sticky" class="form-radio" @change="$store.app.toggleNavbar()" />
-                                <span>Sticky</span>
+                                <span x-text="Alpine.store('i18n').t('sticky')"></span>
                             </label>
                             <label class="mb-0 inline-flex">
                                 <input
@@ -332,30 +333,30 @@
                                     class="form-radio"
                                     @change="$store.app.toggleNavbar()"
                                 />
-                                <span>Floating</span>
+                                <span x-text="Alpine.store('i18n').t('floating')"></span>
                             </label>
                             <label class="mb-0 inline-flex">
                                 <input x-model="$store.app.navbar" type="radio" value="navbar-static" class="form-radio" @change="$store.app.toggleNavbar()" />
-                                <span>Static</span>
+                                <span x-text="Alpine.store('i18n').t('static')"></span>
                             </label>
                         </div>
                     </div>
 
                     <div class="mb-3 rounded-md border border-dashed border-[#e0e6ed] p-3 dark:border-[#1b2e4b]">
-                        <h5 class="mb-1 text-base leading-none dark:text-white">Router Transition</h5>
+                        <h5 class="mb-1 text-base leading-none dark:text-white"><span x-text="Alpine.store('i18n').t('router_transition')"></span></h5>
                         <p class="text-xs text-white-dark">Animation of main content.</p>
                         <div class="mt-3">
                             <select x-model="$store.app.animation" class="form-select border-primary text-primary" @change="$store.app.toggleAnimation()">
-                                <option value="">None</option>
-                                <option value="animate__fadeIn">Fade</option>
-                                <option value="animate__fadeInDown">Fade Down</option>
-                                <option value="animate__fadeInUp">Fade Up</option>
-                                <option value="animate__fadeInLeft">Fade Left</option>
-                                <option value="animate__fadeInRight">Fade Right</option>
-                                <option value="animate__slideInDown">Slide Down</option>
-                                <option value="animate__slideInLeft">Slide Left</option>
-                                <option value="animate__slideInRight">Slide Right</option>
-                                <option value="animate__zoomIn">Zoom In</option>
+                                <option value=""><span x-text="Alpine.store('i18n').t('none')"></span></option>
+                                <option value="animate__fadeIn"><span x-text="Alpine.store('i18n').t('fade')"></span></option>
+                                <option value="animate__fadeInDown"><span x-text="Alpine.store('i18n').t('fade_down')"></span></option>
+                                <option value="animate__fadeInUp"><span x-text="Alpine.store('i18n').t('fade_up')"></span></option>
+                                <option value="animate__fadeInLeft"><span x-text="Alpine.store('i18n').t('fade_left')"></span></option>
+                                <option value="animate__fadeInRight"><span x-text="Alpine.store('i18n').t('fade_right')"></span></option>
+                                <option value="animate__slideInDown"><span x-text="Alpine.store('i18n').t('slide_down')"></span></option>
+                                <option value="animate__slideInLeft"><span x-text="Alpine.store('i18n').t('slide_left')"></span></option>
+                                <option value="animate__slideInRight"><span x-text="Alpine.store('i18n').t('slide_right')"></span></option>
+                                <option value="animate__zoomIn"><span x-text="Alpine.store('i18n').t('zoom_in')"></span></option>
                             </select>
                         </div>
                     </div>
@@ -425,7 +426,7 @@
                                             />
                                         </svg>
 
-                                        <span class="text-black dark:text-[#506690] dark:group-hover:text-white-dark ltr:pl-3 rtl:pr-3">Dashboard</span>
+                                        <span class="text-black dark:text-[#506690] dark:group-hover:text-white-dark ltr:pl-3 rtl:pr-3">Dashborad</span>
                                     </div>
                                     <div class="rtl:rotate-180" :class="{'!rotate-90' : activeDropdown === 'dashboard'}">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -435,7 +436,7 @@
                                 </button>
                                 <ul x-cloak x-show="activeDropdown === 'dashboard'" x-collapse class="sub-menu text-gray-500">
                                     <li>
-                                        <a href="index.html">Home</a>
+                                        <a href="index.html"><span x-text="Alpine.store('i18n').t('home')"></span></a>
                                     </li>
                                 </ul>
                             </li>
@@ -452,12 +453,12 @@
                                 >
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                Category & Subscribe
+                                <span x-text="Alpine.store('i18n').t('category_subscribe')"></span>
                             </h2>
                             <li class="menu nav-item">
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="Category.html">Category</a>
+                                        <a href="Category.html"><span x-text="Alpine.store('i18n').t('category')"></span></a>
                                     </li>
                                 </ul>
                             </li>
@@ -490,7 +491,9 @@
                                             />
                                         </svg>
 
-                                        <span class="text-black dark:text-[#506690] dark:group-hover:text-white-dark ltr:pl-3 rtl:pr-3">Subscribe</span>
+                                        <span class="text-black dark:text-[#506690] dark:group-hover:text-white-dark ltr:pl-3 rtl:pr-3"
+                                            ><span x-text="Alpine.store('i18n').t('subscribe')"></span
+                                        ></span>
                                     </div>
                                     <div class="rtl:rotate-180" :class="{'!rotate-90' : activeDropdown === 'SellPick'}">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -500,7 +503,7 @@
                                 </button>
                                 <ul x-cloak x-show="activeDropdown === 'SellPick'" x-collapse class="sub-menu text-gray-500">
                                     <li>
-                                        <a href="Subscribe.html">Subscribe</a>
+                                        <a href="Subscribe.html"><span x-text="Alpine.store('i18n').t('subscribe')"></span></a>
                                     </li>
                                     <li>
                                         <a href="Web_subscribe.html">Web Subscribe</a>
@@ -520,20 +523,20 @@
                                 >
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                <span>Provider</span>
+                                <span x-text="Alpine.store('i18n').t('provider')"></span>
                             </h2>
                             <ul class="sub-menu">
                                 <li>
-                                    <a href="Product_provider.html">Product Provider</a>
+                                    <a href="Product_provider.html"><span x-text="Alpine.store('i18n').t('product_provider')"></span></a>
                                 </li>
                                 <li>
-                                    <a href="Service_provider.html">Service Provider</a>
+                                    <a href="Service_provider.html"><span x-text="Alpine.store('i18n').t('service_provider')"></span></a>
                                 </li>
                                 <li>
-                                    <a href="Driver.html">Driver</a>
+                                    <a href="Driver.html"><span x-text="Alpine.store('i18n').t('driver')"></span></a>
                                 </li>
                                 <li>
-                                    <a href="Food.html">Food</a>
+                                    <a href="Food.html"><span x-text="Alpine.store('i18n').t('food')"></span></a>
                                 </li>
                             </ul>
                             <h2 class="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
@@ -548,33 +551,14 @@
                                 >
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                <span>Product & Rate </span>
+                                <span x-text="Alpine.store('i18n').t('product_rate')"></span>
                             </h2>
                             <ul class="sub-menu">
                                 <li>
-                                    <a href="Rate.html">Rate</a>
+                                    <a href="Rate.html"><span x-text="Alpine.store('i18n').t('rate')"></span></a>
                                 </li>
                                 <li>
-                                    <a href="Product.html">Product</a>
-                                </li>
-                            </ul>
-                            <h2 class="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
-                                <svg
-                                    class="hidden h-5 w-4 flex-none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    stroke-width="1.5"
-                                    fill="none"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                >
-                                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                                </svg>
-                                <span>Reservation</span>
-                            </h2>
-                            <ul class="sub-menu">
-                                <li>
-                                    <a href="Reservation.html">Reservation</a>
+                                    <a href="Product.html"><span x-text="Alpine.store('i18n').t('product')"></span></a>
                                 </li>
                             </ul>
                             <h2 class="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
@@ -589,11 +573,30 @@
                                 >
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                <span>Order</span>
+                                <span x-text="Alpine.store('i18n').t('reservation')"></span>
                             </h2>
                             <ul class="sub-menu">
                                 <li>
-                                    <a href="Order.html">Order</a>
+                                    <a href="Reservation.html"> <span x-text="Alpine.store('i18n').t('reservation')"></span> </a>
+                                </li>
+                            </ul>
+                            <h2 class="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
+                                <svg
+                                    class="hidden h-5 w-4 flex-none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    stroke-width="1.5"
+                                    fill="none"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                <span x-text="Alpine.store('i18n').t('order')"></span>
+                            </h2>
+                            <ul class="sub-menu">
+                                <li>
+                                    <a href="Order.html"> <span x-text="Alpine.store('i18n').t('order')"></span> </a>
                                 </li>
                             </ul>
 
@@ -609,11 +612,11 @@
                                 >
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                <span>Coupon</span>
+                                <span x-text="Alpine.store('i18n').t('coupon')"></span>
                             </h2>
                             <ul class="sub-menu">
                                 <li>
-                                    <a href="Coupon.html">Coupon</a>
+                                    <a href="Coupon.html"> <span x-text="Alpine.store('i18n').t('coupon')"></span> </a>
                                 </li>
                             </ul>
                             <h2 class="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
@@ -628,11 +631,11 @@
                                 >
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                <span>Users</span>
+                                <span x-text="Alpine.store('i18n').t('users')"></span>
                             </h2>
                             <ul class="sub-menu">
                                 <li>
-                                    <a href="Users.html">Users</a>
+                                    <a href="Users.html"> <span x-text="Alpine.store('i18n').t('users')"></span> </a>
                                 </li>
                             </ul>
                         </ul>
@@ -811,9 +814,47 @@
                                                         stroke-linejoin="round"
                                                     />
                                                 </svg>
-                                                Sign Out
+                                                <span x-text="Alpine.store('i18n').t('sign_out')"></span>
                                             </a>
                                         </li>
+                                    </ul>
+                                </div>
+                                <div class="dropdown flex-shrink-0" x-data="dropdown" @click.outside="open = false">
+                                    <a
+                                        href="javascript:;"
+                                        class="block rounded-full bg-white-light/40 p-2 hover:bg-white-light/90 hover:text-primary dark:bg-dark/40 dark:hover:bg-dark/60"
+                                        @click="toggle"
+                                    >
+                                        <img
+                                            :src="`assets/images/flags/${$store.app.locale.toUpperCase()}.svg`"
+                                            alt="image"
+                                            class="h-5 w-5 rounded-full object-cover"
+                                        />
+                                    </a>
+                                    <ul
+                                        x-cloak
+                                        x-show="open"
+                                        x-transition
+                                        x-transition.duration.300ms
+                                        class="top-11 grid w-[280px] grid-cols-2 gap-y-2 !px-2 font-semibold text-dark dark:text-white-dark dark:text-white-light/90 ltr:-right-14 sm:ltr:-right-2 rtl:-left-14 sm:rtl:-left-2"
+                                    >
+                                        <template x-for="item in languages">
+                                            <li>
+                                                <a
+                                                    href="javascript:;"
+                                                    class="hover:text-primary"
+                                                    @click="$store.app.toggleLocale(item.value); $store.i18n.setLocale(item.value); toggle()"
+                                                    :class="{'bg-primary/10 text-primary' : $store.app.locale == item.value}"
+                                                >
+                                                    <img
+                                                        class="h-5 w-5 rounded-full object-cover"
+                                                        :src="`assets/images/flags/${item.value.toUpperCase()}.svg`"
+                                                        alt="image"
+                                                    />
+                                                    <span class="ltr:ml-3 rtl:mr-3" x-text="item.key"></span>
+                                                </a>
+                                            </li>
+                                        </template>
                                     </ul>
                                 </div>
                             </div>
@@ -837,7 +878,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        <span class="px-1">Dashboard</span>
+                                        <span class="px-1"><span x-text="Alpine.store('i18n').t('dashboard')"></span></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -854,7 +895,7 @@
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="index.html">Home</a>
+                                        <a href="index.html"><span x-text="Alpine.store('i18n').t('home')"></span></a>
                                     </li>
                                 </ul>
                             </li>
@@ -884,7 +925,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        Category & Subscribe
+                                        <span x-text="Alpine.store('i18n').t('category_subscribe')"></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -917,13 +958,13 @@
                                         </a>
                                         <ul class="sub-menu">
                                             <li>
-                                                <a href="Category.html">Category</a>
+                                                <a href="Category.html"><span x-text="Alpine.store('i18n').t('category')"></span></a>
                                             </li>
                                         </ul>
                                     </li>
                                     <li class="relative">
                                         <a href="javascript:;"
-                                            >Subscribe
+                                            ><span x-text="Alpine.store('i18n').t('subscribe')"></span>
                                             <div class="ltr:ml-auto rtl:mr-auto rtl:rotate-180">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                     <path
@@ -940,7 +981,7 @@
                                             class="absolute top-0 z-[10] hidden min-w-[180px] rounded bg-white p-0 py-2 text-dark shadow dark:bg-[#1b2e4b] dark:text-white-dark ltr:left-[95%] rtl:right-[95%]"
                                         >
                                             <li>
-                                                <a href="subscribe.html">Subscribe</a>
+                                                <a href="subscribe.html"><span x-text="Alpine.store('i18n').t('subscribe')"></span></a>
                                             </li>
                                             <li>
                                                 <a href="Web_subscribe.html">Web Subscribe</a>
@@ -974,7 +1015,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        Provider
+                                        <span x-text="Alpine.store('i18n').t('provider')"></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -991,16 +1032,16 @@
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="Product_provider.html">Product Provider</a>
+                                        <a href="Product_provider.html"><span x-text="Alpine.store('i18n').t('product_provider')"></span></a>
                                     </li>
                                     <li>
-                                        <a href="Service_provider.html">Service Provider</a>
+                                        <a href="Service_provider.html"><span x-text="Alpine.store('i18n').t('service_provider')"></span></a>
                                     </li>
                                     <li>
-                                        <a href="Driver.html">Driver</a>
+                                        <a href="Driver.html"><span x-text="Alpine.store('i18n').t('driver')"></span></a>
                                     </li>
                                     <li>
-                                        <a href="Food.html">Food</a>
+                                        <a href="Food.html"><span x-text="Alpine.store('i18n').t('food')"></span></a>
                                     </li>
                                 </ul>
                             </li>
@@ -1029,7 +1070,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        Product & Rate
+                                        <span x-text="Alpine.store('i18n').t('product_rate')"></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -1046,56 +1087,10 @@
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="Rate.html">Rate</a>
+                                        <a href="Rate.html"><span x-text="Alpine.store('i18n').t('rate')"></span></a>
                                     </li>
                                     <li>
-                                        <a href="Product.html">Product</a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li class="menu nav-item relative">
-                                <a href="javascript:;" class="nav-link">
-                                    <div class="flex items-center">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="shrink-0">
-                                            <path
-                                                d="M4.97883 9.68508C2.99294 8.89073 2 8.49355 2 8C2 7.50645 2.99294 7.10927 4.97883 6.31492L7.7873 5.19153C9.77318 4.39718 10.7661 4 12 4C13.2339 4 14.2268 4.39718 16.2127 5.19153L19.0212 6.31492C21.0071 7.10927 22 7.50645 22 8C22 8.49355 21.0071 8.89073 19.0212 9.68508L16.2127 10.8085C14.2268 11.6028 13.2339 12 12 12C10.7661 12 9.77318 11.6028 7.7873 10.8085L4.97883 9.68508Z"
-                                                fill="currentColor"
-                                            />
-                                            <path
-                                                fill-rule="evenodd"
-                                                clip-rule="evenodd"
-                                                d="M2 8C2 8.49355 2.99294 8.89073 4.97883 9.68508L7.7873 10.8085C9.77318 11.6028 10.7661 12 12 12C13.2339 12 14.2268 11.6028 16.2127 10.8085L19.0212 9.68508C21.0071 8.89073 22 8.49355 22 8C22 7.50645 21.0071 7.10927 19.0212 6.31492L16.2127 5.19153C14.2268 4.39718 13.2339 4 12 4C10.7661 4 9.77318 4.39718 7.7873 5.19153L4.97883 6.31492C2.99294 7.10927 2 7.50645 2 8Z"
-                                                fill="currentColor"
-                                            />
-                                            <path
-                                                opacity="0.7"
-                                                d="M5.76613 10L4.97883 10.3149C2.99294 11.1093 2 11.5065 2 12C2 12.4935 2.99294 12.8907 4.97883 13.6851L7.7873 14.8085C9.77318 15.6028 10.7661 16 12 16C13.2339 16 14.2268 15.6028 16.2127 14.8085L19.0212 13.6851C21.0071 12.8907 22 12.4935 22 12C22 11.5065 21.0071 11.1093 19.0212 10.3149L18.2339 10L16.2127 10.8085C14.2268 11.6028 13.2339 12 12 12C10.7661 12 9.77318 11.6028 7.7873 10.8085L5.76613 10Z"
-                                                fill="currentColor"
-                                            />
-                                            <path
-                                                opacity="0.4"
-                                                d="M5.76613 14L4.97883 14.3149C2.99294 15.1093 2 15.5065 2 16C2 16.4935 2.99294 16.8907 4.97883 17.6851L7.7873 18.8085C9.77318 19.6028 10.7661 20 12 20C13.2339 20 14.2268 19.6028 16.2127 18.8085L19.0212 17.6851C21.0071 16.8907 22 16.4935 22 16C22 15.5065 21.0071 15.1093 19.0212 14.3149L18.2339 14L16.2127 14.8085C14.2268 15.6028 13.2339 16 12 16C10.7661 16 9.77318 15.6028 7.7873 14.8085L5.76613 14Z"
-                                                fill="currentColor"
-                                            />
-                                        </svg>
-                                        Reservation
-                                    </div>
-                                    <div class="right_arrow">
-                                        <svg
-                                            class="h-4 w-4 rotate-90"
-                                            width="16"
-                                            height="16"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                        >
-                                            <path d="M9 5L15 12L9 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                        </svg>
-                                    </div>
-                                </a>
-                                <ul class="sub-menu">
-                                    <li>
-                                        <a href="Reservation.html">Reservation</a>
+                                        <a href="Product.html"><span x-text="Alpine.store('i18n').t('product')"></span></a>
                                     </li>
                                 </ul>
                             </li>
@@ -1124,7 +1119,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        Order
+                                        <span x-text="Alpine.store('i18n').t('reservation')"></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -1141,7 +1136,7 @@
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="Order.html">Order</a>
+                                        <a href="Reservation.html"> <span x-text="Alpine.store('i18n').t('reservation')"></span> </a>
                                     </li>
                                 </ul>
                             </li>
@@ -1170,7 +1165,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        Coupon
+                                        <span x-text="Alpine.store('i18n').t('order')"></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -1187,7 +1182,7 @@
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="Coupon.html">Coupon</a>
+                                        <a href="Order.html"> <span x-text="Alpine.store('i18n').t('order')"></span> </a>
                                     </li>
                                 </ul>
                             </li>
@@ -1216,7 +1211,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        Users
+                                        <span x-text="Alpine.store('i18n').t('coupon')"></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -1233,7 +1228,53 @@
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="Users.html">Users</a>
+                                        <a href="Coupon.html"> <span x-text="Alpine.store('i18n').t('coupon')"></span> </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="menu nav-item relative">
+                                <a href="javascript:;" class="nav-link">
+                                    <div class="flex items-center">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="shrink-0">
+                                            <path
+                                                d="M4.97883 9.68508C2.99294 8.89073 2 8.49355 2 8C2 7.50645 2.99294 7.10927 4.97883 6.31492L7.7873 5.19153C9.77318 4.39718 10.7661 4 12 4C13.2339 4 14.2268 4.39718 16.2127 5.19153L19.0212 6.31492C21.0071 7.10927 22 7.50645 22 8C22 8.49355 21.0071 8.89073 19.0212 9.68508L16.2127 10.8085C14.2268 11.6028 13.2339 12 12 12C10.7661 12 9.77318 11.6028 7.7873 10.8085L4.97883 9.68508Z"
+                                                fill="currentColor"
+                                            />
+                                            <path
+                                                fill-rule="evenodd"
+                                                clip-rule="evenodd"
+                                                d="M2 8C2 8.49355 2.99294 8.89073 4.97883 9.68508L7.7873 10.8085C9.77318 11.6028 10.7661 12 12 12C13.2339 12 14.2268 11.6028 16.2127 10.8085L19.0212 9.68508C21.0071 8.89073 22 8.49355 22 8C22 7.50645 21.0071 7.10927 19.0212 6.31492L16.2127 5.19153C14.2268 4.39718 13.2339 4 12 4C10.7661 4 9.77318 4.39718 7.7873 5.19153L4.97883 6.31492C2.99294 7.10927 2 7.50645 2 8Z"
+                                                fill="currentColor"
+                                            />
+                                            <path
+                                                opacity="0.7"
+                                                d="M5.76613 10L4.97883 10.3149C2.99294 11.1093 2 11.5065 2 12C2 12.4935 2.99294 12.8907 4.97883 13.6851L7.7873 14.8085C9.77318 15.6028 10.7661 16 12 16C13.2339 16 14.2268 15.6028 16.2127 14.8085L19.0212 13.6851C21.0071 12.8907 22 12.4935 22 12C22 11.5065 21.0071 11.1093 19.0212 10.3149L18.2339 10L16.2127 10.8085C14.2268 11.6028 13.2339 12 12 12C10.7661 12 9.77318 11.6028 7.7873 10.8085L5.76613 10Z"
+                                                fill="currentColor"
+                                            />
+                                            <path
+                                                opacity="0.4"
+                                                d="M5.76613 14L4.97883 14.3149C2.99294 15.1093 2 15.5065 2 16C2 16.4935 2.99294 16.8907 4.97883 17.6851L7.7873 18.8085C9.77318 19.6028 10.7661 20 12 20C13.2339 20 14.2268 19.6028 16.2127 18.8085L19.0212 17.6851C21.0071 16.8907 22 16.4935 22 16C22 15.5065 21.0071 15.1093 19.0212 14.3149L18.2339 14L16.2127 14.8085C14.2268 15.6028 13.2339 16 12 16C10.7661 16 9.77318 15.6028 7.7873 14.8085L5.76613 14Z"
+                                                fill="currentColor"
+                                            />
+                                        </svg>
+                                        <span x-text="Alpine.store('i18n').t('users')"></span>
+                                    </div>
+                                    <div class="right_arrow">
+                                        <svg
+                                            class="h-4 w-4 rotate-90"
+                                            width="16"
+                                            height="16"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <path d="M9 5L15 12L9 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </div>
+                                </a>
+                                <ul class="sub-menu">
+                                    <li>
+                                        <a href="Users.html"> <span x-text="Alpine.store('i18n').t('users')"></span> </a>
                                     </li>
                                 </ul>
                             </li>
@@ -1250,7 +1291,7 @@
                                 <a href="javascript:;" class="text-primary hover:underline">Dashboard</a>
                             </li>
                             <li class="before:content-['/'] ltr:before:mr-1 rtl:before:ml-1">
-                                <span>Product & Rate  </span>
+                                <span>Product & Rate </span>
                             </li>
                             <li class="before:content-['/'] ltr:before:mr-1 rtl:before:ml-1">
                                 <span>Rate </span>
@@ -1260,19 +1301,21 @@
                         <div class="pt-5">
                             <div x-data="productRatingsTable" x-init="init()">
                                 <div class="panel mt-6">
-                                    <h5 class="mb-5 text-lg font-semibold dark:text-white-light">Product Ratings</h5>
+                                    <h5 class="mb-5 text-lg font-semibold dark:text-white-light">
+                                        <span x-text="Alpine.store('i18n').t('product_ratings')"></span>
+                                    </h5>
                                     <div class="table-responsive">
                                         <table class="whitespace-nowrap">
                                             <thead>
                                                 <tr>
                                                     <th>#</th>
-                                                    <th>Product</th>
-                                                    <th>User</th>
-                                                    <th>Rating</th>
-                                                    <th>Comment</th>
-                                                    <th>Answers</th>
-                                                    <th>Date</th>
-                                                    <th>Actions</th>
+                                                    <th><span x-text="Alpine.store('i18n').t('product')"></span></th>
+                                                    <th><span x-text="Alpine.store('i18n').t('user')"></span></th>
+                                                    <th><span x-text="Alpine.store('i18n').t('rating')"></span></th>
+                                                    <th><span x-text="Alpine.store('i18n').t('comment')"></span></th>
+                                                    <th><span x-text="Alpine.store('i18n').t('answers')"></span></th>
+                                                    <th><span x-text="Alpine.store('i18n').t('date')"></span></th>
+                                                    <th><span x-text="Alpine.store('i18n').t('actions')"></span></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -1290,14 +1333,13 @@
                                                             </td>
                                                             <td>
                                                                 <div class="flex items-center">
-                                                           
-                                                                    <span x-text="rating.user?.name || 'Anonymous'"></span>
+                                                                    <span x-text="rating.user?.name || Alpine.store('i18n').t('anonymous')"></span>
                                                                 </div>
                                                             </td>
                                                             <td>
                                                                 <div class="flex text-yellow-400" x-html="renderStars(rating.num)"></div>
                                                             </td>
-                                                            <td x-text="rating.comment || 'No comment'" class="max-w-xs"></td>
+                                                            <td x-text="rating.comment || Alpine.store('i18n').t('no_comment')" class="max-w-xs"></td>
                                                             <td>
                                                                 <template x-if="rating.answers && rating.answers.length > 0">
                                                                     <div class="space-y-2">
@@ -1309,7 +1351,7 @@
                                                                                 />
                                                                                 <div>
                                                                                     <div
-                                                                                        x-text="answer.user?.name || 'Anonymous'"
+                                                                                        x-text="answer.user?.name || Alpine.store('i18n').t('anonymous')"
                                                                                         class="text-sm font-medium"
                                                                                     ></div>
                                                                                     <div
@@ -1322,13 +1364,17 @@
                                                                     </div>
                                                                 </template>
                                                                 <template x-if="!rating.answers || rating.answers.length === 0">
-                                                                    <span class="text-gray-500">No answers</span>
+                                                                    <span class="text-gray-500">
+                                                                        <span x-text="Alpine.store('i18n').t('no_answers')"></span>
+                                                                    </span>
                                                                 </template>
                                                             </td>
                                                             <td x-text="formatDate(rating.created_at)"></td>
                                                             <td>
                                                                 <div class="flex space-x-2">
-                                                                    <button @click="deleteRating(rating.id)" class="btn btn-sm btn-danger">Delete</button>
+                                                                    <button @click="deleteRating(rating.id)" class="btn btn-sm btn-danger">
+                                                                        <span x-text="Alpine.store('i18n').t('delete')"></span>
+                                                                    </button>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -1336,12 +1382,48 @@
                                                 </template>
                                                 <template x-if="products.length === 0 || !hasRatings()">
                                                     <tr>
-                                                        <td colspan="8" class="py-4 text-center">No ratings found</td>
+                                                        <td colspan="8" class="py-4 text-center">
+                                                            <span x-text="Alpine.store('i18n').t('no_ratings_found')"></span>
+                                                        </td>
                                                     </tr>
                                                 </template>
                                             </tbody>
                                         </table>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- نافذة التأكيد -->
+                        <div
+                            x-data
+                            x-show="$store.deleteModal.isOpen"
+                            x-transition
+                            class="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 p-4"
+                            style="display: none"
+                            x-cloak
+                        >
+                            <div class="w-full max-w-sm rounded-lg bg-white shadow-lg dark:bg-gray-800">
+                                <div class="flex items-center justify-between border-b p-4 dark:border-gray-700">
+                                    <h3 class="text-lg font-bold">
+                                        <span x-text="Alpine.store('i18n').t('delete_confirmation')"></span>
+                                    </h3>
+                                    <button @click="$store.deleteModal.closeModal()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                                        ✕
+                                    </button>
+                                </div>
+                                <div class="p-4">
+                                    <p class="text-gray-700 dark:text-gray-300">
+                                        "<span x-text="Alpine.store('i18n').t('are_you_sure_delete_merchant')"></span>"
+                                    </p>
+                                </div>
+                                <div class="flex justify-end gap-2 border-t p-4 dark:border-gray-700">
+                                    <button @click="$store.deleteModal.closeModal()" class="btn btn-outline-danger">
+                                        <span x-text="Alpine.store('i18n').t('no')"></span>
+                                    </button>
+                                    <button @click="$store.deleteModal.confirmDelete()" class="btn btn-primary">
+                                        <span x-text="Alpine.store('i18n').t('yes')"></span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1351,35 +1433,13 @@
 
                 <!-- start footer section -->
                 <div class="mt-auto p-6 text-center dark:text-white-dark ltr:sm:text-left rtl:sm:text-right">
-                    © <span id="footer-year">2022</span>. Developed By High Level Technology.
+                    © <span id="footer-year">2025</span>. Developed By High Level Technology.
                 </div>
                 <!-- end footer section -->
             </div>
         </div>
         <!-- Modal for Delete Confirmation -->
         <!-- Delete Confirmation Modal -->
-        <div
-            x-data
-            x-show="$store.deleteModal.isOpen"
-            x-transition
-            class="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 p-4"
-            style="display: none"
-            x-cloak
-        >
-            <div class="w-full max-w-sm rounded-lg bg-white shadow-lg dark:bg-gray-800">
-                <div class="flex items-center justify-between border-b p-4 dark:border-gray-700">
-                    <h3 class="text-lg font-bold">Delete Confirmation</h3>
-                    <button @click="$store.deleteModal.closeModal()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">✕</button>
-                </div>
-                <div class="p-4">
-                    <p class="text-gray-700 dark:text-gray-300">"Are you sure you want to delete this Merchans?"</p>
-                </div>
-                <div class="flex justify-end gap-2 border-t p-4 dark:border-gray-700">
-                    <button @click="$store.deleteModal.closeModal()" class="btn btn-outline-danger">No</button>
-                    <button @click="$store.deleteModal.confirmDelete()" class="btn btn-primary">Yes</button>
-                </div>
-            </div>
-        </div>
 
         <script src=" /assets/js/alpine-collaspe.min.js"></script>
         <script src=" /assets/js/alpine-persist.min.js"></script>
@@ -1421,7 +1481,54 @@
                     showCustomizer: false,
                 }));
 
-                // sidebar section
+                Alpine.store('i18n', {
+                    locale: localStorage.getItem('language') || 'en',
+                    translations: {},
+
+                    async init() {
+                        await this.loadTranslations(this.locale);
+                    },
+
+                    async loadTranslations(locale) {
+                        try {
+                            const response = await fetch(`lang/${locale}.json`);
+                            if (!response.ok) throw new Error('Failed to load translations');
+                            this.translations = await response.json();
+                            this.locale = locale;
+                            localStorage.setItem('language', locale);
+                            this.applyDirection(locale);
+                        } catch (error) {
+                            console.error('Error loading translations:', error);
+                            if (locale !== 'en') await this.loadTranslations('en');
+                        }
+                    },
+
+                    async setLocale(locale) {
+                        await this.loadTranslations(locale);
+                        // إعادة تحميل المكونات التي تحتاج للتحديث
+                        if (window.multipleTable) {
+                            window.multipleTable.fetchManagers();
+                        }
+                    },
+
+                    t(key) {
+                        return this.translations[key] || key;
+                    },
+
+                    applyDirection(locale) {
+                        if (locale === 'ar') {
+                            document.documentElement.lang = 'ar';
+                        } else {
+                            document.documentElement.lang = 'en';
+                        }
+                    },
+                });
+
+                // استدعاء init عند التحميل
+                Alpine.store('i18n').init();
+                Alpine.data('customizer', () => ({
+                    showCustomizer: false,
+                }));
                 Alpine.data('sidebar', () => ({
                     init() {
                         const selector = document.querySelector('.sidebar ul a[href="' + window.location.pathname + '"]');
@@ -1464,6 +1571,19 @@
                 });
                 // header section
                 Alpine.data('header', () => ({
+                    languages: [
+                        {
+                            id: 3,
+                            key: 'English',
+                            value: 'en',
+                        },
+
+                        {
+                            id: 16,
+                            key: 'Arabic',
+                            value: 'ae',
+                        },
+                    ],
                     init() {
                         const selector = document.querySelector('ul.horizontal-menu a[href="' + window.location.pathname + '"]');
                         if (selector) {
@@ -1566,8 +1686,7 @@
                                 },
                             });
 
-
-                            const data = await response.json();                  console.log(data);
+                            const data = await response.json();
 
                             this.products = data || [];
                         } catch (error) {
@@ -1600,13 +1719,14 @@
                     async deleteRating(ratingId) {
                         try {
                             const isConfirmed = await Swal.fire({
-                                title: 'Are you sure?',
-                                text: "You won't be able to revert this!",
+                                title: Alpine.store('i18n').t('delete_confirmation'),
+                                text: Alpine.store('i18n').t('are_you_sure_delete_merchant'),
                                 icon: 'warning',
                                 showCancelButton: true,
                                 confirmButtonColor: '#3085d6',
                                 cancelButtonColor: '#d33',
-                                confirmButtonText: 'Yes, delete it!',
+                                confirmButtonText: Alpine.store('i18n').t('yes'),
+                                cancelButtonText: Alpine.store('i18n').t('no'),
                             });
 
                             if (!isConfirmed.isConfirmed) return;
@@ -1625,9 +1745,9 @@
                             }
 
                             await this.fetchProductsWithRatings();
-                            Swal.fire('Deleted!', 'The rating has been deleted.', 'success');
+                            Swal.fire(Alpine.store('i18n').t('deleted'), Alpine.store('i18n').t('delete_success'), 'success');
                         } catch (error) {
-                            Swal.fire('Error', error.message || 'Failed to delete rating', 'error');
+                            Swal.fire(Alpine.store('i18n').t('error'), error.message || Alpine.store('i18n').t('failed_to_delete_rating'), 'error');
                         }
                     },
                 }));
@@ -1650,9 +1770,8 @@
                                 throw new Error(errorData.message || 'فشل تسجيل الخروج');
                             }
 
-                            // إزالة التوكن وإعادة التوجيه
                             localStorage.removeItem('authToken');
-                            window.location.href = 'auth-boxed-signin.html'; // صفحة تسجيل الدخول
+                            window.location.href = 'auth-boxed-signin.html';
                         } catch (error) {
                             alert('حدث خطأ أثناء تسجيل الخروج. يرجى المحاولة لاحقًا.', error);
                         }

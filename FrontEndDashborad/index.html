@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en" dir="ltr" x-data="{ dir: $store.app.rtlClass }" :dir="dir">
     <head>
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <title>Dashboard - Mersal</title>
+        <title x-text="Alpine.store('i18n').t('dashboard')"> </title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" type="image/x-icon" href="favicon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -230,7 +230,7 @@
                     </div>
 
                     <div class="mb-3 rounded-md border border-dashed border-[#e0e6ed] p-3 dark:border-[#1b2e4b]">
-                        <h5 class="mb-1 text-base leading-none dark:text-white">Navigation Position</h5>
+                        <h5 class="mb-1 text-base leading-none dark:text-white"><span x-text="Alpine.store('i18n').t('navigation_position')"></span></h5>
                         <p class="text-xs text-white-dark">Select the primary navigation paradigm for your app.</p>
                         <div class="mt-3 grid grid-cols-3 gap-2">
                             <button
@@ -239,7 +239,7 @@
                                 :class="[$store.app.menu === 'horizontal' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleMenu('horizontal')"
                             >
-                                Horizontal
+                                <span x-text="Alpine.store('i18n').t('horizontal')"></span>
                             </button>
                             <button
                                 type="button"
@@ -247,7 +247,7 @@
                                 :class="[$store.app.menu === 'vertical' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleMenu('vertical')"
                             >
-                                Vertical
+                                <span x-text="Alpine.store('i18n').t('vertical')"></span>
                             </button>
                             <button
                                 type="button"
@@ -255,7 +255,7 @@
                                 :class="[$store.app.menu === 'collapsible-vertical' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleMenu('collapsible-vertical')"
                             >
-                                Collapsible
+                                <span x-text="Alpine.store('i18n').t('collapsible')"></span>
                             </button>
                         </div>
                         <div class="mt-5 text-primary">
@@ -272,7 +272,7 @@
                         </div>
                     </div>
                     <div class="mb-3 rounded-md border border-dashed border-[#e0e6ed] p-3 dark:border-[#1b2e4b]">
-                        <h5 class="mb-1 text-base leading-none dark:text-white">Layout Style</h5>
+                        <h5 class="mb-1 text-base leading-none dark:text-white"><span x-text="Alpine.store('i18n').t('layout_style')"></span></h5>
                         <p class="text-xs text-white-dark">Select the primary layout style for your app.</p>
                         <div class="mt-3 flex gap-2">
                             <button
@@ -281,7 +281,7 @@
                                 :class="[$store.app.layout === 'boxed-layout' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleLayout('boxed-layout')"
                             >
-                                Box
+                                <span x-text="Alpine.store('i18n').t('box')"></span>
                             </button>
                             <button
                                 type="button"
@@ -289,12 +289,12 @@
                                 :class="[$store.app.layout === 'full' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleLayout('full')"
                             >
-                                Full
+                                <span x-text="Alpine.store('i18n').t('full')"></span>
                             </button>
                         </div>
                     </div>
                     <div class="mb-3 rounded-md border border-dashed border-[#e0e6ed] p-3 dark:border-[#1b2e4b]">
-                        <h5 class="mb-1 text-base leading-none dark:text-white">Direction</h5>
+                        <h5 class="mb-1 text-base leading-none dark:text-white"><span x-text="Alpine.store('i18n').t('direction')"></span></h5>
                         <p class="text-xs text-white-dark">Select the direction for your app.</p>
                         <div class="mt-3 flex gap-2">
                             <button
@@ -303,7 +303,7 @@
                                 :class="[$store.app.rtlClass === 'ltr' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleRTL('ltr')"
                             >
-                                LTR
+                                <span x-text="Alpine.store('i18n').t('ltr')"></span>
                             </button>
                             <button
                                 type="button"
@@ -311,18 +311,18 @@
                                 :class="[$store.app.rtlClass === 'rtl' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleRTL('rtl')"
                             >
-                                RTL
+                                <span x-text="Alpine.store('i18n').t('rtl')"></span>
                             </button>
                         </div>
                     </div>
 
                     <div class="mb-3 rounded-md border border-dashed border-[#e0e6ed] p-3 dark:border-[#1b2e4b]">
-                        <h5 class="mb-1 text-base leading-none dark:text-white">Navbar Type</h5>
+                        <h5 class="mb-1 text-base leading-none dark:text-white"><span x-text="Alpine.store('i18n').t('navbar_type')"></span></h5>
                         <p class="text-xs text-white-dark">Sticky or Floating.</p>
                         <div class="mt-3 flex items-center gap-3 text-primary">
                             <label class="mb-0 inline-flex">
                                 <input x-model="$store.app.navbar" type="radio" value="navbar-sticky" class="form-radio" @change="$store.app.toggleNavbar()" />
-                                <span>Sticky</span>
+                                <span x-text="Alpine.store('i18n').t('sticky')"></span>
                             </label>
                             <label class="mb-0 inline-flex">
                                 <input
@@ -332,30 +332,30 @@
                                     class="form-radio"
                                     @change="$store.app.toggleNavbar()"
                                 />
-                                <span>Floating</span>
+                                <span x-text="Alpine.store('i18n').t('floating')"></span>
                             </label>
                             <label class="mb-0 inline-flex">
                                 <input x-model="$store.app.navbar" type="radio" value="navbar-static" class="form-radio" @change="$store.app.toggleNavbar()" />
-                                <span>Static</span>
+                                <span x-text="Alpine.store('i18n').t('static')"></span>
                             </label>
                         </div>
                     </div>
 
                     <div class="mb-3 rounded-md border border-dashed border-[#e0e6ed] p-3 dark:border-[#1b2e4b]">
-                        <h5 class="mb-1 text-base leading-none dark:text-white">Router Transition</h5>
+                        <h5 class="mb-1 text-base leading-none dark:text-white"><span x-text="Alpine.store('i18n').t('router_transition')"></span></h5>
                         <p class="text-xs text-white-dark">Animation of main content.</p>
                         <div class="mt-3">
                             <select x-model="$store.app.animation" class="form-select border-primary text-primary" @change="$store.app.toggleAnimation()">
-                                <option value="">None</option>
-                                <option value="animate__fadeIn">Fade</option>
-                                <option value="animate__fadeInDown">Fade Down</option>
-                                <option value="animate__fadeInUp">Fade Up</option>
-                                <option value="animate__fadeInLeft">Fade Left</option>
-                                <option value="animate__fadeInRight">Fade Right</option>
-                                <option value="animate__slideInDown">Slide Down</option>
-                                <option value="animate__slideInLeft">Slide Left</option>
-                                <option value="animate__slideInRight">Slide Right</option>
-                                <option value="animate__zoomIn">Zoom In</option>
+                                <option value=""><span x-text="Alpine.store('i18n').t('none')"></span></option>
+                                <option value="animate__fadeIn"><span x-text="Alpine.store('i18n').t('fade')"></span></option>
+                                <option value="animate__fadeInDown"><span x-text="Alpine.store('i18n').t('fade_down')"></span></option>
+                                <option value="animate__fadeInUp"><span x-text="Alpine.store('i18n').t('fade_up')"></span></option>
+                                <option value="animate__fadeInLeft"><span x-text="Alpine.store('i18n').t('fade_left')"></span></option>
+                                <option value="animate__fadeInRight"><span x-text="Alpine.store('i18n').t('fade_right')"></span></option>
+                                <option value="animate__slideInDown"><span x-text="Alpine.store('i18n').t('slide_down')"></span></option>
+                                <option value="animate__slideInLeft"><span x-text="Alpine.store('i18n').t('slide_left')"></span></option>
+                                <option value="animate__slideInRight"><span x-text="Alpine.store('i18n').t('slide_right')"></span></option>
+                                <option value="animate__zoomIn"><span x-text="Alpine.store('i18n').t('zoom_in')"></span></option>
                             </select>
                         </div>
                     </div>
@@ -425,7 +425,7 @@
                                             />
                                         </svg>
 
-                                        <span class="text-black dark:text-[#506690] dark:group-hover:text-white-dark ltr:pl-3 rtl:pr-3">Dashboard</span>
+                                        <span class="text-black dark:text-[#506690] dark:group-hover:text-white-dark ltr:pl-3 rtl:pr-3">Dashborad</span>
                                     </div>
                                     <div class="rtl:rotate-180" :class="{'!rotate-90' : activeDropdown === 'dashboard'}">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -435,7 +435,7 @@
                                 </button>
                                 <ul x-cloak x-show="activeDropdown === 'dashboard'" x-collapse class="sub-menu text-gray-500">
                                     <li>
-                                        <a href="index.html">Home</a>
+                                        <a href="index.html"><span x-text="Alpine.store('i18n').t('home')"></span></a>
                                     </li>
                                 </ul>
                             </li>
@@ -452,12 +452,12 @@
                                 >
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                Category & Subscribe
+                                <span x-text="Alpine.store('i18n').t('category_subscribe')"></span>
                             </h2>
                             <li class="menu nav-item">
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="Category.html">Category</a>
+                                        <a href="Category.html"><span x-text="Alpine.store('i18n').t('category')"></span></a>
                                     </li>
                                 </ul>
                             </li>
@@ -490,7 +490,9 @@
                                             />
                                         </svg>
 
-                                        <span class="text-black dark:text-[#506690] dark:group-hover:text-white-dark ltr:pl-3 rtl:pr-3">Subscribe</span>
+                                        <span class="text-black dark:text-[#506690] dark:group-hover:text-white-dark ltr:pl-3 rtl:pr-3"
+                                            ><span x-text="Alpine.store('i18n').t('subscribe')"></span
+                                        ></span>
                                     </div>
                                     <div class="rtl:rotate-180" :class="{'!rotate-90' : activeDropdown === 'SellPick'}">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -500,7 +502,7 @@
                                 </button>
                                 <ul x-cloak x-show="activeDropdown === 'SellPick'" x-collapse class="sub-menu text-gray-500">
                                     <li>
-                                        <a href="Subscribe.html">Subscribe</a>
+                                        <a href="Subscribe.html"><span x-text="Alpine.store('i18n').t('subscribe')"></span></a>
                                     </li>
                                     <li>
                                         <a href="Web_subscribe.html">Web Subscribe</a>
@@ -520,20 +522,20 @@
                                 >
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                <span>Provider</span>
+                                <span x-text="Alpine.store('i18n').t('provider')"></span>
                             </h2>
                             <ul class="sub-menu">
                                 <li>
-                                    <a href="Product_provider.html">Product Provider</a>
+                                    <a href="Product_provider.html"><span x-text="Alpine.store('i18n').t('product_provider')"></span></a>
                                 </li>
                                 <li>
-                                    <a href="Service_provider.html">Service Provider</a>
+                                    <a href="Service_provider.html"><span x-text="Alpine.store('i18n').t('service_provider')"></span></a>
                                 </li>
                                 <li>
-                                    <a href="Driver.html">Driver</a>
+                                    <a href="Driver.html"><span x-text="Alpine.store('i18n').t('driver')"></span></a>
                                 </li>
                                 <li>
-                                    <a href="Food.html">Food</a>
+                                    <a href="Food.html"><span x-text="Alpine.store('i18n').t('food')"></span></a>
                                 </li>
                             </ul>
                             <h2 class="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
@@ -548,33 +550,14 @@
                                 >
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                <span>Product & Rate </span>
+                                <span x-text="Alpine.store('i18n').t('product_rate')"></span>
                             </h2>
                             <ul class="sub-menu">
                                 <li>
-                                    <a href="Rate.html">Rate</a>
+                                    <a href="Rate.html"><span x-text="Alpine.store('i18n').t('rate')"></span></a>
                                 </li>
                                 <li>
-                                    <a href="Product.html">Product</a>
-                                </li>
-                            </ul>
-                            <h2 class="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
-                                <svg
-                                    class="hidden h-5 w-4 flex-none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    stroke-width="1.5"
-                                    fill="none"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                >
-                                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                                </svg>
-                                <span>Reservation</span>
-                            </h2>
-                            <ul class="sub-menu">
-                                <li>
-                                    <a href="Reservation.html">Reservation</a>
+                                    <a href="Product.html"><span x-text="Alpine.store('i18n').t('product')"></span></a>
                                 </li>
                             </ul>
                             <h2 class="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
@@ -589,11 +572,30 @@
                                 >
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                <span>Order</span>
+                                <span x-text="Alpine.store('i18n').t('reservation')"></span>
                             </h2>
                             <ul class="sub-menu">
                                 <li>
-                                    <a href="Order.html">Order</a>
+                                    <a href="Reservation.html"> <span x-text="Alpine.store('i18n').t('reservation')"></span> </a>
+                                </li>
+                            </ul>
+                            <h2 class="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
+                                <svg
+                                    class="hidden h-5 w-4 flex-none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    stroke-width="1.5"
+                                    fill="none"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                <span x-text="Alpine.store('i18n').t('order')"></span>
+                            </h2>
+                            <ul class="sub-menu">
+                                <li>
+                                    <a href="Order.html"> <span x-text="Alpine.store('i18n').t('order')"></span> </a>
                                 </li>
                             </ul>
 
@@ -609,11 +611,11 @@
                                 >
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                <span>Coupon</span>
+                                <span x-text="Alpine.store('i18n').t('coupon')"></span>
                             </h2>
                             <ul class="sub-menu">
                                 <li>
-                                    <a href="Coupon.html">Coupon</a>
+                                    <a href="Coupon.html"> <span x-text="Alpine.store('i18n').t('coupon')"></span> </a>
                                 </li>
                             </ul>
                             <h2 class="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
@@ -628,11 +630,11 @@
                                 >
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                <span>Users</span>
+                                <span x-text="Alpine.store('i18n').t('users')"></span>
                             </h2>
                             <ul class="sub-menu">
                                 <li>
-                                    <a href="Users.html">Users</a>
+                                    <a href="Users.html"> <span x-text="Alpine.store('i18n').t('users')"></span> </a>
                                 </li>
                             </ul>
                         </ul>
@@ -811,9 +813,47 @@
                                                         stroke-linejoin="round"
                                                     />
                                                 </svg>
-                                                Sign Out
+                                                <span x-text="Alpine.store('i18n').t('sign_out')"></span>
                                             </a>
                                         </li>
+                                    </ul>
+                                </div>
+                                <div class="dropdown flex-shrink-0" x-data="dropdown" @click.outside="open = false">
+                                    <a
+                                        href="javascript:;"
+                                        class="block rounded-full bg-white-light/40 p-2 hover:bg-white-light/90 hover:text-primary dark:bg-dark/40 dark:hover:bg-dark/60"
+                                        @click="toggle"
+                                    >
+                                        <img
+                                            :src="`assets/images/flags/${$store.app.locale.toUpperCase()}.svg`"
+                                            alt="image"
+                                            class="h-5 w-5 rounded-full object-cover"
+                                        />
+                                    </a>
+                                    <ul
+                                        x-cloak
+                                        x-show="open"
+                                        x-transition
+                                        x-transition.duration.300ms
+                                        class="top-11 grid w-[280px] grid-cols-2 gap-y-2 !px-2 font-semibold text-dark dark:text-white-dark dark:text-white-light/90 ltr:-right-14 sm:ltr:-right-2 rtl:-left-14 sm:rtl:-left-2"
+                                    >
+                                        <template x-for="item in languages">
+                                            <li>
+                                                <a
+                                                    href="javascript:;"
+                                                    class="hover:text-primary"
+                                                    @click="$store.app.toggleLocale(item.value); $store.i18n.setLocale(item.value); toggle()"
+                                                    :class="{'bg-primary/10 text-primary' : $store.app.locale == item.value}"
+                                                >
+                                                    <img
+                                                        class="h-5 w-5 rounded-full object-cover"
+                                                        :src="`assets/images/flags/${item.value.toUpperCase()}.svg`"
+                                                        alt="image"
+                                                    />
+                                                    <span class="ltr:ml-3 rtl:mr-3" x-text="item.key"></span>
+                                                </a>
+                                            </li>
+                                        </template>
                                     </ul>
                                 </div>
                             </div>
@@ -837,7 +877,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        <span class="px-1">Dashboard</span>
+                                        <span class="px-1"><span x-text="Alpine.store('i18n').t('dashboard')"></span></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -854,7 +894,7 @@
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="index.html">Home</a>
+                                        <a href="index.html"><span x-text="Alpine.store('i18n').t('home')"></span></a>
                                     </li>
                                 </ul>
                             </li>
@@ -884,7 +924,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        Category & Subscribe
+                                        <span x-text="Alpine.store('i18n').t('category_subscribe')"></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -917,13 +957,13 @@
                                         </a>
                                         <ul class="sub-menu">
                                             <li>
-                                                <a href="Category.html">Category</a>
+                                                <a href="Category.html"><span x-text="Alpine.store('i18n').t('category')"></span></a>
                                             </li>
                                         </ul>
                                     </li>
                                     <li class="relative">
                                         <a href="javascript:;"
-                                            >Subscribe
+                                            ><span x-text="Alpine.store('i18n').t('subscribe')"></span>
                                             <div class="ltr:ml-auto rtl:mr-auto rtl:rotate-180">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                     <path
@@ -940,7 +980,7 @@
                                             class="absolute top-0 z-[10] hidden min-w-[180px] rounded bg-white p-0 py-2 text-dark shadow dark:bg-[#1b2e4b] dark:text-white-dark ltr:left-[95%] rtl:right-[95%]"
                                         >
                                             <li>
-                                                <a href="subscribe.html">Subscribe</a>
+                                                <a href="subscribe.html"><span x-text="Alpine.store('i18n').t('subscribe')"></span></a>
                                             </li>
                                             <li>
                                                 <a href="Web_subscribe.html">Web Subscribe</a>
@@ -974,7 +1014,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        Provider
+                                        <span x-text="Alpine.store('i18n').t('provider')"></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -991,16 +1031,16 @@
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="Product_provider.html">Product Provider</a>
+                                        <a href="Product_provider.html"><span x-text="Alpine.store('i18n').t('product_provider')"></span></a>
                                     </li>
                                     <li>
-                                        <a href="Service_provider.html">Service Provider</a>
+                                        <a href="Service_provider.html"><span x-text="Alpine.store('i18n').t('service_provider')"></span></a>
                                     </li>
                                     <li>
-                                        <a href="Driver.html">Driver</a>
+                                        <a href="Driver.html"><span x-text="Alpine.store('i18n').t('driver')"></span></a>
                                     </li>
                                     <li>
-                                        <a href="Food.html">Food</a>
+                                        <a href="Food.html"><span x-text="Alpine.store('i18n').t('food')"></span></a>
                                     </li>
                                 </ul>
                             </li>
@@ -1029,7 +1069,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        Product & Rate
+                                        <span x-text="Alpine.store('i18n').t('product_rate')"></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -1046,56 +1086,10 @@
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="Rate.html">Rate</a>
+                                        <a href="Rate.html"><span x-text="Alpine.store('i18n').t('rate')"></span></a>
                                     </li>
                                     <li>
-                                        <a href="Product.html">Product</a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li class="menu nav-item relative">
-                                <a href="javascript:;" class="nav-link">
-                                    <div class="flex items-center">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="shrink-0">
-                                            <path
-                                                d="M4.97883 9.68508C2.99294 8.89073 2 8.49355 2 8C2 7.50645 2.99294 7.10927 4.97883 6.31492L7.7873 5.19153C9.77318 4.39718 10.7661 4 12 4C13.2339 4 14.2268 4.39718 16.2127 5.19153L19.0212 6.31492C21.0071 7.10927 22 7.50645 22 8C22 8.49355 21.0071 8.89073 19.0212 9.68508L16.2127 10.8085C14.2268 11.6028 13.2339 12 12 12C10.7661 12 9.77318 11.6028 7.7873 10.8085L4.97883 9.68508Z"
-                                                fill="currentColor"
-                                            />
-                                            <path
-                                                fill-rule="evenodd"
-                                                clip-rule="evenodd"
-                                                d="M2 8C2 8.49355 2.99294 8.89073 4.97883 9.68508L7.7873 10.8085C9.77318 11.6028 10.7661 12 12 12C13.2339 12 14.2268 11.6028 16.2127 10.8085L19.0212 9.68508C21.0071 8.89073 22 8.49355 22 8C22 7.50645 21.0071 7.10927 19.0212 6.31492L16.2127 5.19153C14.2268 4.39718 13.2339 4 12 4C10.7661 4 9.77318 4.39718 7.7873 5.19153L4.97883 6.31492C2.99294 7.10927 2 7.50645 2 8Z"
-                                                fill="currentColor"
-                                            />
-                                            <path
-                                                opacity="0.7"
-                                                d="M5.76613 10L4.97883 10.3149C2.99294 11.1093 2 11.5065 2 12C2 12.4935 2.99294 12.8907 4.97883 13.6851L7.7873 14.8085C9.77318 15.6028 10.7661 16 12 16C13.2339 16 14.2268 15.6028 16.2127 14.8085L19.0212 13.6851C21.0071 12.8907 22 12.4935 22 12C22 11.5065 21.0071 11.1093 19.0212 10.3149L18.2339 10L16.2127 10.8085C14.2268 11.6028 13.2339 12 12 12C10.7661 12 9.77318 11.6028 7.7873 10.8085L5.76613 10Z"
-                                                fill="currentColor"
-                                            />
-                                            <path
-                                                opacity="0.4"
-                                                d="M5.76613 14L4.97883 14.3149C2.99294 15.1093 2 15.5065 2 16C2 16.4935 2.99294 16.8907 4.97883 17.6851L7.7873 18.8085C9.77318 19.6028 10.7661 20 12 20C13.2339 20 14.2268 19.6028 16.2127 18.8085L19.0212 17.6851C21.0071 16.8907 22 16.4935 22 16C22 15.5065 21.0071 15.1093 19.0212 14.3149L18.2339 14L16.2127 14.8085C14.2268 15.6028 13.2339 16 12 16C10.7661 16 9.77318 15.6028 7.7873 14.8085L5.76613 14Z"
-                                                fill="currentColor"
-                                            />
-                                        </svg>
-                                        Reservation
-                                    </div>
-                                    <div class="right_arrow">
-                                        <svg
-                                            class="h-4 w-4 rotate-90"
-                                            width="16"
-                                            height="16"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                        >
-                                            <path d="M9 5L15 12L9 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                        </svg>
-                                    </div>
-                                </a>
-                                <ul class="sub-menu">
-                                    <li>
-                                        <a href="Reservation.html">Reservation</a>
+                                        <a href="Product.html"><span x-text="Alpine.store('i18n').t('product')"></span></a>
                                     </li>
                                 </ul>
                             </li>
@@ -1124,7 +1118,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        Order
+                                        <span x-text="Alpine.store('i18n').t('reservation')"></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -1141,7 +1135,7 @@
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="Order.html">Order</a>
+                                        <a href="Reservation.html"> <span x-text="Alpine.store('i18n').t('reservation')"></span> </a>
                                     </li>
                                 </ul>
                             </li>
@@ -1170,7 +1164,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        Coupon
+                                        <span x-text="Alpine.store('i18n').t('order')"></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -1187,7 +1181,7 @@
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="Coupon.html">Coupon</a>
+                                        <a href="Order.html"> <span x-text="Alpine.store('i18n').t('order')"></span> </a>
                                     </li>
                                 </ul>
                             </li>
@@ -1216,7 +1210,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        Users
+                                        <span x-text="Alpine.store('i18n').t('coupon')"></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -1233,7 +1227,53 @@
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="Users.html">Users</a>
+                                        <a href="Coupon.html"> <span x-text="Alpine.store('i18n').t('coupon')"></span> </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="menu nav-item relative">
+                                <a href="javascript:;" class="nav-link">
+                                    <div class="flex items-center">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="shrink-0">
+                                            <path
+                                                d="M4.97883 9.68508C2.99294 8.89073 2 8.49355 2 8C2 7.50645 2.99294 7.10927 4.97883 6.31492L7.7873 5.19153C9.77318 4.39718 10.7661 4 12 4C13.2339 4 14.2268 4.39718 16.2127 5.19153L19.0212 6.31492C21.0071 7.10927 22 7.50645 22 8C22 8.49355 21.0071 8.89073 19.0212 9.68508L16.2127 10.8085C14.2268 11.6028 13.2339 12 12 12C10.7661 12 9.77318 11.6028 7.7873 10.8085L4.97883 9.68508Z"
+                                                fill="currentColor"
+                                            />
+                                            <path
+                                                fill-rule="evenodd"
+                                                clip-rule="evenodd"
+                                                d="M2 8C2 8.49355 2.99294 8.89073 4.97883 9.68508L7.7873 10.8085C9.77318 11.6028 10.7661 12 12 12C13.2339 12 14.2268 11.6028 16.2127 10.8085L19.0212 9.68508C21.0071 8.89073 22 8.49355 22 8C22 7.50645 21.0071 7.10927 19.0212 6.31492L16.2127 5.19153C14.2268 4.39718 13.2339 4 12 4C10.7661 4 9.77318 4.39718 7.7873 5.19153L4.97883 6.31492C2.99294 7.10927 2 7.50645 2 8Z"
+                                                fill="currentColor"
+                                            />
+                                            <path
+                                                opacity="0.7"
+                                                d="M5.76613 10L4.97883 10.3149C2.99294 11.1093 2 11.5065 2 12C2 12.4935 2.99294 12.8907 4.97883 13.6851L7.7873 14.8085C9.77318 15.6028 10.7661 16 12 16C13.2339 16 14.2268 15.6028 16.2127 14.8085L19.0212 13.6851C21.0071 12.8907 22 12.4935 22 12C22 11.5065 21.0071 11.1093 19.0212 10.3149L18.2339 10L16.2127 10.8085C14.2268 11.6028 13.2339 12 12 12C10.7661 12 9.77318 11.6028 7.7873 10.8085L5.76613 10Z"
+                                                fill="currentColor"
+                                            />
+                                            <path
+                                                opacity="0.4"
+                                                d="M5.76613 14L4.97883 14.3149C2.99294 15.1093 2 15.5065 2 16C2 16.4935 2.99294 16.8907 4.97883 17.6851L7.7873 18.8085C9.77318 19.6028 10.7661 20 12 20C13.2339 20 14.2268 19.6028 16.2127 18.8085L19.0212 17.6851C21.0071 16.8907 22 16.4935 22 16C22 15.5065 21.0071 15.1093 19.0212 14.3149L18.2339 14L16.2127 14.8085C14.2268 15.6028 13.2339 16 12 16C10.7661 16 9.77318 15.6028 7.7873 14.8085L5.76613 14Z"
+                                                fill="currentColor"
+                                            />
+                                        </svg>
+                                        <span x-text="Alpine.store('i18n').t('users')"></span>
+                                    </div>
+                                    <div class="right_arrow">
+                                        <svg
+                                            class="h-4 w-4 rotate-90"
+                                            width="16"
+                                            height="16"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <path d="M9 5L15 12L9 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </div>
+                                </a>
+                                <ul class="sub-menu">
+                                    <li>
+                                        <a href="Users.html"> <span x-text="Alpine.store('i18n').t('users')"></span> </a>
                                     </li>
                                 </ul>
                             </li>
@@ -1259,9 +1299,9 @@
                             <div class="mb-6 grid gap-6 xl:grid-cols-3">
                                 <div class="panel h-full" x-data="sales">
                                     <div class="mb-5 flex items-center justify-between">
-                                        <h5 class="text-lg font-semibold dark:text-white-light">Vendors Status</h5>
+                                        <h5 class="text-lg font-semibold dark:text-white-light" x-text="$store.i18n.t('vendors_status')"></h5>
                                         <div class="flex items-center space-x-2">
-                                            <span class="text-sm text-gray-500 dark:text-gray-400">Total:</span>
+                                            <span class="text-sm text-gray-500 dark:text-gray-400" x-text="$store.i18n.t('total') + ':'"></span>
                                             <span class="font-bold" x-text="vendors.total"></span>
                                         </div>
                                     </div>
@@ -1270,19 +1310,19 @@
                                             <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-success/10 text-success">
                                                 <span x-text="vendors.active"></span>
                                             </div>
-                                            <p class="mt-2 text-sm font-medium">Active</p>
+                                            <p class="mt-2 text-sm font-medium" x-text="$store.i18n.t('active')"></p>
                                         </div>
                                         <div class="rounded-lg bg-[#f9f9f9] p-4 text-center dark:bg-[#1b2e4b]">
                                             <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-warning/10 text-warning">
                                                 <span x-text="vendors.pending"></span>
                                             </div>
-                                            <p class="mt-2 text-sm font-medium">Pending</p>
+                                            <p class="mt-2 text-sm font-medium" x-text="$store.i18n.t('pending')"></p>
                                         </div>
                                         <div class="rounded-lg bg-[#f9f9f9] p-4 text-center dark:bg-[#1b2e4b]">
                                             <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-danger/10 text-danger">
                                                 <span x-text="vendors.banned"></span>
                                             </div>
-                                            <p class="mt-2 text-sm font-medium">Banned</p>
+                                            <p class="mt-2 text-sm font-medium" x-text="$store.i18n.t('banned')"></p>
                                         </div>
                                     </div>
                                     <div class="mt-4 h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
@@ -1304,7 +1344,7 @@
                                 </div>
                                 <div class="panel h-full">
                                     <div class="mb-5 flex items-center dark:text-white-light">
-                                        <h5 class="text-lg font-semibold">Users Statistics</h5>
+                                        <h5 class="text-lg font-semibold" x-text="$store.i18n.t('users_statistics')"></h5>
                                     </div>
                                     <div class="space-y-9" x-data="usersStats">
                                         <!-- Active Users -->
@@ -1336,7 +1376,7 @@
                                             </div>
                                             <div class="flex-1">
                                                 <div class="mb-2 flex font-semibold text-white-dark">
-                                                    <h6>Active Users</h6>
+                                                    <h6 x-text="$store.i18n.t('active_users')"></h6>
                                                     <p class="ltr:ml-auto rtl:mr-auto" x-text="users.active || '0'"></p>
                                                 </div>
                                                 <div class="h-2 rounded-full bg-dark-light shadow dark:bg-[#1b2e4b]">
@@ -1377,7 +1417,7 @@
                                             </div>
                                             <div class="flex-1">
                                                 <div class="mb-2 flex font-semibold text-white-dark">
-                                                    <h6>Inactive Users</h6>
+                                                    <h6 x-text="$store.i18n.t('inactive_users')"></h6>
                                                     <p class="ltr:ml-auto rtl:mr-auto" x-text="users.inactive || '0'"></p>
                                                 </div>
                                                 <div class="h-2 w-full rounded-full bg-dark-light shadow dark:bg-[#1b2e4b]">
@@ -1410,7 +1450,7 @@
                                             </div>
                                             <div class="flex-1">
                                                 <div class="mb-2 flex font-semibold text-white-dark">
-                                                    <h6>Total Users</h6>
+                                                    <h6 x-text="$store.i18n.t('total_users')"></h6>
                                                     <p class="ltr:ml-auto rtl:mr-auto" x-text="users.total || '0'"></p>
                                                 </div>
                                                 <div class="h-2 w-full rounded-full bg-dark-light shadow dark:bg-[#1b2e4b]">
@@ -1423,41 +1463,51 @@
                                 <div class="panel h-full sm:col-span-3 xl:col-span-1" x-data="ordersStats">
                                     <div class="mb-5 flex items-center justify-between">
                                         <div>
-                                            <h5 class="text-lg font-semibold dark:text-white-light">Orders Summary</h5>
+                                            <h5 class="text-lg font-semibold dark:text-white-light" x-text="$store.i18n.t('orders_summary')"></h5>
                                             <p class="text-sm text-gray-500 dark:text-gray-400" x-text="'Total: ' + orders.total"></p>
                                         </div>
                                         <div class="relative">
-                                            <div class="grid h-11 w-11 place-content-center rounded-full bg-[#ffeccb] text-warning dark:bg-warning dark:text-[#ffeccb]">
+                                            <div
+                                                class="grid h-11 w-11 place-content-center rounded-full bg-[#ffeccb] text-warning dark:bg-warning dark:text-[#ffeccb]"
+                                            >
                                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M8 5H6C4.34315 5 3 6.34315 3 8V18C3 19.6569 4.34315 21 6 21H18C19.6569 21 21 19.6569 21 18V8C21 6.34315 19.6569 5 18 5H16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                                    <path d="M16 3H8C5.79086 3 4 4.79086 4 7C4 9.20914 5.79086 11 8 11H16C18.2091 11 20 9.20914 20 7C20 4.79086 18.2091 3 16 3Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                    <path
+                                                        d="M8 5H6C4.34315 5 3 6.34315 3 8V18C3 19.6569 4.34315 21 6 21H18C19.6569 21 21 19.6569 21 18V8C21 6.34315 19.6569 5 18 5H16"
+                                                        stroke="currentColor"
+                                                        stroke-width="1.5"
+                                                        stroke-linecap="round"
+                                                    />
+                                                    <path
+                                                        d="M16 3H8C5.79086 3 4 4.79086 4 7C4 9.20914 5.79086 11 8 11H16C18.2091 11 20 9.20914 20 7C20 4.79086 18.2091 3 16 3Z"
+                                                        stroke="currentColor"
+                                                        stroke-width="1.5"
+                                                        stroke-linecap="round"
+                                                    />
                                                 </svg>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="overflow-hidden">
-                                        <div x-ref="ordersChart" class="rounded-lg bg-white dark:bg-black">
-                                            <!-- المخطط سيتم إنشاؤه بواسطة ApexCharts -->
-                                        </div>
+                                        <div x-ref="ordersChart" class="rounded-lg bg-white dark:bg-black"></div>
                                     </div>
                                     <div class="mt-4 grid grid-cols-3 gap-2 text-center">
                                         <div class="rounded border border-success/20 p-2 text-success">
                                             <div class="text-lg font-bold" x-text="orders.completed"></div>
-                                            <div class="text-xs">Completed</div>
+                                            <div class="text-xs" x-text="$store.i18n.t('completed')"></div>
                                         </div>
                                         <div class="rounded border border-warning/20 p-2 text-warning">
                                             <div class="text-lg font-bold" x-text="orders.pending"></div>
-                                            <div class="text-xs">Pending</div>
+                                            <div class="text-xs" x-text="$store.i18n.t('pending')"></div>
                                         </div>
                                         <div class="rounded border border-danger/20 p-2 text-danger">
                                             <div class="text-lg font-bold" x-text="orders.cancelled"></div>
-                                            <div class="text-xs">Cancelled</div>
+                                            <div class="text-xs" x-text="$store.i18n.t('cancelled')"></div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="panel h-full sm:col-span-3 xl:col-span-2">
+                                <div class="panel h-full sm:col-span-3 xl:col-span-1">
                                     <div class="mb-5 flex items-start justify-between">
-                                        <h5 class="text-lg font-semibold dark:text-white-light">Service Providers Status</h5>
+                                        <h5 class="text-lg font-semibold dark:text-white-light" x-text="$store.i18n.t('service_providers_status')"></h5>
                                     </div>
                                     <div class="flex flex-col space-y-5" x-data="serviceProvidersStats">
                                         <!-- Active Providers -->
@@ -1592,19 +1642,76 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="panel h-full" x-data="driverStats">
+                                    <div class="mb-5 flex items-center justify-between">
+                                        <h5 class="text-lg font-semibold dark:text-white-light" x-text="$store.i18n.t('driver_statistics')"></h5>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-sm text-gray-500 dark:text-gray-400" x-text="$store.i18n.t('total') + ':'"></span>
+                                            <span class="font-bold" x-text="stats.total_Driver || '0'"></span>
+                                        </div>
+                                    </div>
+                                
+                                    <div class="table-responsive">
+                                        <table class="table-striped">
+                                            <thead>
+                                                <tr class="!bg-transparent">
+                                                    <th x-text="$store.i18n.t('status')"></th>
+                                                    <th class="text-center" x-text="$store.i18n.t('count')"></th>
+                                                    <th class="text-center" x-text="$store.i18n.t('percentage')"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td class="flex items-center">
+                                                        <span class="h-2.5 w-2.5 rounded-full bg-success ltr:mr-2 rtl:ml-2"></span>
+                                                        <span x-text="$store.i18n.t('active')"></span>
+                                                    </td>
+                                                    <td class="text-center font-semibold" x-text="stats.active_Driver || '0'"></td>
+                                                    <td class="text-center">
+                                                        <span x-text="(stats.total_Driver ? Math.round((stats.active_Driver / stats.total_Driver) * 100) : 0) + '%'"></span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="flex items-center">
+                                                        <span class="h-2.5 w-2.5 rounded-full bg-warning ltr:mr-2 rtl:ml-2"></span>
+                                                        <span x-text="$store.i18n.t('pending')"></span>
+                                                    </td>
+                                                    <td class="text-center font-semibold" x-text="stats.pending_Driver || '0'"></td>
+                                                    <td class="text-center">
+                                                        <span x-text="(stats.total_Driver ? Math.round((stats.pending_Driver / stats.total_Driver) * 100) : 0) + '%'"></span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="flex items-center">
+                                                        <span class="h-2.5 w-2.5 rounded-full bg-danger ltr:mr-2 rtl:ml-2"></span>
+                                                        <span x-text="$store.i18n.t('banned')"></span>
+                                                    </td>
+                                                    <td class="text-center font-semibold" x-text="stats.banned_Driver || '0'"></td>
+                                                    <td class="text-center">
+                                                        <span x-text="(stats.total_Driver ? Math.round((stats.banned_Driver / stats.total_Driver) * 100) : 0) + '%'"></span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                
+                                </div>
+                                
+                        
                                 <div
                                     x-data="commissionsStats"
                                     class="panel relative grid h-full grid-cols-1 content-between overflow-hidden before:absolute before:-right-44 before:bottom-0 before:top-0 before:m-auto before:h-96 before:w-96 before:rounded-full before:bg-[#1937cc]"
                                     style="background: linear-gradient(0deg, #00c6fb -227%, #005bea)"
                                 >
-                                    <!-- الخلفية الدائرية -->
                                     <div class="absolute -right-20 bottom-0 top-0 m-auto h-80 w-80 rounded-full bg-[#1947ee] opacity-30"></div>
 
-                                    <!-- المحتوى الرئيسي -->
                                     <div class="z-[7] mb-8 flex items-start justify-between text-white-light">
                                         <div>
-                                            <h5 class="text-lg font-semibold">Commissions Summary</h5>
-                                            <p class="mt-1 text-sm opacity-80">Pending & Total Commissions</p>
+                                            <h5 class="text-lg font-semibold" x-text="$store.i18n.t('commissions_summary')"></h5>
+                                            <p
+                                                class="mt-1 text-sm opacity-80"
+                                                x-text="$store.i18n.t('pending_commissions') + ' & ' + $store.i18n.t('total') + ' ' + $store.i18n.t('commissions')"
+                                            ></p>
                                         </div>
                                         <div class="text-right">
                                             <div class="text-2xl font-bold" x-text="'$' + commissions.total.toLocaleString()"></div>
@@ -1612,10 +1719,9 @@
                                         </div>
                                     </div>
 
-                                    <!-- شريط التقدم -->
                                     <div class="z-10 mt-6">
                                         <div class="mb-2 flex items-center justify-between text-white-light">
-                                            <span>Collection Progress</span>
+                                            <span x-text="$store.i18n.t('collection_progress')"></span>
                                             <span x-text="calculatePercentage(commissions.pending, commissions.total) + '%'"></span>
                                         </div>
                                         <div class="h-3 w-full rounded-full bg-white/20">
@@ -1625,24 +1731,22 @@
                                             ></div>
                                         </div>
 
-                                        <!-- إحصائيات إضافية -->
                                         <div class="mt-6 flex justify-between text-white-light">
                                             <div class="text-center">
                                                 <div class="text-xl font-bold" x-text="commissions.total"></div>
-                                                <div class="text-xs opacity-80">Total</div>
+                                                <div class="text-xs opacity-80" x-text="$store.i18n.t('total')"></div>
                                             </div>
                                             <div class="text-center">
                                                 <div class="text-xl font-bold" x-text="commissions.pending"></div>
-                                                <div class="text-xs opacity-80">Pending</div>
+                                                <div class="text-xs opacity-80" x-text="$store.i18n.t('pending')"></div>
                                             </div>
                                             <div class="text-center">
                                                 <div class="text-xl font-bold" x-text="commissions.total - commissions.pending"></div>
-                                                <div class="text-xs opacity-80">Collected</div>
+                                                <div class="text-xs opacity-80" x-text="$store.i18n.t('collected')"></div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- أيقونة توضيحية -->
                                     <div class="absolute bottom-6 right-6 z-0 opacity-20">
                                         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M9 14L15 8" stroke="white" stroke-width="2" stroke-linecap="round" />
@@ -1655,12 +1759,10 @@
                                         </svg>
                                     </div>
                                 </div>
-
-                                <!-- قسم المنتجات الجديد -->
                             </div>
                             <div class="panel mt-6" x-data="productsStats">
                                 <div class="mb-5 flex items-center justify-between">
-                                    <h5 class="text-lg font-semibold dark:text-white-light">Products Statistics</h5>
+                                    <h5 class="text-lg font-semibold dark:text-white-light" x-text="$store.i18n.t('products_statistics')"></h5>
                                     <div class="relative">
                                         <div
                                             class="grid h-11 w-11 place-content-center rounded-full bg-[#e2f5ff] text-primary dark:bg-primary dark:text-[#e2f5ff]"
@@ -1674,11 +1776,13 @@
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-                                    <!-- إجمالي المنتجات -->
                                     <div class="rounded-lg bg-[#f9f9f9] p-5 dark:bg-[#1b2e4b]">
                                         <div class="flex items-center justify-between">
                                             <div>
-                                                <h6 class="text-sm font-semibold text-[#515365] dark:text-white-light">Total Products</h6>
+                                                <h6
+                                                    class="text-sm font-semibold text-[#515365] dark:text-white-light"
+                                                    x-text="$store.i18n.t('total_products')"
+                                                ></h6>
                                                 <p class="mt-2 text-2xl font-bold" x-text="products.total || '0'"></p>
                                             </div>
                                             <div class="rounded-full bg-[#e2f5ff] p-3 dark:bg-primary/20">
@@ -1698,11 +1802,13 @@
                                         </div>
                                     </div>
 
-                                    <!-- المنتجات النشطة -->
                                     <div class="rounded-lg bg-[#f9f9f9] p-5 dark:bg-[#1b2e4b]">
                                         <div class="flex items-center justify-between">
                                             <div>
-                                                <h6 class="text-sm font-semibold text-[#515365] dark:text-white-light">Active Products</h6>
+                                                <h6
+                                                    class="text-sm font-semibold text-[#515365] dark:text-white-light"
+                                                    x-text="$store.i18n.t('active_products')"
+                                                ></h6>
                                                 <p class="mt-2 text-2xl font-bold" x-text="products.active !== 'not yet' ? products.active : '0'"></p>
                                             </div>
                                             <div class="rounded-full bg-[#e7f7ef] p-3 dark:bg-success/20">
@@ -1726,11 +1832,13 @@
                                         </div>
                                     </div>
 
-                                    <!-- المنتجات غير النشطة -->
                                     <div class="rounded-lg bg-[#f9f9f9] p-5 dark:bg-[#1b2e4b]">
                                         <div class="flex items-center justify-between">
                                             <div>
-                                                <h6 class="text-sm font-semibold text-[#515365] dark:text-white-light">Inactive Products</h6>
+                                                <h6
+                                                    class="text-sm font-semibold text-[#515365] dark:text-white-light"
+                                                    x-text="$store.i18n.t('inactive_products')"
+                                                ></h6>
                                                 <p class="mt-2 text-2xl font-bold" x-text="products.inactive !== 'not yet' ? products.inactive : '0'"></p>
                                             </div>
                                             <div class="rounded-full bg-[#ffeded] p-3 dark:bg-danger/20">
@@ -1754,17 +1862,22 @@
                                         </div>
                                     </div>
 
-                                    <!-- مزودي الخدمة حسب النوع -->
                                     <div class="rounded-lg bg-[#f9f9f9] p-5 dark:bg-[#1b2e4b]">
                                         <div class="flex items-center justify-between">
                                             <div>
-                                                <h6 class="text-sm font-semibold text-[#515365] dark:text-white-light">Providers by Type</h6>
+                                                <h6
+                                                    class="text-sm font-semibold text-[#515365] dark:text-white-light"
+                                                    x-text="$store.i18n.t('providers_by_type')"
+                                                ></h6>
                                                 <p class="mt-2 text-xl">
                                                     <span class="font-bold" x-text="products.byProviderType.product_providers || '0'"></span>
                                                     <span class="mx-1">|</span>
                                                     <span class="font-bold" x-text="products.byProviderType.service_providers || '0'"></span>
                                                 </p>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400">Product | Service</p>
+                                                <p
+                                                    class="text-xs text-gray-500 dark:text-gray-400"
+                                                    x-text="$store.i18n.t('product') + ' | ' + $store.i18n.t('service')"
+                                                ></p>
                                             </div>
                                             <div class="rounded-full bg-[#fff4ed] p-3 dark:bg-warning/20">
                                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1798,7 +1911,7 @@
 
                 <!-- start footer section -->
                 <div class="mt-auto p-6 text-center dark:text-white-dark ltr:sm:text-left rtl:sm:text-right">
-                    © <span id="footer-year">2022</span>. Developed By High Level Technology.
+                    © <span id="footer-year">2025</span>. Developed By High Level Technology.
                 </div>
                 <!-- end footer section -->
             </div>
@@ -1817,32 +1930,20 @@
 
         <script>
             document.addEventListener('alpine:init', () => {
-                Alpine.data('statsData', () => ({
+                Alpine.data('driverStats', () => ({
                     stats: {
-                        active_products: 'not yet',
-                        active_users: 'not yet',
-                        active_vendors: 0,
-                        banned_vendors: 0,
-                        cancelled_orders: 0,
-                        completed_orders: 0,
-                        inactive_products: 'not yet',
-                        inactive_users: 'not yet',
-                        pending_commissions: 0,
-                        pending_orders: 0,
-                        pending_vendors: 0,
-                        total_commissions: 0,
-                        total_orders: 0,
-                        total_products: 0,
-                        total_sales: 0,
-                        total_users: 0,
-                        total_vendors: 0,
+                        active_Driver: 0,
+                        pending_Driver: 0,
+                        banned_Driver: 0,
+                        total_Driver: 0,
+                    },
+                    driversChart: null,
+
+                    async init() {
+                        await this.fetchDriverStats();
                     },
 
-                    init() {
-                        this.fetchStatsData();
-                    },
-
-                    async fetchStatsData() {
+                    async fetchDriverStats() {
                         try {
                             const token = localStorage.getItem('authToken');
                             if (!token) {
@@ -1858,91 +1959,21 @@
                                 },
                             });
 
-                            if (!response.ok) {
-                                throw new Error(`HTTP error! status: ${response.status}`);
-                            }
+                        
 
                             const data = await response.json();
-
-                            if (data.success && data.data.stats) {
-                                const stats = data.data.stats;
-
-                                // Group related statistics for easier chart usage
-                                this.statsGroups = {
-                                    // User Statistics
-                                    users: {
-                                        active: stats.active_users,
-                                        inactive: stats.inactive_users,
-                                        total: stats.total_users,
-                                    },
-
-                                    // Vendor Statistics
-                                    vendors: {
-                                        active: stats.active_vendors,
-                                        pending: stats.pending_vendors,
-                                        banned: stats.banned_vendors,
-                                        total: stats.total_vendors,
-                                    },
-
-                                    // Driver Statistics
-                                    drivers: {
-                                        active: stats.active_Driver,
-                                        pending: stats.pending_Driver,
-                                        banned: stats.banned_Driver,
-                                        total: stats.total_Driver,
-                                    },
-
-                                    // Service Provider Statistics
-                                    serviceProviders: {
-                                        active: stats.active_service_provider,
-                                        pending: stats.pending_service_provider,
-                                        banned: stats.banned_service_provider,
-                                        total: stats.total_service_provider,
-                                    },
-
-                                    // Product Statistics
-                                    products: {
-                                        active: stats.active_products,
-                                        inactive: stats.inactive_products,
-                                        total: stats.total_products,
-                                        byProviderType: stats.products_stats?.by_provider_type || {
-                                            product_providers: 0,
-                                            service_providers: 0,
-                                        },
-                                    },
-
-                                    // Order Statistics
-                                    orders: {
-                                        pending: stats.pending_orders,
-                                        completed: stats.completed_orders,
-                                        cancelled: stats.cancelled_orders,
-                                        total: stats.total_orders,
-                                        totalSales: stats.total_sales,
-                                    },
-
-                                    // Commission Statistics
-                                    commissions: {
-                                        pending: stats.pending_commissions,
-                                        total: stats.total_commissions,
-                                    },
-                                };
-
-                                // You can now access these grouped stats for your charts
-                                console.log(this.statsGroups);
-
-                                // Example usage for a chart:
-                                // this.prepareUserChart(this.statsGroups.users);
-                                // this.prepareOrderChart(this.statsGroups.orders);
-                            }
+                            this.stats = {
+                                active_Driver: parseInt(data.stats.active_Driver) || 0,
+                                pending_Driver: parseInt(data.stats.pending_Driver) || 0,
+                                banned_Driver: parseInt(data.stats.pand_Driver) || 0,
+                                total_Driver: parseInt(data.stats.total_Driver) || 0,
+                            };
                         } catch (error) {
-                            console.error('Error fetching stats:', error);
+                            console.error('Error fetching driver stats:', error);
                         }
                     },
-                    getPercentage(value, total) {
-                        return total > 0 ? Math.round((value / total) * 100) : 0;
-                    },
-                }));
-                // main section
+
+            }));
                 Alpine.data('scrollToTop', () => ({
                     showTopButton: false,
                     init() {
@@ -1987,6 +2018,53 @@
                         }
                     },
                 }));
+                Alpine.store('i18n', {
+                    locale: localStorage.getItem('language') || 'en',
+                    translations: {},
+
+                    async init() {
+                        await this.loadTranslations(this.locale);
+                    },
+
+                    async loadTranslations(locale) {
+                        try {
+                            const response = await fetch(`lang/${locale}.json`);
+                            if (!response.ok) throw new Error('Failed to load translations');
+                            this.translations = await response.json();
+                            this.locale = locale;
+                            localStorage.setItem('language', locale);
+                            this.applyDirection(locale);
+                        } catch (error) {
+                            console.error('Error loading translations:', error);
+                            if (locale !== 'en') await this.loadTranslations('en');
+                        }
+                    },
+
+                    async setLocale(locale) {
+                        await this.loadTranslations(locale);
+                        // إعادة تحميل المكونات التي تحتاج للتحديث
+                        if (window.multipleTable) {
+                            window.multipleTable.fetchManagers();
+                        }
+                    },
+
+                    t(key) {
+                        return this.translations[key] || key;
+                    },
+
+                    applyDirection(locale) {
+                        if (locale === 'ar') {
+                            document.documentElement.lang = 'ar';
+                        } else {
+                            document.documentElement.lang = 'en';
+                        }
+                    },
+                });
+
+                Alpine.store('i18n').init();
+                Alpine.data('customizer', () => ({
+                    showCustomizer: false,
+                }));
                 Alpine.data('ordersStats', () => ({
                     orders: {
                         cancelled: 0,
@@ -2023,8 +2101,8 @@
                             }
 
                             const data = await response.json();
+                            console.log(data);
 
-                            // تحديث بيانات الطلبات
                             this.orders = {
                                 cancelled: parseInt(data.stats.cancelled_orders) || 0,
                                 completed: parseInt(data.stats.completed_orders) || 0,
@@ -2032,10 +2110,7 @@
                                 total: parseInt(data.stats.total_orders) || 0,
                                 totalSales: parseInt(data.stats.total_sales) || 0,
                             };
-                            console.log(this.orders);
-                        } catch (error) {
-                            console.error('Error fetching orders data:', error);
-                        }
+                        } catch (error) {}
                     },
 
                     initOrdersChart() {
@@ -2143,19 +2218,14 @@
 
                             const data = await response.json();
 
-                            // تحديث بيانات المستخدمين
                             this.users = {
                                 active: data.stats.active_users === 'not yet' ? 0 : parseInt(data.stats.active_users),
                                 inactive: data.stats.inactive_users === 'not yet' ? 0 : parseInt(data.stats.inactive_users),
                                 total: parseInt(data.stats.total_users),
                             };
-                        } catch (error) {
-                            console.error('Error fetching users data:', error);
-                            // يمكنك عرض رسالة خطأ للمستخدم هنا
-                        }
+                        } catch (error) {}
                     },
 
-                    // دالة مساعدة لحساب النسبة المئوية
                     calculatePercentage(partial, total) {
                         return total > 0 ? Math.round((partial / total) * 100) : 0;
                     },
@@ -2203,7 +2273,6 @@
                             });
 
                             const data = await response.json();
-                            console.log(data);
 
                             // Group related statistics for easier chart usage
                             const statsGroups = {
@@ -2269,12 +2338,9 @@
                             this.updateChartsData(statsGroups);
 
                             // You can now access these grouped stats for your charts
-                            console.log(statsGroups);
 
                             // Example usage for a chart:
-                        } catch (error) {
-                            console.log(error);
-                        }
+                        } catch (error) {}
                     },
 
                     getVendorsChartOptions(vendorsData) {
@@ -2347,7 +2413,6 @@
                     },
                     updateChartsData(dashboardData) {
                         try {
-                            // 1. تدمير المخططات القديمة إذا كانت موجودة
                             const destroyChart = (chartInstance, refName) => {
                                 if (chartInstance) {
                                     chartInstance.destroy();
@@ -2362,36 +2427,29 @@
                             destroyChart(this.dailySales, 'dailySales');
                             destroyChart(this.vendorsChart, 'vendorsChart');
 
-                            // 2. إنشاء المخططات الجديدة مع التحقق من وجود العناصر
                             setTimeout(() => {
-                                // تأكد من أن this.$refs موجود وأن العنصر موجود
                                 const createChart = (refName, chartOptions) => {
                                     if (!this.$refs || !this.$refs[refName]) {
                                         return null;
                                     }
 
                                     const element = this.$refs[refName];
-                                    element.innerHTML = ''; // تنظيف العنصر
+                                    element.innerHTML = '';
 
                                     const chart = new ApexCharts(element, chartOptions);
                                     chart.render();
                                     return chart;
                                 };
 
-                                // إنشاء المخططات مع التحقق
                                 this.salesByCategory = createChart('salesByCategory', this.getSalesByCategoryOptions(dashboardData.orders));
 
                                 this.dailySales = createChart('dailySales', this.getDailySalesOptions(dashboardData.users));
 
                                 this.vendorsChart = createChart('vendorsChart', this.getVendorsChartOptions(dashboardData.vendors));
                             }, 300);
-                        } catch (error) {
-                            console.error('Error updating charts:', error);
-                            // يمكنك إضافة عرض رسالة خطأ للمستخدم هنا
-                        }
+                        } catch (error) {}
                     },
                     getSalesByCategoryOptions(ordersByType) {
-                        console.log(ordersByType);
                         const x = { cancel: ordersByType.cancelled_orders, completed: ordersByType.completed_orders, pending: ordersByType.pending_orders };
                         const labels = Object.keys(x);
                         const series = Object.values(x);
@@ -2586,16 +2644,13 @@
 
                             const data = await response.json();
 
-                            // تحديث بيانات مزودي الخدمة
                             this.serviceProviders = {
                                 active: parseInt(data.stats.active_service_provider) || 0,
                                 banned: parseInt(data.stats.banned_service_provider) || 0,
                                 pending: parseInt(data.stats.pending_service_provider) || 0,
                                 total: parseInt(data.stats.total_service_provider) || 0,
                             };
-                        } catch (error) {
-                            console.error('Error fetching service providers data:', error);
-                        }
+                        } catch (error) {}
                     },
 
                     calculatePercentage(partial, total) {
@@ -2634,14 +2689,11 @@
 
                             const data = await response.json();
 
-                            // تحديث بيانات العمولات
                             this.commissions = {
                                 pending: parseInt(data.stats.pending_commissions) || 0,
                                 total: parseInt(data.stats.total_commissions) || 0,
                             };
-                        } catch (error) {
-                            console.error('Error fetching commissions data:', error);
-                        }
+                        } catch (error) {}
                     },
 
                     calculatePercentage(partial, total) {
@@ -2685,7 +2737,6 @@
 
                             const data = await response.json();
 
-                            // تحديث بيانات المنتجات
                             this.products = {
                                 active: data.stats.active_products || 'not yet',
                                 inactive: data.stats.inactive_products || 'not yet',
@@ -2695,12 +2746,23 @@
                                     service_providers: parseInt(data.stats.products_stats?.by_provider_type?.service_providers) || 0,
                                 },
                             };
-                        } catch (error) {
-                            console.error('Error fetching products data:', error);
-                        }
+                        } catch (error) {}
                     },
                 }));
                 Alpine.data('header', () => ({
+                    languages: [
+                        {
+                            id: 3,
+                            key: 'English',
+                            value: 'en',
+                        },
+
+                        {
+                            id: 16,
+                            key: 'Arabic',
+                            value: 'ae',
+                        },
+                    ],
                     init() {
                         const selector = document.querySelector('ul.horizontal-menu a[href="' + window.location.pathname + '"]');
                         if (selector) {
@@ -2798,9 +2860,8 @@
                                 throw new Error(errorData.message || 'فشل تسجيل الخروج');
                             }
 
-                            // إزالة التوكن وإعادة التوجيه
                             localStorage.removeItem('authToken');
-                            window.location.href = 'auth-boxed-signin.html'; // صفحة تسجيل الدخول
+                            window.location.href = 'auth-boxed-signin.html';
                         } catch (error) {
                             alert('حدث خطأ أثناء تسجيل الخروج. يرجى المحاولة لاحقًا.', error);
                         }

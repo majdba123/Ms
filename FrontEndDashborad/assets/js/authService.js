@@ -1,7 +1,7 @@
 // authService.js
 
 class AuthService {
-    
+
     constructor() {
         this.baseUrl = window.API_CONFIG.BASE_URL;
         this.endpoints = window.API_CONFIG.ENDPOINTS;
@@ -31,5 +31,4 @@ class AuthService {
     }
 }
 
-// جعل AuthService متاحًا عالميًا
 window.authService = new AuthService();

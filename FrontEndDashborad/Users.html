@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en" dir="ltr" x-data="{ dir: $store.app.rtlClass }" :dir="dir">
     <head>
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <title>Dashboard - Mersal</title>
+        <title x-text="Alpine.store('i18n').t('dashboard')"> </title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" type="image/x-icon" href="favicon.png" />
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDkf2Hu6wGypUutGJwgyOCj9u6Ik3jYZZw&libraries=places"></script>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -230,7 +231,7 @@
                     </div>
 
                     <div class="mb-3 rounded-md border border-dashed border-[#e0e6ed] p-3 dark:border-[#1b2e4b]">
-                        <h5 class="mb-1 text-base leading-none dark:text-white">Navigation Position</h5>
+                        <h5 class="mb-1 text-base leading-none dark:text-white"><span x-text="Alpine.store('i18n').t('navigation_position')"></span></h5>
                         <p class="text-xs text-white-dark">Select the primary navigation paradigm for your app.</p>
                         <div class="mt-3 grid grid-cols-3 gap-2">
                             <button
@@ -239,7 +240,7 @@
                                 :class="[$store.app.menu === 'horizontal' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleMenu('horizontal')"
                             >
-                                Horizontal
+                                <span x-text="Alpine.store('i18n').t('horizontal')"></span>
                             </button>
                             <button
                                 type="button"
@@ -247,7 +248,7 @@
                                 :class="[$store.app.menu === 'vertical' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleMenu('vertical')"
                             >
-                                Vertical
+                                <span x-text="Alpine.store('i18n').t('vertical')"></span>
                             </button>
                             <button
                                 type="button"
@@ -255,7 +256,7 @@
                                 :class="[$store.app.menu === 'collapsible-vertical' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleMenu('collapsible-vertical')"
                             >
-                                Collapsible
+                                <span x-text="Alpine.store('i18n').t('collapsible')"></span>
                             </button>
                         </div>
                         <div class="mt-5 text-primary">
@@ -272,7 +273,7 @@
                         </div>
                     </div>
                     <div class="mb-3 rounded-md border border-dashed border-[#e0e6ed] p-3 dark:border-[#1b2e4b]">
-                        <h5 class="mb-1 text-base leading-none dark:text-white">Layout Style</h5>
+                        <h5 class="mb-1 text-base leading-none dark:text-white"><span x-text="Alpine.store('i18n').t('layout_style')"></span></h5>
                         <p class="text-xs text-white-dark">Select the primary layout style for your app.</p>
                         <div class="mt-3 flex gap-2">
                             <button
@@ -281,7 +282,7 @@
                                 :class="[$store.app.layout === 'boxed-layout' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleLayout('boxed-layout')"
                             >
-                                Box
+                                <span x-text="Alpine.store('i18n').t('box')"></span>
                             </button>
                             <button
                                 type="button"
@@ -289,12 +290,12 @@
                                 :class="[$store.app.layout === 'full' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleLayout('full')"
                             >
-                                Full
+                                <span x-text="Alpine.store('i18n').t('full')"></span>
                             </button>
                         </div>
                     </div>
                     <div class="mb-3 rounded-md border border-dashed border-[#e0e6ed] p-3 dark:border-[#1b2e4b]">
-                        <h5 class="mb-1 text-base leading-none dark:text-white">Direction</h5>
+                        <h5 class="mb-1 text-base leading-none dark:text-white"><span x-text="Alpine.store('i18n').t('direction')"></span></h5>
                         <p class="text-xs text-white-dark">Select the direction for your app.</p>
                         <div class="mt-3 flex gap-2">
                             <button
@@ -303,7 +304,7 @@
                                 :class="[$store.app.rtlClass === 'ltr' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleRTL('ltr')"
                             >
-                                LTR
+                                <span x-text="Alpine.store('i18n').t('ltr')"></span>
                             </button>
                             <button
                                 type="button"
@@ -311,18 +312,18 @@
                                 :class="[$store.app.rtlClass === 'rtl' ? 'btn-primary' :'btn-outline-primary']"
                                 @click="$store.app.toggleRTL('rtl')"
                             >
-                                RTL
+                                <span x-text="Alpine.store('i18n').t('rtl')"></span>
                             </button>
                         </div>
                     </div>
 
                     <div class="mb-3 rounded-md border border-dashed border-[#e0e6ed] p-3 dark:border-[#1b2e4b]">
-                        <h5 class="mb-1 text-base leading-none dark:text-white">Navbar Type</h5>
+                        <h5 class="mb-1 text-base leading-none dark:text-white"><span x-text="Alpine.store('i18n').t('navbar_type')"></span></h5>
                         <p class="text-xs text-white-dark">Sticky or Floating.</p>
                         <div class="mt-3 flex items-center gap-3 text-primary">
                             <label class="mb-0 inline-flex">
                                 <input x-model="$store.app.navbar" type="radio" value="navbar-sticky" class="form-radio" @change="$store.app.toggleNavbar()" />
-                                <span>Sticky</span>
+                                <span x-text="Alpine.store('i18n').t('sticky')"></span>
                             </label>
                             <label class="mb-0 inline-flex">
                                 <input
@@ -332,30 +333,30 @@
                                     class="form-radio"
                                     @change="$store.app.toggleNavbar()"
                                 />
-                                <span>Floating</span>
+                                <span x-text="Alpine.store('i18n').t('floating')"></span>
                             </label>
                             <label class="mb-0 inline-flex">
                                 <input x-model="$store.app.navbar" type="radio" value="navbar-static" class="form-radio" @change="$store.app.toggleNavbar()" />
-                                <span>Static</span>
+                                <span x-text="Alpine.store('i18n').t('static')"></span>
                             </label>
                         </div>
                     </div>
 
                     <div class="mb-3 rounded-md border border-dashed border-[#e0e6ed] p-3 dark:border-[#1b2e4b]">
-                        <h5 class="mb-1 text-base leading-none dark:text-white">Router Transition</h5>
+                        <h5 class="mb-1 text-base leading-none dark:text-white"><span x-text="Alpine.store('i18n').t('router_transition')"></span></h5>
                         <p class="text-xs text-white-dark">Animation of main content.</p>
                         <div class="mt-3">
                             <select x-model="$store.app.animation" class="form-select border-primary text-primary" @change="$store.app.toggleAnimation()">
-                                <option value="">None</option>
-                                <option value="animate__fadeIn">Fade</option>
-                                <option value="animate__fadeInDown">Fade Down</option>
-                                <option value="animate__fadeInUp">Fade Up</option>
-                                <option value="animate__fadeInLeft">Fade Left</option>
-                                <option value="animate__fadeInRight">Fade Right</option>
-                                <option value="animate__slideInDown">Slide Down</option>
-                                <option value="animate__slideInLeft">Slide Left</option>
-                                <option value="animate__slideInRight">Slide Right</option>
-                                <option value="animate__zoomIn">Zoom In</option>
+                                <option value=""><span x-text="Alpine.store('i18n').t('none')"></span></option>
+                                <option value="animate__fadeIn"><span x-text="Alpine.store('i18n').t('fade')"></span></option>
+                                <option value="animate__fadeInDown"><span x-text="Alpine.store('i18n').t('fade_down')"></span></option>
+                                <option value="animate__fadeInUp"><span x-text="Alpine.store('i18n').t('fade_up')"></span></option>
+                                <option value="animate__fadeInLeft"><span x-text="Alpine.store('i18n').t('fade_left')"></span></option>
+                                <option value="animate__fadeInRight"><span x-text="Alpine.store('i18n').t('fade_right')"></span></option>
+                                <option value="animate__slideInDown"><span x-text="Alpine.store('i18n').t('slide_down')"></span></option>
+                                <option value="animate__slideInLeft"><span x-text="Alpine.store('i18n').t('slide_left')"></span></option>
+                                <option value="animate__slideInRight"><span x-text="Alpine.store('i18n').t('slide_right')"></span></option>
+                                <option value="animate__zoomIn"><span x-text="Alpine.store('i18n').t('zoom_in')"></span></option>
                             </select>
                         </div>
                     </div>
@@ -425,7 +426,7 @@
                                             />
                                         </svg>
 
-                                        <span class="text-black dark:text-[#506690] dark:group-hover:text-white-dark ltr:pl-3 rtl:pr-3">Dashboard</span>
+                                        <span class="text-black dark:text-[#506690] dark:group-hover:text-white-dark ltr:pl-3 rtl:pr-3">Dashborad</span>
                                     </div>
                                     <div class="rtl:rotate-180" :class="{'!rotate-90' : activeDropdown === 'dashboard'}">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -435,7 +436,7 @@
                                 </button>
                                 <ul x-cloak x-show="activeDropdown === 'dashboard'" x-collapse class="sub-menu text-gray-500">
                                     <li>
-                                        <a href="index.html">Home</a>
+                                        <a href="index.html"><span x-text="Alpine.store('i18n').t('home')"></span></a>
                                     </li>
                                 </ul>
                             </li>
@@ -452,12 +453,12 @@
                                 >
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                Category & Subscribe
+                                <span x-text="Alpine.store('i18n').t('category_subscribe')"></span>
                             </h2>
                             <li class="menu nav-item">
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="Category.html">Category</a>
+                                        <a href="Category.html"><span x-text="Alpine.store('i18n').t('category')"></span></a>
                                     </li>
                                 </ul>
                             </li>
@@ -490,7 +491,9 @@
                                             />
                                         </svg>
 
-                                        <span class="text-black dark:text-[#506690] dark:group-hover:text-white-dark ltr:pl-3 rtl:pr-3">Subscribe</span>
+                                        <span class="text-black dark:text-[#506690] dark:group-hover:text-white-dark ltr:pl-3 rtl:pr-3"
+                                            ><span x-text="Alpine.store('i18n').t('subscribe')"></span
+                                        ></span>
                                     </div>
                                     <div class="rtl:rotate-180" :class="{'!rotate-90' : activeDropdown === 'SellPick'}">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -500,7 +503,7 @@
                                 </button>
                                 <ul x-cloak x-show="activeDropdown === 'SellPick'" x-collapse class="sub-menu text-gray-500">
                                     <li>
-                                        <a href="Subscribe.html">Subscribe</a>
+                                        <a href="Subscribe.html"><span x-text="Alpine.store('i18n').t('subscribe')"></span></a>
                                     </li>
                                     <li>
                                         <a href="Web_subscribe.html">Web Subscribe</a>
@@ -520,20 +523,20 @@
                                 >
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                <span>Provider</span>
+                                <span x-text="Alpine.store('i18n').t('provider')"></span>
                             </h2>
                             <ul class="sub-menu">
                                 <li>
-                                    <a href="Product_provider.html">Product Provider</a>
+                                    <a href="Product_provider.html"><span x-text="Alpine.store('i18n').t('product_provider')"></span></a>
                                 </li>
                                 <li>
-                                    <a href="Service_provider.html">Service Provider</a>
+                                    <a href="Service_provider.html"><span x-text="Alpine.store('i18n').t('service_provider')"></span></a>
                                 </li>
                                 <li>
-                                    <a href="Driver.html">Driver</a>
+                                    <a href="Driver.html"><span x-text="Alpine.store('i18n').t('driver')"></span></a>
                                 </li>
                                 <li>
-                                    <a href="Food.html">Food</a>
+                                    <a href="Food.html"><span x-text="Alpine.store('i18n').t('food')"></span></a>
                                 </li>
                             </ul>
                             <h2 class="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
@@ -548,33 +551,14 @@
                                 >
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                <span>Product & Rate </span>
+                                <span x-text="Alpine.store('i18n').t('product_rate')"></span>
                             </h2>
                             <ul class="sub-menu">
                                 <li>
-                                    <a href="Rate.html">Rate</a>
+                                    <a href="Rate.html"><span x-text="Alpine.store('i18n').t('rate')"></span></a>
                                 </li>
                                 <li>
-                                    <a href="Product.html">Product</a>
-                                </li>
-                            </ul>
-                            <h2 class="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
-                                <svg
-                                    class="hidden h-5 w-4 flex-none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    stroke-width="1.5"
-                                    fill="none"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                >
-                                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                                </svg>
-                                <span>Reservation</span>
-                            </h2>
-                            <ul class="sub-menu">
-                                <li>
-                                    <a href="Reservation.html">Reservation</a>
+                                    <a href="Product.html"><span x-text="Alpine.store('i18n').t('product')"></span></a>
                                 </li>
                             </ul>
                             <h2 class="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
@@ -589,11 +573,30 @@
                                 >
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                <span>Order</span>
+                                <span x-text="Alpine.store('i18n').t('reservation')"></span>
                             </h2>
                             <ul class="sub-menu">
                                 <li>
-                                    <a href="Order.html">Order</a>
+                                    <a href="Reservation.html"> <span x-text="Alpine.store('i18n').t('reservation')"></span> </a>
+                                </li>
+                            </ul>
+                            <h2 class="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
+                                <svg
+                                    class="hidden h-5 w-4 flex-none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    stroke-width="1.5"
+                                    fill="none"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                <span x-text="Alpine.store('i18n').t('order')"></span>
+                            </h2>
+                            <ul class="sub-menu">
+                                <li>
+                                    <a href="Order.html"> <span x-text="Alpine.store('i18n').t('order')"></span> </a>
                                 </li>
                             </ul>
 
@@ -609,11 +612,11 @@
                                 >
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                <span>Coupon</span>
+                                <span x-text="Alpine.store('i18n').t('coupon')"></span>
                             </h2>
                             <ul class="sub-menu">
                                 <li>
-                                    <a href="Coupon.html">Coupon</a>
+                                    <a href="Coupon.html"> <span x-text="Alpine.store('i18n').t('coupon')"></span> </a>
                                 </li>
                             </ul>
                             <h2 class="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
@@ -628,11 +631,11 @@
                                 >
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                <span>Users</span>
+                                <span x-text="Alpine.store('i18n').t('users')"></span>
                             </h2>
                             <ul class="sub-menu">
                                 <li>
-                                    <a href="Users.html">Users</a>
+                                    <a href="Users.html"> <span x-text="Alpine.store('i18n').t('users')"></span> </a>
                                 </li>
                             </ul>
                         </ul>
@@ -811,9 +814,47 @@
                                                         stroke-linejoin="round"
                                                     />
                                                 </svg>
-                                                Sign Out
+                                                <span x-text="Alpine.store('i18n').t('sign_out')"></span>
                                             </a>
                                         </li>
+                                    </ul>
+                                </div>
+                                <div class="dropdown flex-shrink-0" x-data="dropdown" @click.outside="open = false">
+                                    <a
+                                        href="javascript:;"
+                                        class="block rounded-full bg-white-light/40 p-2 hover:bg-white-light/90 hover:text-primary dark:bg-dark/40 dark:hover:bg-dark/60"
+                                        @click="toggle"
+                                    >
+                                        <img
+                                            :src="`assets/images/flags/${$store.app.locale.toUpperCase()}.svg`"
+                                            alt="image"
+                                            class="h-5 w-5 rounded-full object-cover"
+                                        />
+                                    </a>
+                                    <ul
+                                        x-cloak
+                                        x-show="open"
+                                        x-transition
+                                        x-transition.duration.300ms
+                                        class="top-11 grid w-[280px] grid-cols-2 gap-y-2 !px-2 font-semibold text-dark dark:text-white-dark dark:text-white-light/90 ltr:-right-14 sm:ltr:-right-2 rtl:-left-14 sm:rtl:-left-2"
+                                    >
+                                        <template x-for="item in languages">
+                                            <li>
+                                                <a
+                                                    href="javascript:;"
+                                                    class="hover:text-primary"
+                                                    @click="$store.app.toggleLocale(item.value); $store.i18n.setLocale(item.value); toggle()"
+                                                    :class="{'bg-primary/10 text-primary' : $store.app.locale == item.value}"
+                                                >
+                                                    <img
+                                                        class="h-5 w-5 rounded-full object-cover"
+                                                        :src="`assets/images/flags/${item.value.toUpperCase()}.svg`"
+                                                        alt="image"
+                                                    />
+                                                    <span class="ltr:ml-3 rtl:mr-3" x-text="item.key"></span>
+                                                </a>
+                                            </li>
+                                        </template>
                                     </ul>
                                 </div>
                             </div>
@@ -837,7 +878,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        <span class="px-1">Dashboard</span>
+                                        <span class="px-1"><span x-text="Alpine.store('i18n').t('dashboard')"></span></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -854,7 +895,7 @@
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="index.html">Home</a>
+                                        <a href="index.html"><span x-text="Alpine.store('i18n').t('home')"></span></a>
                                     </li>
                                 </ul>
                             </li>
@@ -884,7 +925,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        Category & Subscribe
+                                        <span x-text="Alpine.store('i18n').t('category_subscribe')"></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -917,13 +958,13 @@
                                         </a>
                                         <ul class="sub-menu">
                                             <li>
-                                                <a href="Category.html">Category</a>
+                                                <a href="Category.html"><span x-text="Alpine.store('i18n').t('category')"></span></a>
                                             </li>
                                         </ul>
                                     </li>
                                     <li class="relative">
                                         <a href="javascript:;"
-                                            >Subscribe
+                                            ><span x-text="Alpine.store('i18n').t('subscribe')"></span>
                                             <div class="ltr:ml-auto rtl:mr-auto rtl:rotate-180">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                     <path
@@ -940,7 +981,7 @@
                                             class="absolute top-0 z-[10] hidden min-w-[180px] rounded bg-white p-0 py-2 text-dark shadow dark:bg-[#1b2e4b] dark:text-white-dark ltr:left-[95%] rtl:right-[95%]"
                                         >
                                             <li>
-                                                <a href="subscribe.html">Subscribe</a>
+                                                <a href="subscribe.html"><span x-text="Alpine.store('i18n').t('subscribe')"></span></a>
                                             </li>
                                             <li>
                                                 <a href="Web_subscribe.html">Web Subscribe</a>
@@ -974,7 +1015,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        Provider
+                                        <span x-text="Alpine.store('i18n').t('provider')"></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -991,16 +1032,16 @@
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="Product_provider.html">Product Provider</a>
+                                        <a href="Product_provider.html"><span x-text="Alpine.store('i18n').t('product_provider')"></span></a>
                                     </li>
                                     <li>
-                                        <a href="Service_provider.html">Service Provider</a>
+                                        <a href="Service_provider.html"><span x-text="Alpine.store('i18n').t('service_provider')"></span></a>
                                     </li>
                                     <li>
-                                        <a href="Driver.html">Driver</a>
+                                        <a href="Driver.html"><span x-text="Alpine.store('i18n').t('driver')"></span></a>
                                     </li>
                                     <li>
-                                        <a href="Food.html">Food</a>
+                                        <a href="Food.html"><span x-text="Alpine.store('i18n').t('food')"></span></a>
                                     </li>
                                 </ul>
                             </li>
@@ -1029,7 +1070,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        Product & Rate
+                                        <span x-text="Alpine.store('i18n').t('product_rate')"></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -1046,56 +1087,10 @@
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="Rate.html">Rate</a>
+                                        <a href="Rate.html"><span x-text="Alpine.store('i18n').t('rate')"></span></a>
                                     </li>
                                     <li>
-                                        <a href="Product.html">Product</a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li class="menu nav-item relative">
-                                <a href="javascript:;" class="nav-link">
-                                    <div class="flex items-center">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="shrink-0">
-                                            <path
-                                                d="M4.97883 9.68508C2.99294 8.89073 2 8.49355 2 8C2 7.50645 2.99294 7.10927 4.97883 6.31492L7.7873 5.19153C9.77318 4.39718 10.7661 4 12 4C13.2339 4 14.2268 4.39718 16.2127 5.19153L19.0212 6.31492C21.0071 7.10927 22 7.50645 22 8C22 8.49355 21.0071 8.89073 19.0212 9.68508L16.2127 10.8085C14.2268 11.6028 13.2339 12 12 12C10.7661 12 9.77318 11.6028 7.7873 10.8085L4.97883 9.68508Z"
-                                                fill="currentColor"
-                                            />
-                                            <path
-                                                fill-rule="evenodd"
-                                                clip-rule="evenodd"
-                                                d="M2 8C2 8.49355 2.99294 8.89073 4.97883 9.68508L7.7873 10.8085C9.77318 11.6028 10.7661 12 12 12C13.2339 12 14.2268 11.6028 16.2127 10.8085L19.0212 9.68508C21.0071 8.89073 22 8.49355 22 8C22 7.50645 21.0071 7.10927 19.0212 6.31492L16.2127 5.19153C14.2268 4.39718 13.2339 4 12 4C10.7661 4 9.77318 4.39718 7.7873 5.19153L4.97883 6.31492C2.99294 7.10927 2 7.50645 2 8Z"
-                                                fill="currentColor"
-                                            />
-                                            <path
-                                                opacity="0.7"
-                                                d="M5.76613 10L4.97883 10.3149C2.99294 11.1093 2 11.5065 2 12C2 12.4935 2.99294 12.8907 4.97883 13.6851L7.7873 14.8085C9.77318 15.6028 10.7661 16 12 16C13.2339 16 14.2268 15.6028 16.2127 14.8085L19.0212 13.6851C21.0071 12.8907 22 12.4935 22 12C22 11.5065 21.0071 11.1093 19.0212 10.3149L18.2339 10L16.2127 10.8085C14.2268 11.6028 13.2339 12 12 12C10.7661 12 9.77318 11.6028 7.7873 10.8085L5.76613 10Z"
-                                                fill="currentColor"
-                                            />
-                                            <path
-                                                opacity="0.4"
-                                                d="M5.76613 14L4.97883 14.3149C2.99294 15.1093 2 15.5065 2 16C2 16.4935 2.99294 16.8907 4.97883 17.6851L7.7873 18.8085C9.77318 19.6028 10.7661 20 12 20C13.2339 20 14.2268 19.6028 16.2127 18.8085L19.0212 17.6851C21.0071 16.8907 22 16.4935 22 16C22 15.5065 21.0071 15.1093 19.0212 14.3149L18.2339 14L16.2127 14.8085C14.2268 15.6028 13.2339 16 12 16C10.7661 16 9.77318 15.6028 7.7873 14.8085L5.76613 14Z"
-                                                fill="currentColor"
-                                            />
-                                        </svg>
-                                        Reservation
-                                    </div>
-                                    <div class="right_arrow">
-                                        <svg
-                                            class="h-4 w-4 rotate-90"
-                                            width="16"
-                                            height="16"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                        >
-                                            <path d="M9 5L15 12L9 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                        </svg>
-                                    </div>
-                                </a>
-                                <ul class="sub-menu">
-                                    <li>
-                                        <a href="Reservation.html">Reservation</a>
+                                        <a href="Product.html"><span x-text="Alpine.store('i18n').t('product')"></span></a>
                                     </li>
                                 </ul>
                             </li>
@@ -1124,7 +1119,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        Order
+                                        <span x-text="Alpine.store('i18n').t('reservation')"></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -1141,7 +1136,7 @@
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="Order.html">Order</a>
+                                        <a href="Reservation.html"> <span x-text="Alpine.store('i18n').t('reservation')"></span> </a>
                                     </li>
                                 </ul>
                             </li>
@@ -1170,7 +1165,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        Coupon
+                                        <span x-text="Alpine.store('i18n').t('order')"></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -1187,7 +1182,7 @@
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="Coupon.html">Coupon</a>
+                                        <a href="Order.html"> <span x-text="Alpine.store('i18n').t('order')"></span> </a>
                                     </li>
                                 </ul>
                             </li>
@@ -1216,7 +1211,7 @@
                                                 fill="currentColor"
                                             />
                                         </svg>
-                                        Users
+                                        <span x-text="Alpine.store('i18n').t('coupon')"></span>
                                     </div>
                                     <div class="right_arrow">
                                         <svg
@@ -1233,7 +1228,53 @@
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a href="Users.html">Users</a>
+                                        <a href="Coupon.html"> <span x-text="Alpine.store('i18n').t('coupon')"></span> </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="menu nav-item relative">
+                                <a href="javascript:;" class="nav-link">
+                                    <div class="flex items-center">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="shrink-0">
+                                            <path
+                                                d="M4.97883 9.68508C2.99294 8.89073 2 8.49355 2 8C2 7.50645 2.99294 7.10927 4.97883 6.31492L7.7873 5.19153C9.77318 4.39718 10.7661 4 12 4C13.2339 4 14.2268 4.39718 16.2127 5.19153L19.0212 6.31492C21.0071 7.10927 22 7.50645 22 8C22 8.49355 21.0071 8.89073 19.0212 9.68508L16.2127 10.8085C14.2268 11.6028 13.2339 12 12 12C10.7661 12 9.77318 11.6028 7.7873 10.8085L4.97883 9.68508Z"
+                                                fill="currentColor"
+                                            />
+                                            <path
+                                                fill-rule="evenodd"
+                                                clip-rule="evenodd"
+                                                d="M2 8C2 8.49355 2.99294 8.89073 4.97883 9.68508L7.7873 10.8085C9.77318 11.6028 10.7661 12 12 12C13.2339 12 14.2268 11.6028 16.2127 10.8085L19.0212 9.68508C21.0071 8.89073 22 8.49355 22 8C22 7.50645 21.0071 7.10927 19.0212 6.31492L16.2127 5.19153C14.2268 4.39718 13.2339 4 12 4C10.7661 4 9.77318 4.39718 7.7873 5.19153L4.97883 6.31492C2.99294 7.10927 2 7.50645 2 8Z"
+                                                fill="currentColor"
+                                            />
+                                            <path
+                                                opacity="0.7"
+                                                d="M5.76613 10L4.97883 10.3149C2.99294 11.1093 2 11.5065 2 12C2 12.4935 2.99294 12.8907 4.97883 13.6851L7.7873 14.8085C9.77318 15.6028 10.7661 16 12 16C13.2339 16 14.2268 15.6028 16.2127 14.8085L19.0212 13.6851C21.0071 12.8907 22 12.4935 22 12C22 11.5065 21.0071 11.1093 19.0212 10.3149L18.2339 10L16.2127 10.8085C14.2268 11.6028 13.2339 12 12 12C10.7661 12 9.77318 11.6028 7.7873 10.8085L5.76613 10Z"
+                                                fill="currentColor"
+                                            />
+                                            <path
+                                                opacity="0.4"
+                                                d="M5.76613 14L4.97883 14.3149C2.99294 15.1093 2 15.5065 2 16C2 16.4935 2.99294 16.8907 4.97883 17.6851L7.7873 18.8085C9.77318 19.6028 10.7661 20 12 20C13.2339 20 14.2268 19.6028 16.2127 18.8085L19.0212 17.6851C21.0071 16.8907 22 16.4935 22 16C22 15.5065 21.0071 15.1093 19.0212 14.3149L18.2339 14L16.2127 14.8085C14.2268 15.6028 13.2339 16 12 16C10.7661 16 9.77318 15.6028 7.7873 14.8085L5.76613 14Z"
+                                                fill="currentColor"
+                                            />
+                                        </svg>
+                                        <span x-text="Alpine.store('i18n').t('users')"></span>
+                                    </div>
+                                    <div class="right_arrow">
+                                        <svg
+                                            class="h-4 w-4 rotate-90"
+                                            width="16"
+                                            height="16"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <path d="M9 5L15 12L9 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </div>
+                                </a>
+                                <ul class="sub-menu">
+                                    <li>
+                                        <a href="Users.html"> <span x-text="Alpine.store('i18n').t('users')"></span> </a>
                                     </li>
                                 </ul>
                             </li>
@@ -1266,48 +1307,52 @@
                                         class="filter-btn btn"
                                         :class="currentFilter === 'all' ? 'btn-primary' : 'btn-outline-primary'"
                                     >
-                                        All Users
+                                        <span x-text="Alpine.store('i18n').t('all_users')"></span>
                                     </button>
-                          
+
                                     <button
                                         @click="currentFilter='service_provider'; fetchUsers();"
                                         class="filter-btn btn"
                                         :class="currentFilter === 'service_provider' ? 'btn-primary' : 'btn-outline-primary'"
                                     >
-                                        Service Providers
+                                        <span x-text="Alpine.store('i18n').t('service_providers')"></span>
                                     </button>
                                     <button
                                         @click="currentFilter='product_provider'; fetchUsers();"
                                         class="filter-btn btn"
                                         :class="currentFilter === 'product_provider' ? 'btn-primary' : 'btn-outline-primary'"
                                     >
-                                        Product Providers
+                                        <span x-text="Alpine.store('i18n').t('product_providers')"></span>
                                     </button>
                                     <button
                                         @click="currentFilter='driver'; fetchUsers();"
                                         class="filter-btn btn"
                                         :class="currentFilter === 'driver' ? 'btn-primary' : 'btn-outline-primary'"
                                     >
-                                        Drivers
+                                        <span x-text="Alpine.store('i18n').t('drivers')"></span>
                                     </button>
                                 </div>
 
                                 <!-- Users Table -->
                                 <div class="panel mt-6">
-                                    <h5 class="mb-5 text-lg font-semibold dark:text-white-light">Users Management</h5>
-                                    <div x-show="loading" class="py-4 text-center"><span class="mr-2 inline-block animate-spin">↻</span> Loading...</div>
+                                    <h5 class="mb-5 text-lg font-semibold dark:text-white-light">
+                                        <span x-text="Alpine.store('i18n').t('users_management')"></span>
+                                    </h5>
+                                    <div x-show="loading" class="py-4 text-center">
+                                        <span class="mr-2 inline-block animate-spin">↻</span>
+                                        <span x-text="Alpine.store('i18n').t('loading')"></span>
+                                    </div>
 
                                     <div class="table-responsive">
                                         <table class="whitespace-nowrap">
                                             <thead>
                                                 <tr>
                                                     <th>#</th>
-                                                    <th>User</th>
-                                                    <th>Contact Info</th>
-                                                    <th>Type</th>
-                                                    <th>Status</th>
-                                                    <th>Location</th>
-                                                    <th>Actions</th>
+                                                    <th><span x-text="Alpine.store('i18n').t('user')"></span></th>
+                                                    <th><span x-text="Alpine.store('i18n').t('contact_info')"></span></th>
+                                                    <th><span x-text="Alpine.store('i18n').t('type')"></span></th>
+                                                    <th><span x-text="Alpine.store('i18n').t('status')"></span></th>
+                                                    <th><span x-text="Alpine.store('i18n').t('location')"></span></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -1318,7 +1363,10 @@
                                                             <div class="flex items-center">
                                                                 <div>
                                                                     <div x-text="item.user.name" class="font-medium"></div>
-                                                                    <div class="text-xs text-gray-500" x-text="'ID: ' + item.user.national_id"></div>
+                                                                    <div
+                                                                        class="text-xs text-gray-500"
+                                                                        x-text="Alpine.store('i18n').t('id') + item.user.national_id"
+                                                                    ></div>
                                                                 </div>
                                                             </div>
                                                         </td>
@@ -1329,7 +1377,9 @@
                                                                     class="text-primary hover:underline"
                                                                     x-text="item.user.email"
                                                                 ></a>
-                                                                <span x-text="item.user.phone !== 'N/A' ? item.user.phone : 'No phone'"></span>
+                                                                <span
+                                                                    x-text="item.user.phone !== 'N/A' ? item.user.phone : Alpine.store('i18n').t('no_phone')"
+                                                                ></span>
                                                             </div>
                                                         </td>
                                                         <td>
@@ -1346,37 +1396,35 @@
                                                                 class="form-select min-w-[100px]"
                                                                 :class="getStatusClass(item.user.status)"
                                                             >
-                                                                <option value="active">Active</option>
-                                                                <option value="pending">Pending</option>
-                                                                <option value="pand">Pand</option>
-                                                                <option value="banned">Banned</option>
+                                                                <option value="active"><span x-text="Alpine.store('i18n').t('active')"></span></option>
+                                                                <option value="pending"><span x-text="Alpine.store('i18n').t('pending')"></span></option>
+                                                                <option value="pand"><span x-text="Alpine.store('i18n').t('pand')"></span></option>
+                                                                <option value="banned"><span x-text="Alpine.store('i18n').t('banned')"></span></option>
                                                             </select>
                                                         </td>
                                                         <td>
                                                             <div class="flex flex-col">
-                                                                <span x-text="item.profile.address !== 'N/A' ? item.profile.address : 'No address'"></span>
-                                                                <template x-if="item.profile.lang !== 'N/A' && item.profile.lat !== 'N/A'">
+                                                                <span
+                                                                    x-text="item.profile.address !== 'N/A' ? item.profile.address : Alpine.store('i18n').t('no_address')"
+                                                                ></span>
+                                                                <template x-if="item.user.lang !== 'N/A' && item.user.lat !== 'N/A'">
                                                                     <a
                                                                         href="javascript:;"
-                                                                        @click="showOnMap(item.profile.lang, item.profile.lat)"
+                                                                        @click="showOnMap(item.user.lang, item.user.lat)"
                                                                         class="text-xs text-primary hover:underline"
                                                                     >
-                                                                        View on Map
+                                                                        <span x-text="Alpine.store('i18n').t('view_on_map')"></span>
                                                                     </a>
                                                                 </template>
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <div class="flex space-x-2">
-                                                                <button @click="openEditModal(item)" class="btn btn-sm btn-primary">Edit</button>
-                                                                <button @click="openEditInfoModal(item.user)" class="btn btn-sm btn-info">Edit Info</button>
                                                             </div>
                                                         </td>
                                                     </tr>
                                                 </template>
                                                 <template x-if="users.users && users.users.length === 0">
                                                     <tr>
-                                                        <td colspan="7" class="py-4 text-center">No users found</td>
+                                                        <td colspan="7" class="py-4 text-center">
+                                                            <span x-text="Alpine.store('i18n').t('no_users_found')"></span>
+                                                        </td>
                                                     </tr>
                                                 </template>
                                             </tbody>
@@ -1387,13 +1435,19 @@
                                 <!-- Pagination -->
                                 <div class="mt-4 flex items-center justify-between">
                                     <div class="text-sm text-gray-600 dark:text-gray-400">
-                                        Showing <span x-text="(currentPage - 1) * perPage + 1"></span> to
-                                        <span x-text="Math.min(currentPage * perPage, users.pagination?.total || 0)"></span> of
-                                        <span x-text="users.pagination?.total || 0"></span> users
+                                        <span x-text="Alpine.store('i18n').t('showing')"></span>
+                                        <span x-text="(currentPage - 1) * perPage + 1"></span>
+                                        <span x-text="Alpine.store('i18n').t('to')"></span>
+                                        <span x-text="Math.min(currentPage * perPage, users.pagination?.total || 0)"></span>
+                                        <span x-text="Alpine.store('i18n').t('of')"></span>
+                                        <span x-text="users.pagination?.total || 0"></span>
+                                        <span x-text="Alpine.store('i18n').t('users')"></span>
                                     </div>
 
                                     <div class="flex space-x-2">
-                                        <button @click="prevPage()" :disabled="currentPage === 1" class="btn btn-outline-primary px-3 py-1">Previous</button>
+                                        <button @click="prevPage()" :disabled="currentPage === 1" class="btn btn-outline-primary px-3 py-1">
+                                            <span x-text="Alpine.store('i18n').t('previous')"></span>
+                                        </button>
 
                                         <template x-for="page in getVisiblePages()" :key="page">
                                             <button
@@ -1404,7 +1458,9 @@
                                             ></button>
                                         </template>
 
-                                        <button @click="nextPage()" :disabled="currentPage === lastPage" class="btn btn-outline-primary px-3 py-1">Next</button>
+                                        <button @click="nextPage()" :disabled="currentPage === lastPage" class="btn btn-outline-primary px-3 py-1">
+                                            <span x-text="Alpine.store('i18n').t('next')"></span>
+                                        </button>
                                     </div>
                                 </div>
 
@@ -1412,10 +1468,12 @@
                                 <div x-show="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" x-cloak>
                                     <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" @click="showModal = false"></div>
 
-                                    <div class="max-h-[90vh] w-full max-w-5xl transform overflow-y-auto rounded-lg bg-white shadow-xl transition-all">
+                                    <div class="max-h-[90vh] w-full max-w-4xl transform overflow-y-auto rounded-lg bg-white shadow-xl transition-all">
                                         <div class="p-6">
                                             <div class="flex items-start justify-between">
-                                                <h3 class="text-xl font-bold text-gray-900">تعديل موقع المستخدم</h3>
+                                                <h3 class="text-xl font-bold text-gray-900">
+                                                    <span x-text="Alpine.store('i18n').t('edit_user_location')"></span>
+                                                </h3>
                                                 <button @click="showModal = false" class="text-gray-500 hover:text-gray-700">
                                                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -1423,14 +1481,13 @@
                                                 </button>
                                             </div>
 
-                                            <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+                                            <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
                                                 <!-- Map Column -->
-                                                <div class="lg:col-span-2">
+                                                <div>
                                                     <div class="relative h-96 w-full rounded-lg border border-gray-300">
-                                                        <!-- Map will be loaded here -->
                                                         <div id="editUserMap" class="absolute inset-0 rounded-lg"></div>
                                                         <div class="absolute left-2 top-2 z-10 rounded bg-white p-2 shadow">
-                                                            <p class="text-sm text-gray-600">انقر على الخريطة لتحديد الموقع</p>
+                                                            <p class="text-sm text-gray-600">Click on the map to select location</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1438,7 +1495,9 @@
                                                 <!-- Form Column -->
                                                 <div class="space-y-4">
                                                     <div>
-                                                        <label class="block text-sm font-medium text-gray-700">العنوان</label>
+                                                        <label class="block text-sm font-medium text-gray-700">
+                                                            <span x-text="Alpine.store('i18n').t('address')"></span>
+                                                        </label>
                                                         <input
                                                             x-model="editData.profile.address"
                                                             type="text"
@@ -1448,18 +1507,22 @@
 
                                                     <div class="grid grid-cols-2 gap-4">
                                                         <div>
-                                                            <label class="block text-sm font-medium text-gray-700">خط الطول</label>
+                                                            <label class="block text-sm font-medium text-gray-700">
+                                                                <span x-text="Alpine.store('i18n').t('longitude')"></span>
+                                                            </label>
                                                             <input
-                                                                x-model="editData.profile.lang"
+                                                                x-model="editData.user.lang"
                                                                 type="text"
                                                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                                                                 readonly
                                                             />
                                                         </div>
                                                         <div>
-                                                            <label class="block text-sm font-medium text-gray-700">خط العرض</label>
+                                                            <label class="block text-sm font-medium text-gray-700">
+                                                                <span x-text="Alpine.store('i18n').t('latitude')"></span>
+                                                            </label>
                                                             <input
-                                                                x-model="editData.profile.lat"
+                                                                x-model="editData.user.lat"
                                                                 type="text"
                                                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                                                                 readonly
@@ -1468,7 +1531,9 @@
                                                     </div>
 
                                                     <div>
-                                                        <label class="block text-sm font-medium text-gray-700">صورة الملف الشخصي</label>
+                                                        <label class="block text-sm font-medium text-gray-700">
+                                                            <span x-text="Alpine.store('i18n').t('profile_image')"></span>
+                                                        </label>
                                                         <input
                                                             type="file"
                                                             @change="handleImageUpload"
@@ -1482,120 +1547,16 @@
                                                             type="button"
                                                             class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                                                         >
-                                                            إلغاء
+                                                            <span x-text="Alpine.store('i18n').t('cancel')"></span>
                                                         </button>
                                                         <button
                                                             @click="updateUserProfile"
                                                             type="button"
                                                             class="hover:bg-primary-dark rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                                                         >
-                                                            حفظ التغييرات
+                                                            <span x-text="Alpine.store('i18n').t('save_changes')"></span>
                                                         </button>
                                                     </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Edit Info Modal -->
-                                <!-- Edit User Info Modal -->
-                                <div x-show="showInfoModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" x-cloak>
-                                    <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" @click="showInfoModal = false"></div>
-
-                                    <div class="max-h-[90vh] w-full max-w-md transform overflow-y-auto rounded-lg bg-white shadow-xl transition-all">
-                                        <div class="p-6">
-                                            <div class="flex items-start justify-between">
-                                                <h3 class="text-xl font-bold text-gray-900">تعديل المعلومات الأساسية</h3>
-                                                <button @click="showInfoModal = false" class="text-gray-500 hover:text-gray-700">
-                                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-
-                                            <div class="mt-6 space-y-4">
-                                                <!-- Name Field -->
-                                                <div>
-                                                    <label class="block text-sm font-medium text-gray-700">الاسم الكامل</label>
-                                                    <input
-                                                        x-model="editInfoData.name"
-                                                        type="text"
-                                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                                                    />
-                                                </div>
-
-                                                <!-- Email Field -->
-                                                <div>
-                                                    <label class="block text-sm font-medium text-gray-700">البريد الإلكتروني</label>
-                                                    <input
-                                                        x-model="editInfoData.email"
-                                                        type="email"
-                                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                                                    />
-                                                </div>
-
-                                                <!-- Phone Field -->
-                                                <div>
-                                                    <label class="block text-sm font-medium text-gray-700">رقم الهاتف</label>
-                                                    <input
-                                                        x-model="editInfoData.phone"
-                                                        type="tel"
-                                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                                                    />
-                                                </div>
-
-                                                <!-- Password Fields -->
-                                                <div class="border-t border-gray-200 pt-2">
-                                                    <h4 class="mb-3 text-sm font-medium text-gray-700">تغيير كلمة المرور</h4>
-
-                                                    <!-- Current Password -->
-                                                    <div class="mb-3">
-                                                        <label class="block text-sm font-medium text-gray-700">كلمة المرور الحالية</label>
-                                                        <input
-                                                            x-model="editInfoData.current_password"
-                                                            type="password"
-                                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                                                        />
-                                                    </div>
-
-                                                    <!-- New Password -->
-                                                    <div class="mb-3">
-                                                        <label class="block text-sm font-medium text-gray-700">كلمة المرور الجديدة</label>
-                                                        <input
-                                                            x-model="editInfoData.password"
-                                                            type="password"
-                                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                                                        />
-                                                    </div>
-
-                                                    <!-- Confirm Password -->
-                                                    <div>
-                                                        <label class="block text-sm font-medium text-gray-700">تأكيد كلمة المرور</label>
-                                                        <input
-                                                            x-model="editInfoData.password_confirmation"
-                                                            type="password"
-                                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <!-- Action Buttons -->
-                                                <div class="flex justify-end space-x-3 pt-4">
-                                                    <button
-                                                        @click="showInfoModal = false"
-                                                        type="button"
-                                                        class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                                                    >
-                                                        إلغاء
-                                                    </button>
-                                                    <button
-                                                        @click="updateUserInfo"
-                                                        type="button"
-                                                        class="hover:bg-primary-dark rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                                                    >
-                                                        حفظ التغييرات
-                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -1609,33 +1570,9 @@
 
                 <!-- start footer section -->
                 <div class="mt-auto p-6 text-center dark:text-white-dark ltr:sm:text-left rtl:sm:text-right">
-                    © <span id="footer-year">2022</span>. Developed By High Level Technology.
+                    © <span id="footer-year">2025</span>. Developed By High Level Technology.
                 </div>
                 <!-- end footer section -->
-            </div>
-        </div>
-        <!-- Modal for Delete Confirmation -->
-        <!-- Delete Confirmation Modal -->
-        <div
-            x-data
-            x-show="$store.deleteModal.isOpen"
-            x-transition
-            class="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 p-4"
-            style="display: none"
-            x-cloak
-        >
-            <div class="w-full max-w-sm rounded-lg bg-white shadow-lg dark:bg-gray-800">
-                <div class="flex items-center justify-between border-b p-4 dark:border-gray-700">
-                    <h3 class="text-lg font-bold">Delete Confirmation</h3>
-                    <button @click="$store.deleteModal.closeModal()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">✕</button>
-                </div>
-                <div class="p-4">
-                    <p class="text-gray-700 dark:text-gray-300">"Are you sure you want to delete this Rate?"</p>
-                </div>
-                <div class="flex justify-end gap-2 border-t p-4 dark:border-gray-700">
-                    <button @click="$store.deleteModal.closeModal()" class="btn btn-outline-danger">No</button>
-                    <button @click="$store.deleteModal.confirmDelete()" class="btn btn-primary">Yes</button>
-                </div>
             </div>
         </div>
 
@@ -1679,7 +1616,54 @@
                     showCustomizer: false,
                 }));
 
-                // sidebar section
+                Alpine.store('i18n', {
+                    locale: localStorage.getItem('language') || 'en',
+                    translations: {},
+
+                    async init() {
+                        await this.loadTranslations(this.locale);
+                    },
+
+                    async loadTranslations(locale) {
+                        try {
+                            const response = await fetch(`lang/${locale}.json`);
+                            if (!response.ok) throw new Error('Failed to load translations');
+                            this.translations = await response.json();
+                            this.locale = locale;
+                            localStorage.setItem('language', locale);
+                            this.applyDirection(locale);
+                        } catch (error) {
+                            console.error('Error loading translations:', error);
+                            if (locale !== 'en') await this.loadTranslations('en');
+                        }
+                    },
+
+                    async setLocale(locale) {
+                        await this.loadTranslations(locale);
+                        // إعادة تحميل المكونات التي تحتاج للتحديث
+                        if (window.multipleTable) {
+                            window.multipleTable.fetchManagers();
+                        }
+                    },
+
+                    t(key) {
+                        return this.translations[key] || key;
+                    },
+
+                    applyDirection(locale) {
+                        if (locale === 'ar') {
+                            document.documentElement.lang = 'ar';
+                        } else {
+                            document.documentElement.lang = 'en';
+                        }
+                    },
+                });
+
+                // استدعاء init عند التحميل
+                Alpine.store('i18n').init();
+                Alpine.data('customizer', () => ({
+                    showCustomizer: false,
+                }));
                 Alpine.data('sidebar', () => ({
                     init() {
                         const selector = document.querySelector('.sidebar ul a[href="' + window.location.pathname + '"]');
@@ -1722,6 +1706,19 @@
                 });
                 // header section
                 Alpine.data('header', () => ({
+                    languages: [
+                        {
+                            id: 3,
+                            key: 'English',
+                            value: 'en',
+                        },
+
+                        {
+                            id: 16,
+                            key: 'Arabic',
+                            value: 'ae',
+                        },
+                    ],
                     init() {
                         const selector = document.querySelector('ul.horizontal-menu a[href="' + window.location.pathname + '"]');
                         if (selector) {
@@ -1827,7 +1824,7 @@
                     },
                     async init() {
                         await this.fetchUsers();
-                        this.loadGoogleMaps();
+                        // this.loadGoogleMaps();
                     },
 
                     async fetchUsers() {
@@ -1849,9 +1846,7 @@
                             });
 
                             const data = await response.json();
-                            console.log(data);
                             this.users = data;
-                            console.log(this.users, 'sss');
                             this.perPage = data.pagination?.per_page || 10;
                             this.lastPage = data.pagination?.last_page || 1;
                             this.total = data.pagination?.total || 0;
@@ -1899,76 +1894,6 @@
                         this.showModal = true;
                     },
 
-                    openEditInfoModal(user) {
-                        this.editInfoData = {
-                            name: user.name || '',
-                            email: user.email || '',
-                            phone: user.phone !== 'N/A' ? user.phone : '',
-                            current_password: '',
-                            password: '',
-                            password_confirmation: '',
-                        };
-                        this.showInfoModal = true;
-                    },
-                    async updateUserInfo() {
-                        try {
-                            const token = localStorage.getItem('authToken');
-                            const updateData = [];
-
-                            // Add fields to update
-                            if (this.editInfoData.name) {
-                                updateData.push({
-                                    key: 'name',
-                                    value: this.editInfoData.name,
-                                    enabled: true,
-                                });
-                            }
-
-                            if (this.editInfoData.phone) {
-                                updateData.push({
-                                    key: 'phone',
-                                    value: this.editInfoData.phone,
-                                    enabled: true,
-                                });
-                            }
-
-                            if (this.editInfoData.password) {
-                                updateData.push(
-                                    {
-                                        key: 'current_password',
-                                        value: this.editInfoData.current_password,
-                                        enabled: true,
-                                    },
-                                    {
-                                        key: 'password',
-                                        value: this.editInfoData.password,
-                                        enabled: true,
-                                    },
-                                    {
-                                        key: 'password_confirmation',
-                                        value: this.editInfoData.password_confirmation,
-                                        enabled: true,
-                                    }
-                                );
-                            }
-
-                            const response = await fetch(`${this.apiBaseUrl}/api/admin/profile/info/update/${this.editData.user.id}`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    Authorization: `Bearer ${token}`,
-                                },
-                                body: JSON.stringify(updateData),
-                            });
-
-                            coloredToast('success', 'تم تحديث معلومات المستخدم بنجاح');
-                            this.showInfoModal = false;
-                            await this.fetchUsers();
-                        } catch (error) {
-                            coloredToast('error', error.message || 'فشل في تحديث معلومات المستخدم');
-                        }
-                    },
-
                     async updateUserProfile() {
                         try {
                             const token = localStorage.getItem('authToken');
@@ -1976,8 +1901,8 @@
 
                             // Prepare data for API
                             const updateData = [
-                                { key: 'lang', value: this.editData.profile.lang, type: 'text', enabled: true },
-                                { key: 'lat', value: this.editData.profile.lat, type: 'text', enabled: true },
+                                { key: 'lang', value: this.editData.user.lang, type: 'text', enabled: true },
+                                { key: 'lat', value: this.editData.user.lat, type: 'text', enabled: true },
                                 { key: 'address', value: this.editData.profile.address, type: 'text', enabled: true },
                             ];
 
@@ -2001,11 +1926,11 @@
                                 throw new Error(`Request failed with status ${response.status}`);
                             }
 
-                            coloredToast('success', 'User profile updated successfully');
+                            coloredToast('success', Alpine.store('i18n').t('user_profile_updated'));
                             this.showModal = false;
                             await this.fetchUsers();
                         } catch (error) {
-                            coloredToast('error', error.message || 'Failed to update user profile');
+                            coloredToast('error', error.message || Alpine.store('i18n').t('update_profile_failed'));
                         }
                     },
 
@@ -2013,7 +1938,7 @@
                         try {
                             const token = localStorage.getItem('authToken');
                             const response = await fetch(`${this.apiBaseUrl}/api/admin/profile/status/update/${userId}?status=${status}`, {
-                                method: 'POST',
+                                method: 'PUT',
                                 headers: {
                                     'Content-Type': 'application/json',
                                     Authorization: `Bearer ${token}`,
@@ -2033,9 +1958,9 @@
                                 throw new Error(`Request failed with status ${response.status}`);
                             }
 
-                            coloredToast('success', 'User status updated successfully');
+                            coloredToast('success', Alpine.store('i18n').t('user_status_updated'));
                         } catch (error) {
-                            coloredToast('error', error.message || 'Failed to update user status');
+                            coloredToast('error', error.message || Alpine.store('i18n').t('update_status_failed'));
                         }
                     },
 
@@ -2067,112 +1992,99 @@
 
                         return pages;
                     },
-                    loadGoogleMaps() {
-                        if (!window.google) {
-                            const script = document.createElement('script');
-                            script.src = `https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap`;
-                            script.async = true;
-                            script.defer = true;
-                            document.head.appendChild(script);
-                            window.initMap = this.initMap.bind(this);
-                        }
-                    },
+                    // loadGoogleMaps() {
+                    //     if (!window.google) {
+                    //         const script = document.createElement('script');
+                    //         script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDkf2Hu6wGypUutGJwgyOCj9u6Ik3jYZZw&callback=initMap`;
+                    //         script.async = true;
+                    //         script.defer = true;
+                    //         document.head.appendChild(script);
+                    //         window.initMap = this.initMap.bind(this);
+                    //     }
+                    // },
 
-                    initMap() {
-                        // This will be called when Google Maps API is loaded
-                        console.log('Google Maps API loaded');
-                    },
+                    // initMap() {
+                    //     // This will be called when Google Maps API is loaded
+                    // },
 
-                    openEditModal(user) {
-                        this.editData = JSON.parse(JSON.stringify(user));
-                        this.showModal = true;
+                    // openEditModal(user) {
+                    //     this.editData = JSON.parse(JSON.stringify(user));
+                    //     this.showModal = true;
 
-                        // Initialize map after modal is shown
-                        this.$nextTick(() => {
-                            this.initUserMap();
-                        });
-                    },
+                    //     // Initialize map after modal is shown
+                    //     this.$nextTick(() => {
+                    //         this.initUserMap();
+                    //     });
+                    // },
 
-                    initUserMap() {
-                        const initialLat = this.editData.profile.lat !== 'N/A' ? parseFloat(this.editData.profile.lat) : 24.7136;
-                        const initialLng = this.editData.profile.lang !== 'N/A' ? parseFloat(this.editData.profile.lang) : 46.6753;
+                    // initUserMap() {
+                    //     const initialLat = this.editData.user.lat !== 'N/A' ? parseFloat(this.editData.user.lat) : 24.7136;
+                    //     const initialLng = this.editData.user.lang !== 'N/A' ? parseFloat(this.editData.user.lang) : 46.6753;
 
-                        this.map = new google.maps.Map(document.getElementById('editUserMap'), {
-                            center: { lat: initialLat, lng: initialLng },
-                            zoom: 12,
-                            streetViewControl: false,
-                            mapTypeControl: false,
-                        });
+                    //     this.map = new google.maps.Map(document.getElementById('editUserMap'), {
+                    //         center: { lat: initialLat, lng: initialLng },
+                    //         zoom: 12,
+                    //         streetViewControl: false,
+                    //         mapTypeControl: false,
+                    //     });
 
-                        // Add initial marker
-                        if (this.editData.profile.lat !== 'N/A' && this.editData.profile.lang !== 'N/A') {
-                            this.marker = new google.maps.Marker({
-                                position: { lat: initialLat, lng: initialLng },
-                                map: this.map,
-                                draggable: true,
-                            });
-                        }
+                    //     // Add initial marker
+                    //     if (this.editData.user.lat !== 'N/A' && this.editData.user.lang !== 'N/A') {
+                    //         this.marker = new google.maps.Marker({
+                    //             position: { lat: initialLat, lng: initialLng },
+                    //             map: this.map,
+                    //             draggable: true,
+                    //         });
+                    //     }
 
-                        // Add click listener to map
-                        this.map.addListener('click', (e) => {
-                            this.handleMapClick(e);
-                        });
+                    //     // Add click listener to map
+                    //     this.map.addListener('click', (e) => {
+                    //         this.handleMapClick(e);
+                    //     });
 
-                        // Add dragend listener to marker
-                        if (this.marker) {
-                            this.marker.addListener('dragend', (e) => {
-                                this.handleMarkerDrag(e);
-                            });
-                        }
-                    },
+                    //     // Add dragend listener to marker
+                    //     if (this.marker) {
+                    //         this.marker.addListener('dragend', (e) => {
+                    //             this.handleMarkerDrag(e);
+                    //         });
+                    //     }
+                    // },
 
-                    handleMapClick(e) {
-                        const lat = e.latLng.lat();
-                        const lng = e.latLng.lng();
+                    // handleMapClick(e) {
+                    //     const lat = e.latLng.lat();
+                    //     const lng = e.latLng.lng();
 
-                        this.editData.profile.lat = lat.toString();
-                        this.editData.profile.lang = lng.toString();
+                    //     this.editData.user.lat = lat.toString();
+                    //     this.editData.user.lang = lng.toString();
 
-                        // Update or create marker
-                        if (!this.marker) {
-                            this.marker = new google.maps.Marker({
-                                position: e.latLng,
-                                map: this.map,
-                                draggable: true,
-                            });
+                    //     // Update or create marker
+                    //     if (!this.marker) {
+                    //         this.marker = new google.maps.Marker({
+                    //             position: e.latLng,
+                    //             map: this.map,
+                    //             draggable: true,
+                    //         });
 
-                            // Add dragend listener to new marker
-                            this.marker.addListener('dragend', (e) => {
-                                this.handleMarkerDrag(e);
-                            });
-                        } else {
-                            this.marker.setPosition(e.latLng);
-                        }
+                    //         // Add dragend listener to new marker
+                    //         this.marker.addListener('dragend', (e) => {
+                    //             this.handleMarkerDrag(e);
+                    //         });
+                    //     } else {
+                    //         this.marker.setPosition(e.latLng);
+                    //     }
 
-                        // Get address using Geocoder
-                        this.geocodePosition(e.latLng);
-                    },
+                    //     // Get address using Geocoder
+                    //     this.geocodePosition(e.latLng);
+                    // },
 
-                    handleMarkerDrag(e) {
-                        const lat = e.latLng.lat();
-                        const lng = e.latLng.lng();
-
-                        this.editData.profile.lat = lat.toString();
-                        this.editData.profile.lang = lng.toString();
-
-                        // Get address using Geocoder
-                        this.geocodePosition(e.latLng);
-                    },
-
-                    geocodePosition(pos) {
-                        const geocoder = new google.maps.Geocoder();
-                        geocoder.geocode({ location: pos }, (results, status) => {
-                            if (status === 'OK' && results[0]) {
-                                this.editData.profile.address = results[0].formatted_address;
-                            }
-                        });
-                    },
-
+                    // geocodePosition(pos) {
+                    //     const geocoder = new google.maps.Geocoder();
+                    //     geocoder.geocode({ location: pos }, (results, status) => {
+                    //         if (status === 'OK' && results[0]) {
+                    //             this.editData.profile.address = results[0].formatted_address;
+                    //         }
+                    //     });
+                    // },
                     prevPage() {
                         if (this.currentPage > 1) {
                             this.currentPage--;
@@ -2213,9 +2125,8 @@
                                 throw new Error(errorData.message || 'فشل تسجيل الخروج');
                             }
 
-                            // إزالة التوكن وإعادة التوجيه
                             localStorage.removeItem('authToken');
-                            window.location.href = 'auth-boxed-signin.html'; // صفحة تسجيل الدخول
+                            window.location.href = 'auth-boxed-signin.html';
                         } catch (error) {
                             alert('حدث خطأ أثناء تسجيل الخروج. يرجى المحاولة لاحقًا.', error);
                         }

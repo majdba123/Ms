@@ -212,7 +212,15 @@ public function getProfile(): JsonResponse
                 'message' => 'المستخدم غير مسجل الدخول'
             ], 401);
         }
-
+        if($user->Driver)
+        {
+            $x=$user->Driver->status;
+        }elseif($user->Provider_Product)
+        {
+            $x=$user->Provider_Product->status;
+        }else{
+            $x=$user->Provider_service->status;
+        }
         $response = [
             'success' => true,
             'data' => [
@@ -226,6 +234,9 @@ public function getProfile(): JsonResponse
                     'lang' => $user->lang ?? 'N/A',
                     'lat' => $user->lat ?? 'N/A',
                     'type' => $user->type ?? 'N/A',
+                    'user_status' => $user->status ?? 'N/A',
+                    'status' => $x ?? 'N/A',
+
                 ],
                 'profile' => [
 

@@ -34,7 +34,7 @@ class DriverServic
         $driver->status = $status;
         $driver->save();
 
-        return $this->formatResponse($driver, null, 'Vendor status updated successfully');
+        return $this->formatResponse($driver, null, 'driver status updated successfully');
     }
 
 

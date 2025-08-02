@@ -9,7 +9,7 @@ class FoodTypeController extends Controller
 {
   public function index()
     {
-        $foodTypes = FoodType::with('FoodType_ProductProvider');
+        $foodTypes = FoodType::with('FoodType_ProductProvider')->get();
         return response()->json([
             'success' => true,
             'data' => $foodTypes

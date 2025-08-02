@@ -20,6 +20,8 @@ class Order_Product extends Model
         'discount_applied', // هل تم تطبيق خصم
         'discount_value',   // قيمة الخصم
         'discount_type',    // نوع الخصم (percentage, fixed, etc)
+            'created_at',    // إضافة created_at
+    'updated_at',    // إضافة updated_at
     ];
 
 

@@ -53,8 +53,6 @@ class AdminController extends Controller
 
             return response()->json([
                 'message' => $data['message'],
-                'vendor_id' => $data['vendor_id'],
-                'status' => $data['status'],
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Return a custom response for validation errors
@@ -80,8 +78,6 @@ class AdminController extends Controller
 
             return response()->json([
                 'message' => $data['message'],
-                'vendor_id' => $vendorId,
-                'status' =>  $request->status,
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Return a custom response for validation errors

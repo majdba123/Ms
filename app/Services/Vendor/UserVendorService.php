@@ -30,6 +30,7 @@ class UserVendorService
             'image_national_id' => $user ? ($user->image_path ?? null) : ($vendor->user->image_path ?? null),
         ],
         'message' => $message ?: null,
+
     ];
 
     return array_merge($response, $additionalData);

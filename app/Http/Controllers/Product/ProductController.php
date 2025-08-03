@@ -121,11 +121,28 @@ public function store(StoreProductRequest $request): JsonResponse
 
         // التحقق من نوع الفئة
         $category = Category::find($request->category_id);
-        if ($category->type != $providerType) {
-            $typeName = $providerType == 1 ? 'service providers' : 'product providers';
-            return response()->json(['message' => "The category must be of type $providerType for $typeName"], 422);
+        if (!$category) {
+            return response()->json(['message' => 'Category not found'], 404);
         }
 
+        // إذا كان المستخدم food_provider
+        if (Auth::user()->type == 'food_provider') {
+            if ($category->type != 2) {
+                return response()->json(['message' => 'Food providers must use category type 2'], 422);
+            }
+        }
+        // إذا كان مزود منتجات عادي
+        else if ($providerType == 0) {
+            if ($category->type != 0) {
+                return response()->json(['message' => 'Product providers must use category type 0'], 422);
+            }
+        }
+        // إذا كان مزود خدمة
+        else if ($providerType == 1) {
+            if ($category->type != 1) {
+                return response()->json(['message' => 'Service providers must use category type 1'], 422);
+            }
+        }
         // إنشاء المنتج
         $productData = $request->validated();
         $productData['provider_type'] = $providerType;
@@ -207,13 +224,20 @@ public function store(StoreProductRequest $request): JsonResponse
         // التحقق من نوع الفئة إذا تم إرسال category_id
         if ($request->has('category_id')) {
             $category = Category::find($request->category_id);
-            $expectedType = $request->is('api/admin*')
-                ? ($product->providerable_type == 'App\\Models\\Provider_Service' ? 1 : 0)
-                : ($request->is('api/service_provider*') ? 1 : 0);
 
-            if ($category->type != $expectedType) {
-                $typeName = $expectedType == 1 ? 'service providers' : 'product providers';
-                return response()->json(['message' => "The category must be of type $expectedType for $typeName"], 422);
+            if (Auth::user()->type == 'food_provider') {
+                if ($category->type != 2) {
+                    return response()->json(['message' => 'Food providers must use category type 2'], 422);
+                }
+            } else {
+                $expectedType = $request->is('api/admin*')
+                    ? ($product->providerable_type == 'App\\Models\\Provider_Service' ? 1 : 0)
+                    : ($request->is('api/service_provider*') ? 1 : 0);
+
+                if ($category->type != $expectedType) {
+                    $typeName = $expectedType == 1 ? 'service providers' : 'product providers';
+                    return response()->json(['message' => "The category must be of type $expectedType for $typeName"], 422);
+                }
             }
         }
 
@@ -229,7 +253,7 @@ public function store(StoreProductRequest $request): JsonResponse
 
                 Storage::disk('public')->put($imagePath, file_get_contents($imageFile));
 
-                $imageUrl = url('api/storage/' . $imagePath); // استخدام url بدلاً من asset
+                $imageUrl = url('api/storage/' . $imagePath);
 
                 $image = Imag_Product::create([
                     'product_id' => $product->id,
@@ -239,7 +263,7 @@ public function store(StoreProductRequest $request): JsonResponse
                 $imageUrls[] = $imageUrl;
             }
 
-            // حذف الصور القديمة بنفس الطريقة السابقة
+            // حذف الصور القديمة
             foreach ($oldImages as $oldImage) {
                 $this->deleteOldImage($oldImage->imag);
                 $oldImage->delete();
@@ -263,6 +287,10 @@ public function store(StoreProductRequest $request): JsonResponse
         ], 500);
     }
 }
+
+
+
+
 
 protected function deleteOldImage(string $imageUrl)
 {

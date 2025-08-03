@@ -15,6 +15,8 @@ class DriverSeeder extends Seeder
     {
         Driver::create([
             'user_id' => 6,
+                        'status' =>"active",
+
         ]);
 
     }

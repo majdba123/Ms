@@ -92,7 +92,7 @@ class DashboardController extends Controller
             'status' => 'required|in:active,refuse,inactive'
         ], [
             'status.required' => 'The status field is required.',
-            'status.in' => 'The status must be one of the following: pending, active, finished.'
+            'status.in' => 'The status must be one of the following: refuse, active, inactive.'
         ]);
 
         // إذا فشل التحقق، ارجع رسالة خطأ

@@ -80,10 +80,6 @@ class SubscribeService
     {
         $subscription = Subscribe::find($id);
 
-        if (!$subscription || $subscription->status !== 'pending') {
-            throw new \Exception('Subscription not found or status is not pending.');
-        }
-
         $subscription->status = $newStatus;
         $subscription->start_date = Carbon::now();
         $subscription->end_date = Carbon::now()->addMonths($subscription->WebSub->time);

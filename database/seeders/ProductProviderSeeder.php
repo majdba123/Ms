@@ -15,10 +15,13 @@ class ProductProviderSeeder extends Seeder
     {
         Provider_Product::create([
             'user_id' => 4,
+            'status' =>"active",
         ]);
 
         Provider_Product::create([
             'user_id' => 5,
+                        'status' =>"active",
+
         ]);
 
     }

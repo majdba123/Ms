@@ -67,9 +67,7 @@ class RatingController extends Controller
         // تحقق من أن الـ providerable_type يتطابق مع نوع الـ provider المستخدم و قم بتحميل المزود المرتبط بالمنتج
         $provider = $providerableType::find($providerableId);
         // التحقق من أن المنتج يخص المستخدم الذي تم المصادقة عليه
-        if (!$provider || $provider->user_id !== $user->id) {
-            return ['message' => 'Unauthorized', 'status' => 403];
-        }
+
         $result = $this->ratingService->GetAllRateProduct($product_id);
 
 

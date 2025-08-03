@@ -15,6 +15,8 @@ class ProductServicesSeeder extends Seeder
     {
         Provider_Service::create([
             'user_id' => 3,
+                        'status' =>"active",
+
         ]);
 
     }

@@ -391,8 +391,8 @@ public function updateProfile(Request $request): JsonResponse
         // إضافة بيانات البروفايل إذا كانت موجودة
         if ($user->Profile) {
             $response['data']['location'] = [
-                'lat' => $user->Profile->lat ?? null,
-                'lang' => $user->Profile->lang ?? null
+                'lat' => $user->lat ?? null,
+                'lang' => $user->lang ?? null
             ];
             $response['data']['address'] = $user->Profile->address ?? null;
             $response['data']['image'] = $user->Profile->image ?? null;

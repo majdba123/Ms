@@ -32,7 +32,7 @@ class OrderController extends Controller
     }
 
 
-    public function getUserOrders(Request $request)
+   public function getUserOrders(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'status' => 'required|string|in:all,pending,complete,cancelled',
@@ -49,12 +49,35 @@ class OrderController extends Controller
         $status = $request->status;
 
         $orders = Order::where('user_id', $user->id)
-                      ->when($status !== 'all', fn($q) => $q->where('status', $status))
-                      ->with(['Order_Product.product.discount', 'coupons'])
-                      ->get();
+                    ->when($status !== 'all', fn($q) => $q->where('status', $status))
+                    ->with([
+                        'Order_Product.product.discount',
+                        'Order_Product.product.images', // إضافة علاقة صور المنتج
+                        'coupons'
+                    ])
+                    ->get();
 
         $formattedOrders = $orders->map(function($order) {
-            return $this->formatOrder($order);
+            $formatted = $this->formatOrder($order);
+
+            // إضافة note للطلب
+            $formatted['note'] = $order->note;
+
+            // إضافة صور المنتجات لكل عنصر في الطلب
+            if (isset($formatted['products'])) {
+                foreach ($formatted['products'] as &$product) {
+                    if (isset($product['product'])) {
+                        $product['product']['images'] = $product['product']->images->map(function($image) {
+                            return [
+                                'image_id' => $image->id,
+                                'image_url' => $image->imag
+                            ];
+                        });
+                    }
+                }
+            }
+
+            return $formatted;
         });
 
         return response()->json([
@@ -63,7 +86,6 @@ class OrderController extends Controller
             'message' => 'Orders retrieved successfully'
         ]);
     }
-
     public function getProductOrder($order_id)
     {
         $user = Auth::user();

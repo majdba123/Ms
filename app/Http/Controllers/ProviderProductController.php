@@ -25,9 +25,13 @@ class ProviderProductController extends Controller
             $vendor = Provider_Product::findOrFail($user_id->Provider_Product->id);
         }
 
-        // الحصول على الطلبات مع العلاقات
+        // الحصول على الطلبات مع العلاقات بما فيها صور المنتج
         $orders = $vendor->orders()
-            ->with(['order:id,delivery_fee,user_id,status,created_at', 'product:id,name'])
+            ->with([
+                'order:id,note,delivery_fee,user_id,status,created_at',
+                'product:id,name',
+                'product.images' // إضافة العلاقة لصور المنتج
+            ])
             ->get();
 
         // تجميع العناصر حسب order_id
@@ -43,7 +47,13 @@ class ProviderProductController extends Controller
                         'total_price' => $item->total_price,
                         'quantity' => $item->quantity,
                         'status' => $item->status,
-                        'created_at' => $item->created_at
+                        'created_at' => $item->created_at,
+                        'product_images' => $item->product->images->map(function($image) {
+                            return [
+                                'image_id' => $image->id,
+                                'image_url' => $image->imag // افترض أن هناك حقل 'url' في جدول الصور
+                            ];
+                        })
                     ];
                 })
             ];
@@ -52,43 +62,53 @@ class ProviderProductController extends Controller
         return response()->json(['orders' => $groupedOrders], 200);
     }
 
-public function getVendorOrdersByStatus(Request $request)
-{
-    $request->validate([
-        'status' => 'required|string|in:pending,complete,cancelled,on_way,accepted',
-    ]);
+   public function getVendorOrdersByStatus(Request $request)
+    {
+        $request->validate([
+            'status' => 'required|string|in:pending,complete,cancelled,on_way,accepted',
+        ]);
 
-    $status = $request->status;
-    $user_id = Auth::user();
-    $vendor = Provider_Product::findOrFail($user_id->Provider_Product->id);
+        $status = $request->status;
+        $user_id = Auth::user();
+        $vendor = Provider_Product::findOrFail($user_id->Provider_Product->id);
 
-    // جلب الطلبات مع الفلترة حسب الحالة
-    $orders = $vendor->orders()
-        ->where('status', $status)
-        ->with(['order:id,delivery_fee,user_id,status,created_at', 'product:id,name'])
-        ->get();
+        // جلب الطلبات مع الفلترة حسب الحالة وإضافة العلاقة لصور المنتج
+        $orders = $vendor->orders()
+            ->where('status', $status)
+            ->with([
+                'order:id,delivery_fee,user_id,note,status,created_at',
+                'product:id,name',
+                'product.images' // إضافة العلاقة لصور المنتج
+            ])
+            ->get();
 
-    // تجميع العناصر حسب order_id
-    $groupedOrders = $orders->groupBy('order_id')->map(function ($items) {
-        return [
-            'order_id' => $items->first()->order_id,
-            'order_details' => $items->first()->order,
-            'products' => $items->map(function ($item) {
-                return [
-                    'order_product_id' => $item->id,
-                    'product_id' => $item->product_id,
-                    'product_name' => $item->product->name,
-                    'total_price' => $item->total_price,
-                    'quantity' => $item->quantity,
-                    'status' => $item->status,
-                    'created_at' => $item->created_at
-                ];
-            })
-        ];
-    })->values();
+        // تجميع العناصر حسب order_id مع إضافة بيانات الصور
+        $groupedOrders = $orders->groupBy('order_id')->map(function ($items) {
+            return [
+                'order_id' => $items->first()->order_id,
+                'order_details' => $items->first()->order,
+                'products' => $items->map(function ($item) {
+                    return [
+                        'order_product_id' => $item->id,
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product->name,
+                        'total_price' => $item->total_price,
+                        'quantity' => $item->quantity,
+                        'status' => $item->status,
+                        'created_at' => $item->created_at,
+                        'product_images' => $item->product->images->map(function($image) {
+                            return [
+                                'image_id' => $image->id,
+                                'image_url' => $image->imag // تعديل هذا الحقل حسب هيكل جدول الصور لديك
+                            ];
+                        })
+                    ];
+                })
+            ];
+        })->values();
 
-    return response()->json(['orders' => $groupedOrders], 200);
-}
+        return response()->json(['orders' => $groupedOrders], 200);
+    }
 
     public function getOrdersByProductId($id)
     {
@@ -100,46 +120,66 @@ public function getVendorOrdersByStatus(Request $request)
             return response()->json(['error' => 'Vendor not found for the current user.'], 403);
         }
 
-        // جلب التاجر المرتبط
-// جلب مزود المنتجات المرتبط بالمستخدم
+        // جلب مزود المنتجات المرتبط بالمستخدم
         $providerProduct = $user->Provider_Product;
 
-        // البحث عن المنتج بناءً على ID المنتج ومعرف مزود المنتجات
+        // البحث عن المنتج
         $product = Product::where('id', $id)
             ->where('providerable_id', $providerProduct->id)
-            ->where('providerable_type', Provider_Product::class) // التأكد من أن المزود هو مزود منتجات وليس خدمة
+            ->where('providerable_type', Provider_Product::class)
+            ->with('images') // تحميل صور المنتج مسبقاً
             ->first();
 
         if (!$product) {
             return response()->json(['error' => 'Product not found or does not belong to this provider.'], 404);
         }
 
-        // جلب الطلبات المتعلقة بالمنتج
+        // جلب الطلبات المتعلقة بالمنتج مع العلاقات
         $orders = $product->order_product()
-            ->with(['order:id,,user_id,status,created_at'])
+            ->with([
+                'order:id,note,user_id,status,created_at', // تم إصلاح الفاصلة الزائدة هنا
+                'product:id,name',
+                'product.images'
+            ])
             ->get();
 
-
         $groupedOrders = $orders->groupBy('order_id')->map(function ($items) {
-        return [
-            'order_id' => $items->first()->order_id,
-            'order_details' => $items->first()->order,
-            'products' => $items->map(function ($item) {
-                return [
-                    'order_product_id' => $item->id,
-                    'product_id' => $item->product_id,
-                    'product_name' => $item->product->name,
-                    'total_price' => $item->total_price,
-                    'quantity' => $item->quantity,
-                    'status' => $item->status,
-                    'created_at' => $item->created_at
-                ];
-            })
-        ];
-    })->values();
+            return [
+                'order_id' => $items->first()->order_id,
+                'order_details' => $items->first()->order,
+                'products' => $items->map(function ($item) {
+                    return [
+                        'order_product_id' => $item->id,
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product->name,
+                        'total_price' => $item->total_price,
+                        'quantity' => $item->quantity,
+                        'status' => $item->status,
+                        'created_at' => $item->created_at,
+                        'product_images' => $item->product->images->map(function($image) {
+                            return [
+                                'image_id' => $image->id,
+                                'image_url' => $image->imag // تأكد من أن هذا الحقل موجود في جدول الصور
+                            ];
+                        })
+                    ];
+                })
+            ];
+        })->values();
 
-    return response()->json(['orders' => $groupedOrders], 200);
-
+        return response()->json([
+            'orders' => $groupedOrders,
+            'product_info' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'images' => $product->images->map(function($image) {
+                    return [
+                        'image_id' => $image->id,
+                        'image_url' => $image->url
+                    ];
+                })
+            ]
+        ], 200);
     }
 
 
@@ -172,7 +212,6 @@ public function getVendorOrdersByStatus(Request $request)
                     ->where('providerable_id', $vendor->id); // التحقق من ID المزود
             });
 
-
         // إذا تم إرسال product_id يتم تصفية الطلبات بناءً عليه
         if ($product_id) {
             $ordersQuery->where('product_id', $product_id);
@@ -183,9 +222,13 @@ public function getVendorOrdersByStatus(Request $request)
             $ordersQuery->where('status', $status);
         }
 
-        // جلب الطلبات مع تضمين العلاقات المطلوبة
+        // جلب الطلبات مع تضمين العلاقات المطلوبة بما فيها صور المنتج
         $orders = $ordersQuery
-            ->with(['order:id,user_id,status,created_at', 'product:id,name'])
+            ->with([
+                'order:id,user_id,note,status,created_at',
+                'product:id,name',
+                'product.images' // إضافة العلاقة لصور المنتج
+            ])
             ->get();
 
         // إذا لم يتم العثور على الطلبات
@@ -193,9 +236,28 @@ public function getVendorOrdersByStatus(Request $request)
             return response()->json(['message' => 'No orders found for the specified criteria.'], 404);
         }
 
-        return response()->json(['orders' => $orders], 200);
-    }
+        // تعديل هيكل الاستجابة لتشمل صور المنتج
+        $formattedOrders = $orders->map(function ($order) {
+            return [
+                'id' => $order->id,
+                'product_id' => $order->product_id,
+                'product_name' => $order->product->name,
+                'total_price' => $order->total_price,
+                'quantity' => $order->quantity,
+                'status' => $order->status,
+                'created_at' => $order->created_at,
+                'order_details' => $order->order,
+                'product_images' => $order->product->images->map(function($image) {
+                    return [
+                        'image_id' => $image->id,
+                        'image_url' => $image->imag // تأكد من أن هذا الحقل موجود في جدول الصور
+                    ];
+                })
+            ];
+        });
 
+        return response()->json(['orders' => $formattedOrders], 200);
+    }
 
 
 
@@ -379,8 +441,8 @@ public function getProfile(): JsonResponse
         // إضافة بيانات البروفايل إذا كانت موجودة
         if ($user->Profile) {
             $response['data']['location'] = [
-                'lat' => $user->Profile->lat ?? null,
-                'lang' => $user->Profile->lang ?? null
+                'lat' => $user->lat ?? null,
+                'lang' => $user->lang ?? null
             ];
             $response['data']['address'] = $user->Profile->address ?? null;
             $response['data']['image'] = $user->Profile->image ?? null;

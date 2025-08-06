@@ -31,7 +31,7 @@ class ChatController extends Controller
         $messages = chat::where('sender_id', $sender_id)
             ->where('receiver_id', $receiver_id)
             ->orderBy('created_at', 'desc')
-            ->paginate(10, ['message', 'created_at']); // تقسيم النتائج إلى صفحات (10 رسائل لكل صفحة)
+            ->paginate(10, ['message', 'sender_id','created_at','is_read']); // تقسيم النتائج إلى صفحات (10 رسائل لكل صفحة)
 
         return response()->json($messages);
     }
@@ -46,7 +46,7 @@ class ChatController extends Controller
         $unreadMessages = chat::where('receiver_id', $receiver_id)
             ->where('is_read', false) // شرط الرسائل غير المقروءة
             ->orderBy('created_at', 'desc')
-            ->paginate(10, ['message', 'sender_id','created_at']); // تقسيم النتائج إلى صفحات (10 رسائل لكل صفحة)
+            ->paginate(10, ['message', 'sender_id','created_at','is_read']); // تقسيم النتائج إلى صفحات (10 رسائل لكل صفحة)
 
 
         // التحقق إذا لم توجد رسائل غير مقروءة
@@ -82,36 +82,46 @@ class ChatController extends Controller
 
     public function getInteractedUsers()
     {
-        $userId = auth()->id(); // المعرّف الخاص بالمستخدم الموثق
+        $userId = auth()->id();
 
+        // الحصول على المستخدمين الذين تفاعل معهم المستخدم الحالي
         $interactedUsers = chat::where(function ($query) use ($userId) {
             $query->where('sender_id', $userId)
                 ->orWhere('receiver_id', $userId);
         })
-            ->selectRaw('
-                CASE
-                    WHEN sender_id = ? THEN receiver_id
-                    ELSE sender_id
-                END as other_user_id,
-                MAX(created_at) as last_message_at
-            ', [$userId])
-            ->groupBy('other_user_id')
-            ->orderBy('last_message_at', 'desc')
-            ->get();
+        ->selectRaw('
+            CASE
+                WHEN sender_id = ? THEN receiver_id
+                ELSE sender_id
+            END as other_user_id,
+            MAX(created_at) as last_message_at
+        ', [$userId])
+        ->groupBy('other_user_id')
+        ->orderBy('last_message_at', 'desc')
+        ->get();
 
         $userIds = $interactedUsers->pluck('other_user_id')->toArray();
 
+        // الحصول على معلومات المستخدمين وعدد الرسائل غير المقروءة لكل منهم
         $users = User::whereIn('id', $userIds)
             ->select('id', 'name')
             ->get()
             ->keyBy('id');
 
-        $result = $interactedUsers->map(function ($item) use ($users) {
+        $result = $interactedUsers->map(function ($item) use ($users, $userId) {
             $user = $users->get($item->other_user_id);
+
+            // حساب عدد الرسائل غير المقروءة لهذا المستخدم
+            $unreadCount = chat::where('sender_id', $item->other_user_id)
+                ->where('receiver_id', $userId)
+                ->where('is_read', false)
+                ->count();
+
             return [
                 'id' => $user->id,
                 'name' => $user->name,
                 'last_message_at' => $item->last_message_at,
+                'unread_count' => $unreadCount,
             ];
         });
 
@@ -119,12 +129,9 @@ class ChatController extends Controller
     }
 
 
-
     public function getMessagesByReceiver($receiver_id)
     {
-        $sender_id = auth()->id(); // المستخدم الموثق هو المرسل
-
-        // جلب الرسائل بين المرسل والمستقبل
+        $sender_id = auth()->id();
         $messages = chat::where(function ($query) use ($sender_id, $receiver_id) {
             $query->where('sender_id', $sender_id)
                   ->where('receiver_id', $receiver_id);
@@ -132,24 +139,19 @@ class ChatController extends Controller
             $query->where('sender_id', $receiver_id)
                   ->where('receiver_id', $sender_id);
         })
-        ->orderBy('created_at', 'asc') // ترتيب الرسائل حسب وقت الإرسال
-        ->paginate(10, ['message', 'created_at']); // تقسيم النتائج إلى صفحات (10 رسائل لكل صفحة)
+        ->orderBy('created_at', 'asc')
+        ->paginate(10, ['id', 'message', 'sender_id', 'receiver_id', 'is_read', 'created_at']);
 
-        // التحقق إذا لم توجد رسائل
         if ($messages->isEmpty()) {
             return response()->json(['message' => 'No messages found with this receiver.']);
         }
 
-        // إعادة الرسائل
         return response()->json($messages);
     }
 
-
-    public function getConversation($user_id)
+      public function getConversation($user_id)
     {
-        $authUserId = auth()->id(); // المعرّف الخاص بالمستخدم الحالي (الموثق)
-
-        // جلب جميع الرسائل بين المستخدم الحالي والشخص الآخر
+        $authUserId = auth()->id();
         $conversation = chat::where(function ($query) use ($authUserId, $user_id) {
                 $query->where('sender_id', $authUserId)
                     ->where('receiver_id', $user_id);
@@ -158,15 +160,25 @@ class ChatController extends Controller
                 $query->where('sender_id', $user_id)
                     ->where('receiver_id', $authUserId);
             })
-            ->orderBy('created_at', 'asc') // ترتيب الرسائل حسب وقت الإرسال
-            ->get(['message', 'sender_id', 'receiver_id', 'created_at']); // جلب الرسائل وبعض المعلومات
+            ->orderBy('created_at', 'asc')
+            ->get(['id', 'message', 'sender_id', 'receiver_id', 'is_read', 'created_at']);
 
-        // إذا لم توجد رسائل بين المستخدمين
+        // حساب عدد الرسائل غير المقروءة
+        $unreadCount = chat::where('sender_id', $user_id)
+            ->where('receiver_id', $authUserId)
+            ->where('is_read', false)
+            ->count();
+
         if ($conversation->isEmpty()) {
-            return response()->json(['message' => 'No conversation found with this user.']);
+            return response()->json([
+                'message' => 'No conversation found with this user.',
+                'unread_count' => 0
+            ]);
         }
 
-        // إعادة المحادثة
-        return response()->json($conversation);
+        return response()->json([
+            'messages' => $conversation,
+            'unread_count' => $unreadCount
+        ]);
     }
 }

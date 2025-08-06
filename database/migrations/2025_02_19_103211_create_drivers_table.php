@@ -16,8 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('status')->default('pending');
-            $table->string('lang')->nullable();
-            $table->string('lat')->nullable();
+            $table->string('driver_imag_license')->nullable();
 
             $table->timestamps();
         });

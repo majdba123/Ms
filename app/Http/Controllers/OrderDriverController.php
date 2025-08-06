@@ -41,6 +41,52 @@ class OrderDriverController extends Controller
         ]);
     }
 
+
+
+
+    /**
+ * إرسال إشعار للتاجر عند تغيير حالة منتجه
+ */
+    private function sendProviderNotification($orderProduct, $status)
+    {
+        $product = $orderProduct->product;
+        $provider = $product->providerable;
+
+        // التحقق من وجود مزود للمنتج
+        if (!$provider) {
+            Log::warning('No provider found for product: '.$product->id);
+            return;
+        }
+
+        // جلب مستخدم المزود
+        $providerUser = $provider->user;
+        if (!$providerUser) {
+            Log::warning('No user found for provider: '.$provider->id);
+            return;
+        }
+
+        $statusMessages = [
+            'pending' => 'طلب جديد للمنتج "'.$product->name.'" (طلب #'.$orderProduct->order_id.')',
+            'on_way' => 'المنتج "'.$product->name.'" في الطريق للعميل (طلب #'.$orderProduct->order_id.')',
+            'complete' => 'تم تسليم المنتج "'.$product->name.'" للعميل (طلب #'.$orderProduct->order_id.')',
+            'cancelled' => 'تم إلغاء تسليم المنتج "'.$product->name.'" (طلب #'.$orderProduct->order_id.')'
+        ];
+
+        $message = $statusMessages[$status] ?? 'تم تحديث حالة المنتج "'.$product->name.'" إلى '.$status.' (طلب #'.$orderProduct->order_id.')';
+
+        // إرسال الإشعار الفوري
+        event(new PrivateNotification($providerUser->id, $message));
+
+        // تخزين الإشعار في قاعدة البيانات
+        UserNotification::create([
+            'user_id' => $providerUser->id,
+            'notification' => $message,
+        ]);
+    }
+
+
+
+
     private function sendVendorNotification($vendorUserId, $message)
     {
         // إرسال الإشعار الفوري
@@ -111,6 +157,10 @@ class OrderDriverController extends Controller
             Order_Product_Driver::insert($orderProductDrivers->toArray());
 
             DB::commit();
+
+            foreach ($orderProducts as $orderProduct) {
+                $this->sendProviderNotification($orderProduct, 'pending');
+            }
 
             return response()->json([
                 'message' => 'تم قبول الطلب بنجاح',
@@ -264,12 +314,8 @@ class OrderDriverController extends Controller
                     $orderProduct->update(['status' => 'on_way']);
 
                     // إرسال إشعار للمورد
-                    if ($vendorUser) {
-                        $this->sendVendorNotification(
-                            $vendorUser->id,
-                            'المنتج "'.$product->name.'" في الطريق إلى العميل (طلب رقم #'.$order->id.')'
-                        );
-                    }
+                   $this->sendProviderNotification($orderProduct, 'on_way');
+
                     break;
 
                 case 'complete':
@@ -280,25 +326,16 @@ class OrderDriverController extends Controller
                     $orderProduct->update(['status' => 'complete']);
 
                     // إرسال إشعار للمورد
-                    if ($vendorUser) {
-                        $this->sendVendorNotification(
-                            $vendorUser->id,
-                            'تم تسليم المنتج "'.$product->name.'" للعميل (طلب رقم #'.$order->id.')'
-                        );
-                    }
+                     $this->sendProviderNotification($orderProduct, 'complete');
+
                     break;
 
                 case 'cancelled':
                     $orderProductDriver->update(['status' => 'cancelled']);
                     $orderProduct->update(['status' => 'cancelled']);
 
-                    // إرسال إشعار للمورد
-                    if ($vendorUser) {
-                        $this->sendVendorNotification(
-                            $vendorUser->id,
-                            'تم إلغاء تسليم المنتج "'.$product->name.'" (طلب رقم #'.$order->id.')'
-                        );
-                    }
+                     $this->sendProviderNotification($orderProduct, 'cancelled');
+
                     break;
             }
 

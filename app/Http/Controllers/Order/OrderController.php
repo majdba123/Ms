@@ -32,60 +32,67 @@ class OrderController extends Controller
     }
 
 
-   public function getUserOrders(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'status' => 'required|string|in:all,pending,complete,cancelled',
-        ]);
+  public function getUserOrders(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'status' => 'required|string|in:all,pending,complete,cancelled',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => $validator->errors()->first()
-            ], 422);
-        }
-
-        $user = Auth::user();
-        $status = $request->status;
-
-        $orders = Order::where('user_id', $user->id)
-                    ->when($status !== 'all', fn($q) => $q->where('status', $status))
-                    ->with([
-                        'Order_Product.product.discount',
-                        'Order_Product.product.images', // إضافة علاقة صور المنتج
-                        'coupons'
-                    ])
-                    ->get();
-
-        $formattedOrders = $orders->map(function($order) {
-            $formatted = $this->formatOrder($order);
-
-            // إضافة note للطلب
-            $formatted['note'] = $order->note;
-
-            // إضافة صور المنتجات لكل عنصر في الطلب
-            if (isset($formatted['products'])) {
-                foreach ($formatted['products'] as &$product) {
-                    if (isset($product['product'])) {
-                        $product['product']['images'] = $product['product']->images->map(function($image) {
-                            return [
-                                'image_id' => $image->id,
-                                'image_url' => $image->imag
-                            ];
-                        });
-                    }
-                }
-            }
-
-            return $formatted;
-        });
-
+    if ($validator->fails()) {
         return response()->json([
-            'success' => true,
-            'orders' => $formattedOrders,
-            'message' => 'Orders retrieved successfully'
-        ]);
+            'success' => false,
+            'message' => $validator->errors()->first()
+        ], 422);
     }
+
+    $user = Auth::user();
+    $status = $request->status;
+
+    $orders = Order::where('user_id', $user->id)
+                ->when($status !== 'all', fn($q) => $q->where('status', $status))
+                ->with([
+                    'Order_Product.product.discount',
+                    'Order_Product.product.images',
+                    'coupons'
+                ])
+                ->get();
+
+    $formattedOrders = $orders->map(function($order) {
+        $formatted = [
+            'order_id' => $order->id,
+            'note' => $order->note,
+            'delivery_fee' => $order->delivery_fee,
+            'status' => $order->status,
+            'created_at' => $order->created_at,
+            'products' => $order->Order_Product->map(function($orderProduct) {
+                return [
+                    'order_product_id' => $orderProduct->id,
+                    'product_id' => $orderProduct->product_id,
+                    'product_name' => $orderProduct->product->name,
+                    'total_price' => $orderProduct->total_price,
+                    'quantity' => $orderProduct->quantity,
+                    'status' => $orderProduct->status,
+                    'product_images' => $orderProduct->product->images->map(function($image) {
+                        return [
+                            'image_id' => $image->id,
+                            'image_url' => $image->imag
+                        ];
+                    }),
+                    'discount' => $orderProduct->product->discount ?? null
+                ];
+            }),
+            'coupons' => $order->coupons
+        ];
+
+        return $formatted;
+    });
+
+    return response()->json([
+        'success' => true,
+        'orders' => $formattedOrders,
+        'message' => 'Orders retrieved successfully'
+    ]);
+}
     public function getProductOrder($order_id)
     {
         $user = Auth::user();

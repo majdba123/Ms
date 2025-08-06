@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Driver;
 use App\Models\Order_Product;
 use App\Models\Product;
 use App\Models\Profile;
@@ -263,60 +264,68 @@ class ProviderProductController extends Controller
 
 
 
-public function getProfile(): JsonResponse
-{
-    try {
-        $user = Auth::user();
+    public function getProfile(): JsonResponse
+    {
+        try {
+            $user = Auth::user();
 
-        if (!$user) {
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'المستخدم غير مسجل الدخول'
+                ], 401);
+            }
+
+            // تحديد حالة المستخدم حسب نوعه
+            if($user->Driver) {
+                $x = $user->Driver->status;
+            } elseif($user->Provider_Product) {
+                $x = $user->Provider_Product->status;
+            } else {
+                $x = $user->Provider_service->status ?? 'N/A';
+            }
+
+            // بناء الاستجابة الأساسية
+            $response = [
+                'success' => true,
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name ?? 'N/A',
+                        'email' => $user->email ?? 'N/A',
+                        'phone' => $user->phone ?? 'N/A',
+                        'national_id' => $user->national_id ?? 'N/A',
+                        'image_national_id' => $user->image_path ?? 'N/A',
+                        'lang' => $user->lang ?? 'N/A',
+                        'lat' => $user->lat ?? 'N/A',
+                        'type' => $user->type ?? 'N/A',
+                        'user_status' => $user->status ?? 'N/A',
+                        'status' => $x,
+                    ],
+                    'profile' => [
+                        'image' => $user->Profile->image ?? 'N/A',
+                        'address' => $user->Profile->address ?? 'N/A',
+                    ]
+                ]
+            ];
+
+            // إضافة معلومات رخصة القيادة إذا كان سائقًا
+            if ($user->Driver) {
+                $response['data']['driver'] = [
+                    'license_image' => $user->Driver->driver_imag_license ?? 'N/A',
+                    'driver_status' => $user->Driver->status ?? 'N/A'
+                ];
+            }
+
+            return response()->json($response);
+
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'المستخدم غير مسجل الدخول'
-            ], 401);
+                'message' => 'فشل في جلب بيانات المستخدم: ' . $e->getMessage()
+            ], 500);
         }
-        if($user->Driver)
-        {
-            $x=$user->Driver->status;
-        }elseif($user->Provider_Product)
-        {
-            $x=$user->Provider_Product->status;
-        }else{
-            $x=$user->Provider_service->status;
-        }
-        $response = [
-            'success' => true,
-            'data' => [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name ?? 'N/A',
-                    'email' => $user->email ?? 'N/A',
-                    'phone' => $user->phone ?? 'N/A',
-                    'national_id' => $user->national_id ?? 'N/A', // إضافة الرقم القومي هنا
-                    'image_national_id' => $user->image_path ?? 'N/A', // إضافة الرقم القومي هنا
-                    'lang' => $user->lang ?? 'N/A',
-                    'lat' => $user->lat ?? 'N/A',
-                    'type' => $user->type ?? 'N/A',
-                    'user_status' => $user->status ?? 'N/A',
-                    'status' => $x ?? 'N/A',
-
-                ],
-                'profile' => [
-
-                    'image' => $user->Profile->image ?? 'N/A',
-                    'address' => $user->Profile->address ?? 'N/A',
-                ]
-            ]
-        ];
-
-        return response()->json($response);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'فشل في جلب بيانات المستخدم: ' . $e->getMessage()
-        ], 500);
     }
-}
     /**
      * تحديث معلومات المستخدم
      *
@@ -327,140 +336,175 @@ public function getProfile(): JsonResponse
 
 
 
- public function updateProfile(Request $request): JsonResponse
-{
-    try {
-        $user = Auth::user();
+    public function updateProfile(Request $request): JsonResponse
+    {
+        try {
+            $user = Auth::user();
 
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'المستخدم غير مسجل الدخول'
-            ], 401);
-        }
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'المستخدم غير مسجل الدخول'
+                ], 401);
+            }
 
-        $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|unique:users,email,'.$user->id,
-            'phone' => 'sometimes|string|max:20|unique:users,phone,'.$user->id,
-            'national_id' => [
-                'sometimes',
-                'string',
-                'size:14',
-                'unique:users,national_id,'.$user->id,
-                function ($attribute, $value, $fail) {
-                    if (!ctype_digit($value)) {
-                        $fail('الرقم القومي يجب أن يحتوي على أرقام فقط');
+            $validator = Validator::make($request->all(), [
+                'name' => 'sometimes|string|max:255',
+                'email' => 'sometimes|email|unique:users,email,'.$user->id,
+                'phone' => 'sometimes|string|max:20|unique:users,phone,'.$user->id,
+                'national_id' => [
+                    'sometimes',
+                    'string',
+                    'size:14',
+                    'unique:users,national_id,'.$user->id,
+                    function ($attribute, $value, $fail) {
+                        if (!ctype_digit($value)) {
+                            $fail('الرقم القومي يجب أن يحتوي على أرقام فقط');
+                        }
                     }
-                }
-            ],
-            'lat' => 'nullable|numeric',
-            'lang' => 'nullable|numeric',
-            'address' => 'nullable|string|max:255',
-            'password' => 'sometimes|string|min:8|confirmed',
-            'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ], [
-            'national_id.size' => 'الرقم القومي يجب أن يتكون من 14 رقمًا',
-            'national_id.unique' => 'الرقم القومي مسجل بالفعل لمستخدم آخر'
-        ]);
+                ],
+                'lat' => 'nullable|numeric',
+                'lang' => 'nullable|numeric',
+                'address' => 'nullable|string|max:255',
+                'password' => 'sometimes|string|min:8|confirmed',
+                'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'driver_imag_license' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048'
+            ], [
+                'national_id.size' => 'الرقم القومي يجب أن يتكون من 14 رقمًا',
+                'national_id.unique' => 'الرقم القومي مسجل بالفعل لمستخدم آخر',
+                'driver_imag_license.image' => 'يجب أن تكون صورة رخصة القيادة ملف صورة',
+                'driver_imag_license.mimes' => 'صورة رخصة القيادة يجب أن تكون من نوع: jpeg, png, jpg, gif',
+                'driver_imag_license.max' => 'يجب أن لا تتجاوز صورة رخصة القيادة 2 ميجابايت'
+            ]);
 
-        if ($validator->fails()) {
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // تحديث بيانات المستخدم الأساسية
+            $userData = $request->only(['name', 'email', 'phone', 'national_id','lang','lat']);
+
+            if ($request->has('password')) {
+                $userData['password'] = bcrypt($request->password);
+            }
+
+            $user->update($userData);
+
+            // تحضير بيانات البروفايل
+            $profileData = [];
+            $shouldUpdateProfile = false;
+
+            // إضافة الحقول المرسلة فقط
+            $profileFields = ['address'];
+            foreach ($profileFields as $field) {
+                if ($request->has($field)) {
+                    $profileData[$field] = $request->$field;
+                    $shouldUpdateProfile = true;
+                }
+            }
+
+            // معالجة رفع الصورة الشخصية
+            if ($request->hasFile('image')) {
+                $shouldUpdateProfile = true;
+                $imageFile = $request->file('image');
+
+                // حذف الصورة القديمة إن وجدت
+                if ($user->Profile && $user->Profile->image) {
+                    $this->deleteOldImage($user->Profile->image);
+                }
+
+                // حفظ الصورة الجديدة
+                $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
+                $imagePath = 'profile_images/' . $imageName;
+                Storage::disk('public')->put($imagePath, file_get_contents($imageFile));
+                $profileData['image'] = url('api/storage/' . $imagePath);
+            } elseif ($request->has('image') && is_null($request->image)) {
+                // إذا كانت قيمة الصورة null (طلب حذف الصورة)
+                if ($user->Profile && $user->Profile->image) {
+                    $this->deleteOldImage($user->Profile->image);
+                    $profileData['image'] = null;
+                    $shouldUpdateProfile = true;
+                }
+            }
+
+            // تحديث أو إنشاء البروفايل
+            if ($shouldUpdateProfile) {
+                if ($user->Profile) {
+                    $user->Profile->update($profileData);
+                } else {
+                    $profileData['user_id'] = $user->id;
+                    $profileData['address'] = $profileData['address'] ?? '';
+                    Profile::create($profileData);
+                    $user->load('Profile');
+                }
+            }
+
+            // معالجة صورة رخصة القيادة إذا كان المستخدم سائقًا
+            if ($request->hasFile('driver_imag_license')) {
+                $driver = Driver::where('user_id', $user->id)->first();
+
+                if (!$driver) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'لا يمكن تحديث رخصة القيادة لأن المستخدم ليس سائقًا'
+                    ], 403);
+                }
+
+                $licenseFile = $request->file('driver_imag_license');
+
+                // حذف الصورة القديمة إن وجدت
+                if ($driver->driver_imag_license) {
+                    $this->deleteOldImage($driver->driver_imag_license);
+                }
+
+                // حفظ الصورة الجديدة
+                $licenseName = Str::random(32) . '.' . $licenseFile->getClientOriginalExtension();
+                $licensePath = 'driver_licenses/' . $licenseName;
+                Storage::disk('public')->put($licensePath, file_get_contents($licenseFile));
+                $driver->update(['driver_imag_license' => url('api/storage/' . $licensePath)]);
+            }
+
+            // بناء الاستجابة
+            $response = [
+                'success' => true,
+                'message' => 'تم تحديث البيانات بنجاح',
+                'data' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'national_id' => $user->national_id,
+                ]
+            ];
+
+            // إضافة بيانات البروفايل إذا كانت موجودة
+            if ($user->Profile) {
+                $response['data']['location'] = [
+                    'lat' => $user->lat ?? null,
+                    'lang' => $user->lang ?? null
+                ];
+                $response['data']['address'] = $user->Profile->address ?? null;
+                $response['data']['image'] = $user->Profile->image ?? null;
+            }
+
+            // إضافة صورة رخصة القيادة إذا كان سائقًا
+            $driver = Driver::where('user_id', $user->id)->first();
+            if ($driver && $driver->driver_imag_license) {
+                $response['data']['driver_imag_license'] = $driver->driver_imag_license;
+            }
+
+            return response()->json($response);
+
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
+                'message' => 'فشل في تحديث البيانات: ' . $e->getMessage()
+            ], 500);
         }
-
-        // تحديث بيانات المستخدم الأساسية
-        $userData = $request->only(['name', 'email', 'phone', 'national_id','lang','lat']);
-
-        if ($request->has('password')) {
-            $userData['password'] = bcrypt($request->password);
-        }
-
-        $user->update($userData);
-
-        // تحضير بيانات البروفايل
-        $profileData = [];
-        $shouldUpdateProfile = false;
-
-        // إضافة الحقول المرسلة فقط
-        $profileFields = ['address'];
-        foreach ($profileFields as $field) {
-            if ($request->has($field)) {
-                $profileData[$field] = $request->$field;
-                $shouldUpdateProfile = true;
-            }
-        }
-
-        // معالجة رفع الصورة بنفس طريقة ProfileService
-        if ($request->hasFile('image')) {
-            $shouldUpdateProfile = true;
-            $imageFile = $request->file('image');
-
-            // حذف الصورة القديمة إن وجدت
-            if ($user->Profile && $user->Profile->image) {
-                $this->deleteOldImage($user->Profile->image);
-            }
-
-            // حفظ الصورة الجديدة بنفس الطريقة
-            $imageName = Str::random(32) . '.' . $imageFile->getClientOriginalExtension();
-            $imagePath = 'profile_images/' . $imageName;
-            Storage::disk('public')->put($imagePath, file_get_contents($imageFile));
-            $profileData['image'] = url('api/storage/' . $imagePath);
-        } elseif ($request->has('image') && is_null($request->image)) {
-            // إذا كانت قيمة الصورة null (طلب حذف الصورة)
-            if ($user->Profile && $user->Profile->image) {
-                $this->deleteOldImage($user->Profile->image);
-                $profileData['image'] = null;
-                $shouldUpdateProfile = true;
-            }
-        }
-
-        // تحديث أو إنشاء البروفايل
-        if ($shouldUpdateProfile) {
-            if ($user->Profile) {
-                $user->Profile->update($profileData);
-            } else {
-                $profileData['user_id'] = $user->id;
-                $profileData['address'] = $profileData['address'] ?? '';
-                Profile::create($profileData);
-                $user->load('Profile');
-            }
-        }
-
-        // بناء الاستجابة
-        $response = [
-            'success' => true,
-            'message' => 'تم تحديث البيانات بنجاح',
-            'data' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'national_id' => $user->national_id,
-            ]
-        ];
-
-        // إضافة بيانات البروفايل إذا كانت موجودة
-        if ($user->Profile) {
-            $response['data']['location'] = [
-                'lat' => $user->lat ?? null,
-                'lang' => $user->lang ?? null
-            ];
-            $response['data']['address'] = $user->Profile->address ?? null;
-            $response['data']['image'] = $user->Profile->image ?? null;
-        }
-
-        return response()->json($response);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'فشل في تحديث البيانات: ' . $e->getMessage()
-        ], 500);
     }
-}
 
 protected function deleteOldImage(string $imageUrl)
 {

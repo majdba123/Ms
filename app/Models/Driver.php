@@ -11,6 +11,8 @@ class Driver extends Model
     protected $fillable = [
         'user_id',
         'status',
+                'driver_imag_license', // أضف هذا الحقل
+
 
     ];
     public function user()

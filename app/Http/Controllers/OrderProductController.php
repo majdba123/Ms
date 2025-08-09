@@ -60,13 +60,15 @@ class OrderProductController extends Controller
         return response()->json(['orders' => $groupedOrders], 200);
     }
 
+
+
 public function index()
 {
     // التحقق من وجود إحداثيات السائق
     $driver = Auth::user();
 
     // التحقق من وجود البروفايل والإحداثيات
-    if (!$driver->profile || empty($driver->profile->lat) || empty($driver->profile->lang)) {
+    if ( empty($driver->lat) || empty($driver->lang)) {
         return response()->json([
             'success' => false,
             'message' => 'يجب على السائق تحديث موقعه الجغرافي أولاً'
@@ -86,10 +88,10 @@ public function index()
     $processedOrders = $orders->map(function ($order) use ($driver) {
         // حساب المسافة بين السائق وصاحب الطلب
         $distanceToUser = $this->calculateDistance(
-            $driver->profile->lat,
-            $driver->profile->lang,
-            $order->user->profile->lat,
-            $order->user->profile->lang
+            $driver->lat,
+            $driver->lang,
+            $order->user->lat,
+            $order->user->lang
         );
 
         // تجميع معلومات التجار مع المسافات
@@ -101,10 +103,10 @@ public function index()
                 $vendor = $orderProduct->product->providerable;
 
                 $distanceToVendor = $this->calculateDistance(
-                    $driver->profile->lat,
-                    $driver->profile->lang,
-                    $vendor->user->profile->lat,
-                    $vendor->user->profile->lang
+                    $driver->lat,
+                    $driver->lang,
+                    $vendor->user->lat,
+                    $vendor->user->lang
                 );
 
                 $vendors->push([
@@ -112,9 +114,9 @@ public function index()
                     'vendor_name' => $vendor->user->name,
                     'distance_to_driver' => $distanceToVendor,
                     'coordinates' => [
-                        'lat' => $vendor->user->profile->lat,
-                        'address' => $vendor->user->profile->address,
-                        'lng' => $vendor->user->profile->lang
+                        'lat' => $vendor->user->lat,
+                        'address' => $vendor->user->profile->address ?? null,
+                        'lng' => $vendor->user->lang
                     ]
                 ]);
 
@@ -157,8 +159,8 @@ public function index()
                 'phone' => $order->user->phone,
                 'distance_to_driver' => $distanceToUser,
                 'coordinates' => [
-                    'lat' => $order->user->profile->lat,
-                    'lng' => $order->user->profile->lang
+                    'lat' => $order->user->lat,
+                    'lng' => $order->user->lang
                 ]
             ],
             'vendors' => $vendors,
@@ -176,8 +178,8 @@ public function index()
             'driver_id' => $driver->Driver->id,
             'name' => $driver->name,
             'coordinates' => [
-                'lat' => $driver->profile->lat,
-                'lng' => $driver->profile->lang
+                'lat' => $driver->lat,
+                'lng' => $driver->lang
             ]
         ],
         'orders' => $sortedOrders,

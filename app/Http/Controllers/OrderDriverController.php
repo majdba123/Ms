@@ -201,9 +201,8 @@ class OrderDriverController extends Controller
 
         // فلترة حسب حالة الطلب إذا موجودة
         if ($request->has('status')) {
-            $query->whereHas('order', function($q) use ($request) {
-                $q->where('status', $request->status);
-            });
+            $query->where('status', $request->status); // تصفية مباشرة على status في جدول order_drivers
+
         }
 
         // فلترة حسب حالة order_driver إذا موجودة
@@ -362,11 +361,6 @@ class OrderDriverController extends Controller
                     $orderDriver->update(['status' => 'cancelled']);
                     $order->update(['status' => 'cancelled']);
                     $this->sendOrderStatusNotification($order, 'cancelled');
-                }
-                else {
-                    $orderDriver->update(['status' => 'partial_complete']);
-                    $order->update(['status' => 'partial_complete']);
-                    $this->sendOrderStatusNotification($order, 'partial_complete');
                 }
             }
             elseif (Order_Product_Driver::where('order__driver_id', $orderDriver->id)

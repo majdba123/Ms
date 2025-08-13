@@ -178,47 +178,56 @@ class OrderDriverController extends Controller
         }
     }
 
-    public function getDriverOrders(Request $request)
-    {
-        $user = Auth::user();
-        $query = Order_Driver::with([
-                'order:id,user_id,status,created_at,delivery_fee,total_price',
-                'Order_Product_Driver.Order_Product.product.providerable.user:id,name,lat,lang',
-                'driver.user'
-            ]);
+public function getDriverOrders(Request $request)
+{
+    $user = Auth::user();
+    $query = Order_Driver::with([
+            'order:id,user_id,status,created_at,delivery_fee,total_price',
+            'Order_Product_Driver.Order_Product.product.providerable.user:id,name,lat,lang',
+            'driver.user'
+        ]);
 
-        // إذا كان المستخدم ليس أدمن (type != 1) يرى فقط طلباته
-        if ($user->type != 1) {
-            $query->where('driver_id', $user->Driver->id);
-        }
-        // إذا كان أدمن (type == 1) يجب إرسال driver_id
-        else {
-            $request->validate([
-                'driver_id' => 'required|exists:drivers,id'
-            ]);
-            $query->where('driver_id', $request->driver_id);
-        }
+    // فلترة حسب نوع المستخدم
+    if ($user->type != 1) {
+        $query->where('driver_id', $user->Driver->id);
+    } else {
+        $request->validate([
+            'driver_id' => 'required|exists:drivers,id'
+        ]);
+        $query->where('driver_id', $request->driver_id);
+    }
 
-        // فلترة حسب حالة الطلب إذا موجودة
-        if ($request->has('status')) {
-            $query->where('status', $request->status); // تصفية مباشرة على status في جدول order_drivers
+    // فلترة حسب الحالة
+    if ($request->has('status')) {
+        $query->where('status', $request->status);
+    }
 
-        }
+    if ($request->has('order_driver_status')) {
+        $query->where('status', $request->order_driver_status);
+    }
 
-        // فلترة حسب حالة order_driver إذا موجودة
-        if ($request->has('order_driver_status')) {
-            $query->where('status', $request->order_driver_status);
-        }
+    // تأكيد وجود المنتجات المرتبطة
+    $query->whereHas('Order_Product_Driver.Order_Product.product');
 
-        $driverOrders = $query->get();
+    $driverOrders = $query->get();
 
-        // تجميع البيانات
-        $formattedOrders = $driverOrders->map(function ($orderDriver) use ($user) {
-            $productsData = $orderDriver->Order_Product_Driver->map(function ($productDriver) {
+    $formattedOrders = $driverOrders->map(function ($orderDriver) use ($user) {
+        $productsData = $orderDriver->Order_Product_Driver->map(function ($productDriver) {
+            try {
                 $orderProduct = $productDriver->Order_Product;
+
+                // التحقق من وجود جميع البيانات المطلوبة
+                if (!$orderProduct || !$orderProduct->product || !$orderProduct->product->providerable) {
+                    Log::warning('Incomplete product data', [
+                        'order_product_id' => $orderProduct->id ?? null,
+                        'product_id' => $orderProduct->product->id ?? null
+                    ]);
+                    return null;
+                }
+
                 $product = $orderProduct->product;
                 $vendor = $product->providerable;
-                $vendorUser = $vendor->user;
+                $vendorUser = $vendor->user ?? null;
 
                 return [
                     'product_info' => [
@@ -232,40 +241,51 @@ class OrderDriverController extends Controller
                     ],
                     'vendor_info' => [
                         'vendor_id' => $vendor->id,
-                        'vendor_name' => $vendorUser->name ?? 'Unknown Vendor',
+                        'vendor_name' => $vendorUser->name ?? 'Vendor Name Not Available',
                         'lat' => $vendorUser->lat ?? null,
                         'lang' => $vendorUser->lang ?? null,
                     ]
                 ];
-            });
-
-            $response = [
-                'order_id' => $orderDriver->order_id,
-                'order_driver_id' => $orderDriver->id,
-                'order_driver_status' => $orderDriver->status,
-                'order_status' => $orderDriver->order->status,
-                'total_price' => $orderDriver->order->total_price,
-                'delivery_fee' => $orderDriver->order->delivery_fee,
-                'order_created_at' => $orderDriver->order->created_at,
-                'products' => $productsData
-            ];
-
-            // إضافة معلومات السائق للأدمن
-            if ($user->type == 1 && isset($orderDriver->driver)) {
-                $response['driver_info'] = [
-                    'driver_id' => $orderDriver->driver->id,
-                    'driver_name' => $orderDriver->driver->user->name ?? 'Unknown Driver',
-                    'driver_phone' => $orderDriver->driver->user->phone ?? null,
-                    'driver_lat' => $orderDriver->driver->user->lat ?? null,
-                    'driver_lang' => $orderDriver->driver->user->lang ?? null
-                ];
+            } catch (\Exception $e) {
+                Log::error('Error processing product data', [
+                    'error' => $e->getMessage(),
+                    'product_driver_id' => $productDriver->id
+                ]);
+                return null;
             }
+        })->filter(); // إزالة العناصر الفارغة
 
-            return $response;
-        });
+        $response = [
+            'order_id' => $orderDriver->order_id,
+            'order_driver_id' => $orderDriver->id,
+            'order_driver_status' => $orderDriver->status,
+            'order_status' => $orderDriver->order->status,
+            'total_price' => $orderDriver->order->total_price,
+            'delivery_fee' => $orderDriver->order->delivery_fee,
+            'order_created_at' => $orderDriver->order->created_at,
+            'products' => $productsData
+        ];
 
-        return response()->json(['orders' => $formattedOrders], 200);
-    }
+        // معلومات السائق للأدمن فقط
+        if ($user->type == 1 && $orderDriver->driver) {
+            $response['driver_info'] = [
+                'driver_id' => $orderDriver->driver->id,
+                'driver_name' => $orderDriver->driver->user->name ?? 'Unknown Driver',
+                'driver_phone' => $orderDriver->driver->user->phone ?? null,
+                'driver_lat' => $orderDriver->driver->user->lat ?? null,
+                'driver_lang' => $orderDriver->driver->user->lang ?? null
+            ];
+        }
+
+        return $response;
+    });
+
+    return response()->json([
+        'success' => true,
+        'orders' => $formattedOrders,
+        'message' => 'Orders retrieved successfully'
+    ], 200);
+}
 
     public function updateOrderProductStatus(Request $request)
     {

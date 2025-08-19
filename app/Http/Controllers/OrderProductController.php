@@ -62,13 +62,45 @@ class OrderProductController extends Controller
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 public function index()
 {
     // التحقق من وجود إحداثيات السائق
     $driver = Auth::user();
 
     // التحقق من وجود البروفايل والإحداثيات
-    if ( empty($driver->lat) || empty($driver->lang)) {
+    if (empty($driver->lat) || empty($driver->lang)) {
         return response()->json([
             'success' => false,
             'message' => 'يجب على السائق تحديث موقعه الجغرافي أولاً'
@@ -86,13 +118,18 @@ public function index()
 
     // معالجة البيانات وإضافة معلومات المسافة
     $processedOrders = $orders->map(function ($order) use ($driver) {
-        // حساب المسافة بين السائق وصاحب الطلب
-        $distanceToUser = $this->calculateDistance(
-            $driver->lat,
-            $driver->lang,
-            $order->user->lat,
-            $order->user->lang
-        );
+        try {
+            // حساب المسافة بين السائق وصاحب الطلب
+            $distanceToUser = $this->calculateDistance(
+                $driver->lat,
+                $driver->lang,
+                $order->user->lat,
+                $order->user->lang
+            );
+        } catch (\Exception $e) {
+            // في حالة فشل حساب المسافة، نستخدم قيمة افتراضية كبيرة
+            $distanceToUser = 9999;
+        }
 
         // تجميع معلومات التجار مع المسافات
         $vendors = collect();
@@ -102,12 +139,17 @@ public function index()
             if ($orderProduct->product && $orderProduct->product->providerable) {
                 $vendor = $orderProduct->product->providerable;
 
-                $distanceToVendor = $this->calculateDistance(
-                    $driver->lat,
-                    $driver->lang,
-                    $vendor->user->lat,
-                    $vendor->user->lang
-                );
+                try {
+                    $distanceToVendor = $this->calculateDistance(
+                        $driver->lat,
+                        $driver->lang,
+                        $vendor->user->lat,
+                        $vendor->user->lang
+                    );
+                } catch (\Exception $e) {
+                    // في حالة فشل حساب المسافة، نستخدم قيمة افتراضية كبيرة
+                    $distanceToVendor = 9999;
+                }
 
                 $vendors->push([
                     'vendor_id' => $vendor->id,
@@ -140,6 +182,23 @@ public function index()
             ];
         });
 
+        // فك تشفير بيانات توصيل التجار
+        $firstVendorDeliveryData = $order->first_vendor_delivery_data ? json_decode($order->first_vendor_delivery_data, true) : null;
+        $secondVendorDeliveryData = $order->second_vendor_delivery_data ? json_decode($order->second_vendor_delivery_data, true) : null;
+
+        // الحصول على أسماء التجار من بيانات التوصيل
+        if ($firstVendorDeliveryData) {
+            $firstVendor = $vendors->firstWhere('vendor_id', $firstVendorDeliveryData['vendor_id']);
+            $firstVendorDeliveryData['vendor_name'] = $firstVendor['vendor_name'] ?? null;
+            $firstVendorDeliveryData['vendor_address'] = $firstVendor['coordinates']['address'] ?? null;
+        }
+
+        if ($secondVendorDeliveryData) {
+            $secondVendor = $vendors->firstWhere('vendor_id', $secondVendorDeliveryData['vendor_id']);
+            $secondVendorDeliveryData['vendor_name'] = $secondVendor['vendor_name'] ?? null;
+            $secondVendorDeliveryData['vendor_address'] = $secondVendor['coordinates']['address'] ?? null;
+        }
+
         return [
             'order_info' => [
                 'order_id' => $order->id,
@@ -150,7 +209,12 @@ public function index()
                 'status' => $order->status,
                 'note' => $order->note,
                 'created_at' => $order->created_at,
-                'coupons' => $coupons
+                'coupons' => $coupons,
+                // إضافة بيانات توصيل التجار
+                'delivery_data' => [
+                    'first_vendor' => $firstVendorDeliveryData,
+                    'second_vendor' => $secondVendorDeliveryData
+                ]
             ],
             'user_info' => [
                 'user_id' => $order->user->id,
@@ -186,24 +250,74 @@ public function index()
         'total_orders' => $sortedOrders->count()
     ]);
 }
-private function calculateDistance($lat1, $lon1, $lat2, $lon2)
+
+/**
+ * حساب المسافة بين نقطتين باستخدام Google Maps Distance Matrix API
+ * بإرجاع النتيجة بالكيلومتر
+ */
+private function calculateDistance($lat1, $lng1, $lat2, $lng2)
 {
-    $earthRadius = 6371000; // نصف قطر الأرض بالأمتار
+    $client = new \GuzzleHttp\Client();
 
-    $dLat = deg2rad($lat2 - $lat1);
-    $dLon = deg2rad($lon2 - $lon1);
+    try {
+        $response = $client->get('https://maps.googleapis.com/maps/api/distancematrix/json', [
+            'query' => [
+                'origins' => "$lat1,$lng1",
+                'destinations' => "$lat2,$lng2",
+                'key' => env('GOOGLE_MAPS_API_KEY'),
+                'units' => 'metric',
+                'language' => 'ar'
+            ],
+            'timeout' => 10
+        ]);
 
+        $data = json_decode($response->getBody(), true);
+
+        if ($data['status'] !== 'OK') {
+            throw new \Exception('فشل في حساب المسافة: ' . ($data['error_message'] ?? ''));
+        }
+
+        if (empty($data['rows'][0]['elements'][0]['distance']['value'])) {
+            throw new \Exception('لا توجد بيانات مسافة صالحة');
+        }
+
+        // إرجاع المسافة بالكيلومتر
+        return $data['rows'][0]['elements'][0]['distance']['value'] / 1000;
+
+    } catch (\Exception $e) {
+        // في حالة حدوث خطأ، نلجأ إلى حساب المسافة باستخدام صيغة هافرساين كبديل
+      //  return $this->calculateHaversineDistance($lat1, $lng1, $lat2, $lng2);
+    }
+}
+
+/**
+ * حساب المسافة باستخدام صيغة هافرساين كبديل عندما تفشل Google API
+ */
+private function calculateHaversineDistance($lat1, $lng1, $lat2, $lng2)
+{
+    $earthRadius = 6371; // نصف قطر الأرض بالكيلومترات
+
+    // تحويل الدرجات إلى راديان
+    $lat1 = deg2rad($lat1);
+    $lng1 = deg2rad($lng1);
+    $lat2 = deg2rad($lat2);
+    $lng2 = deg2rad($lng2);
+
+    // حساب الفروقات
+    $dLat = $lat2 - $lat1;
+    $dLng = $lng2 - $lng1;
+
+    // تطبيق صيغة هافرساين
     $a = sin($dLat/2) * sin($dLat/2) +
-         cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-         sin($dLon/2) * sin($dLon/2);
+         cos($lat1) * cos($lat2) *
+         sin($dLng/2) * sin($dLng/2);
 
     $c = 2 * atan2(sqrt($a), sqrt(1-$a));
 
-    $distanceInMeters = $earthRadius * $c;
-    $distanceInKm = $distanceInMeters / 1000; // التحويل من أمتار إلى كيلومترات
+    // حساب المسافة بالكيلومترات
+    $distance = $earthRadius * $c;
 
-    return round($distanceInKm, 2); // تقريب إلى منزلتين عشريتين
+    return round($distance, 2);
 }
-
 
 }

@@ -13,8 +13,14 @@ class Order extends Model
         'total_price',
         'status',
         'note',
-        'delivery_fee'
+        'delivery_fee',
+        'first_vendor_delivery_data',
+        'second_vendor_delivery_data'
+    ];
 
+    protected $casts = [
+        'first_vendor_delivery_data' => 'array',
+        'second_vendor_delivery_data' => 'array',
     ];
     public function user()
     {

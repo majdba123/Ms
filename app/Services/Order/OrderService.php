@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Exceptions\InsufficientProductQuantityException;
 use App\Models\Coupon;
 use App\Models\Driver_Price;
+use App\Models\Order_Product_Driver;
 use App\Models\Provider_Product;
 
 class OrderService
@@ -244,10 +245,21 @@ public function createOrder(array $validatedData)
         $deliveryFee = 0;
         $calculationNote = '';
 
+        // حساب أسعار التوصيل للتجار وتخزينها مع الـ ID
+        $firstVendorDeliveryData = null;
+        $secondVendorDeliveryData = null;
+
         // المسافة الثابتة: من المستخدم إلى التاجر الأقرب
         $userToNearestDistance = $nearestVendor['distance'];
         $totalDistance = $userToNearestDistance;
         $deliveryFee = $this->getDeliveryPrice($userToNearestDistance);
+
+        // تخزين بيانات التاجر الأول مع سعر التوصيل
+        $firstVendorDeliveryData = json_encode([
+            'vendor_id' => $nearestVendor['provider']->id,
+            'delivery_fee' => $this->getDeliveryPrice($userToNearestDistance),
+            'distance_km' => round($userToNearestDistance, 2)
+        ]);
 
         if ($furthestVendor) {
             // المسافة من الأقرب إلى الأبعد
@@ -271,6 +283,15 @@ public function createOrder(array $validatedData)
             $totalDistance += $minDistance;
             $deliveryFee += $this->getDeliveryPrice($minDistance);
 
+            // تخزين بيانات التاجر الثاني مع سعر التوصيل
+            $secondVendorDeliveryData = json_encode([
+                'vendor_id' => $furthestVendor['provider']->id,
+                'delivery_fee' => $this->getDeliveryPrice($minDistance),
+                'distance_km' => round($minDistance, 2),
+                'route_type' => $userToFurthestDistance <= $nearestToFurthestDistance ?
+                               'user_to_furthest' : 'nearest_to_furthest'
+            ]);
+
             $calculationNote = sprintf(
                 "حساب التوصيل: %s كم (منك إلى الأقرب) + %s كم (الأقل بين [منك إلى الأبعد (%s كم) أو من الأقرب إلى الأبعد (%s كم)])",
                 round($userToNearestDistance, 2),
@@ -290,6 +311,8 @@ public function createOrder(array $validatedData)
             'user_id' => $userId,
             'total_price' => 0,
             'delivery_fee' => $deliveryFee,
+            'first_vendor_delivery_data' => $firstVendorDeliveryData,
+            'second_vendor_delivery_data' => $secondVendorDeliveryData,
             'status' => 'pending',
             'note' => $note,
         ]);
@@ -385,6 +408,10 @@ public function createOrder(array $validatedData)
             ] : null
         ];
 
+        // تحضير البيانات للإرجاع
+        $firstVendorData = json_decode($firstVendorDeliveryData, true);
+        $secondVendorData = $secondVendorDeliveryData ? json_decode($secondVendorDeliveryData, true) : null;
+
         return response()->json([
             'success' => true,
             'order' => [
@@ -392,6 +419,8 @@ public function createOrder(array $validatedData)
                 'total_price' => $order->total_price,
                 'products_price' => $totalPrice,
                 'delivery_fee' => $deliveryFee,
+                'first_vendor_delivery_data' => $firstVendorData,
+                'second_vendor_delivery_data' => $secondVendorData,
                 'distance_details' => $distanceDetails,
                 'delivery_calculation' => [
                     'total_distance' => round($totalDistance, 2),
@@ -415,7 +444,6 @@ public function createOrder(array $validatedData)
         ], 500);
     }
 }
-
 /**
  * حساب سعر التوصيل بناءً على المسافة
  */
@@ -522,7 +550,6 @@ private function calculateDistance($lat1, $lng1, $lat2, $lng2)
 
 
 
-
 public function cancelOrder($orderId)
 {
     DB::beginTransaction();
@@ -544,11 +571,23 @@ public function cancelOrder($orderId)
             throw new \Exception('Order is already cancelled');
         }
 
+        // التحقق من أن الطلب في حالة pending
+        if ($order->status !== 'pending') {
+            throw new \Exception('Cannot cancel order. Order status is: ' . $order->status);
+        }
+
+        // التحقق من أن جميع منتجات الطلب في حالة pending
+        $nonPendingProducts = $order->Order_Product->where('status', '!=', 'pending');
+
+        if ($nonPendingProducts->count() > 0) {
+            throw new \Exception('Cannot cancel order. Some products are already being processed');
+        }
+
         // تحديث حالة الطلب
         $order->update(['status' => 'cancelled']);
 
-        // إرجاع الكميات للمنتجات وتحديث حالة منتجات الطلب
-        foreach ($order->Order_Product as $orderProduct) { // استخدام Order_Product بدلاً من products
+        // تحديث حالة منتجات الطلب
+        foreach ($order->Order_Product as $orderProduct) {
             // تحديث حالة منتج الطلب
             $orderProduct->update(['status' => 'cancelled']);
 
@@ -556,6 +595,16 @@ public function cancelOrder($orderId)
             if ($orderProduct->product->quantity !== null) {
                 $orderProduct->product->increment('quantity', $orderProduct->quantity);
             }
+        }
+
+        // إذا كان هناك سائق مرتبط بالطلب، نقوم بتحديث حالة Order_Driver أيضًا
+        if ($order->Order_Driver()->exists()) {
+            $order->Order_Driver()->update(['status' => 'cancelled']);
+
+            // أيضًا تحديث Order_Product_Driver إذا كان موجودًا
+            Order_Product_Driver::whereHas('Order_Driver', function($query) use ($orderId) {
+                $query->where('order_id', $orderId);
+            })->update(['status' => 'cancelled']);
         }
 
         DB::commit();

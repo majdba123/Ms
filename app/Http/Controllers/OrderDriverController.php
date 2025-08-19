@@ -178,11 +178,31 @@ class OrderDriverController extends Controller
         }
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 public function getDriverOrders(Request $request)
 {
     $user = Auth::user();
     $query = Order_Driver::with([
-            'order:id,user_id,status,created_at,delivery_fee,total_price',
+            'order:id,user_id,status,created_at,delivery_fee,total_price,first_vendor_delivery_data,second_vendor_delivery_data',
             'Order_Product_Driver.Order_Product.product.providerable.user:id,name,lat,lang',
             'driver.user'
         ]);
@@ -255,6 +275,46 @@ public function getDriverOrders(Request $request)
             }
         })->filter(); // إزالة العناصر الفارغة
 
+        // فك تشفير بيانات توصيل التجار من الطلب
+        $firstVendorDeliveryData = $orderDriver->order->first_vendor_delivery_data
+            ? json_decode($orderDriver->order->first_vendor_delivery_data, true)
+            : null;
+
+        $secondVendorDeliveryData = $orderDriver->order->second_vendor_delivery_data
+            ? json_decode($orderDriver->order->second_vendor_delivery_data, true)
+            : null;
+
+        // إضافة معلومات إضافية للتجار من بيانات المنتجات
+        if ($firstVendorDeliveryData) {
+            $firstVendorId = $firstVendorDeliveryData['vendor_id'] ?? null;
+            if ($firstVendorId) {
+                $firstVendorInfo = collect($productsData)->first(function ($product) use ($firstVendorId) {
+                    return $product['vendor_info']['vendor_id'] == $firstVendorId;
+                });
+
+                if ($firstVendorInfo) {
+                    $firstVendorDeliveryData['vendor_name'] = $firstVendorInfo['vendor_info']['vendor_name'];
+                    $firstVendorDeliveryData['vendor_lat'] = $firstVendorInfo['vendor_info']['lat'];
+                    $firstVendorDeliveryData['vendor_lang'] = $firstVendorInfo['vendor_info']['lang'];
+                }
+            }
+        }
+
+        if ($secondVendorDeliveryData) {
+            $secondVendorId = $secondVendorDeliveryData['vendor_id'] ?? null;
+            if ($secondVendorId) {
+                $secondVendorInfo = collect($productsData)->first(function ($product) use ($secondVendorId) {
+                    return $product['vendor_info']['vendor_id'] == $secondVendorId;
+                });
+
+                if ($secondVendorInfo) {
+                    $secondVendorDeliveryData['vendor_name'] = $secondVendorInfo['vendor_info']['vendor_name'];
+                    $secondVendorDeliveryData['vendor_lat'] = $secondVendorInfo['vendor_info']['lat'];
+                    $secondVendorDeliveryData['vendor_lang'] = $secondVendorInfo['vendor_info']['lang'];
+                }
+            }
+        }
+
         $response = [
             'order_id' => $orderDriver->order_id,
             'order_driver_id' => $orderDriver->id,
@@ -263,7 +323,12 @@ public function getDriverOrders(Request $request)
             'total_price' => $orderDriver->order->total_price,
             'delivery_fee' => $orderDriver->order->delivery_fee,
             'order_created_at' => $orderDriver->order->created_at,
-            'products' => $productsData
+            'products' => $productsData,
+            // إضافة بيانات توصيل التجار
+            'delivery_data' => [
+                'first_vendor' => $firstVendorDeliveryData,
+                'second_vendor' => $secondVendorDeliveryData
+            ]
         ];
 
         // معلومات السائق للأدمن فقط
@@ -287,127 +352,278 @@ public function getDriverOrders(Request $request)
     ], 200);
 }
 
-    public function updateOrderProductStatus(Request $request)
-    {
-        // التحقق من صحة البيانات
-        $request->validate([
-            'order_product_id' => 'required|exists:order__products,id',
-            'status' => 'required|in:on_way,complete,cancelled'
-        ]);
 
-        // التحقق من صلاحيات السائق
-        $driver = Auth::user()->Driver;
-        if (!$driver) {
-            return response()->json(['message' => 'المستخدم ليس لديه صلاحيات سائق'], 403);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+public function updateOrderProductStatus(Request $request)
+{
+    // التحقق من صحة البيانات
+    $request->validate([
+        'order_product_id' => 'required|exists:order__products,id',
+        'status' => 'required|in:on_way,complete,cancelled'
+    ]);
+
+    // التحقق من صلاحيات السائق
+    $driver = Auth::user()->Driver;
+    if (!$driver) {
+        return response()->json(['message' => 'المستخدم ليس لديه صلاحيات سائق'], 403);
+    }
+
+    // البحث عن سجل المنتج
+    $orderProductDriver = Order_Product_Driver::whereHas('Order_Product', function($query) use ($request) {
+            $query->where('id', $request->order_product_id);
+        })
+        ->whereHas('Order_Driver', function($query) use ($driver) {
+            $query->where('driver_id', $driver->id);
+        })
+        ->with(['Order_Product.product.providerable.user', 'Order_Driver.order'])
+        ->first();
+
+    if (!$orderProductDriver) {
+        return response()->json(['message' => 'المنتج غير موجود أو لا ينتمي لهذا السائق'], 404);
+    }
+
+    $orderProduct = $orderProductDriver->Order_Product;
+    $orderDriver = $orderProductDriver->Order_Driver;
+    $order = $orderDriver->order;
+    $product = $orderProduct->product;
+    $vendorUser = $product->providerable->user ?? null;
+
+    DB::beginTransaction();
+    try {
+        // تحديث حالة المنتج حسب الحالة المطلوبة
+        switch ($request->status) {
+            case 'on_way':
+                if ($orderProductDriver->status != 'pending') {
+                    throw new \Exception('حالة المنتج يجب أن تكون pending لتغييرها إلى on_way');
+                }
+                $orderProductDriver->update(['status' => 'on_way']);
+                $orderProduct->update(['status' => 'on_way']);
+
+                // إرسال إشعار للمورد
+               $this->sendProviderNotification($orderProduct, 'on_way');
+
+                break;
+
+            case 'complete':
+                if ($orderProductDriver->status != 'on_way') {
+                    throw new \Exception('حالة المنتج يجب أن تكون on_way لتغييرها إلى complete');
+                }
+                $orderProductDriver->update(['status' => 'complete']);
+                $orderProduct->update(['status' => 'complete']);
+
+                // إرسال إشعار للمورد
+                 $this->sendProviderNotification($orderProduct, 'complete');
+
+                break;
+
+            case 'cancelled':
+                $orderProductDriver->update(['status' => 'cancelled']);
+                $orderProduct->update(['status' => 'cancelled']);
+
+                 $this->sendProviderNotification($orderProduct, 'cancelled');
+
+                // التحقق إذا كان هذا هو المنتج الوحيد للتاجر
+                $this->handleCancelledProduct($order, $orderProduct);
+
+                break;
         }
 
-        // البحث عن سجل المنتج
-        $orderProductDriver = Order_Product_Driver::whereHas('Order_Product', function($query) use ($request) {
-                $query->where('id', $request->order_product_id);
-            })
-            ->whereHas('Order_Driver', function($query) use ($driver) {
-                $query->where('driver_id', $driver->id);
-            })
-            ->with(['Order_Product.product.providerable.user', 'Order_Driver.order'])
-            ->first();
+        // التحقق من حالة جميع منتجات الطلب
+        $remainingProducts = Order_Product_Driver::where('order__driver_id', $orderDriver->id)
+            ->whereNotIn('status', ['complete', 'cancelled'])
+            ->count();
 
-        if (!$orderProductDriver) {
-            return response()->json(['message' => 'المنتج غير موجود أو لا ينتمي لهذا السائق'], 404);
+        $canceledProducts = Order_Product_Driver::where('order__driver_id', $orderDriver->id)
+            ->where('status', 'cancelled')
+            ->count();
+
+        $totalProducts = Order_Product_Driver::where('order__driver_id', $orderDriver->id)
+            ->count();
+
+        // تحديث حالة الطلب حسب حالة المنتجات
+        if ($remainingProducts == 0) {
+            if ($canceledProducts == 0) {
+                $orderDriver->update(['status' => 'complete']);
+                $order->update(['status' => 'complete']);
+                $this->sendOrderStatusNotification($order, 'complete');
+            }
+            elseif ($canceledProducts == $totalProducts) {
+                $orderDriver->update(['status' => 'cancelled']);
+                $order->update(['status' => 'cancelled']);
+                $this->sendOrderStatusNotification($order, 'cancelled');
+            }
+        }
+        elseif (Order_Product_Driver::where('order__driver_id', $orderDriver->id)
+            ->whereNotIn('status', ['on_way', 'cancelled'])
+            ->doesntExist()) {
+            $orderDriver->update(['status' => 'on_way']);
+            $order->update(['status' => 'on_way']);
+            $this->sendOrderStatusNotification($order, 'on_way');
         }
 
-        $orderProduct = $orderProductDriver->Order_Product;
-        $orderDriver = $orderProductDriver->Order_Driver;
-        $order = $orderDriver->order;
-        $product = $orderProduct->product;
-        $vendorUser = $product->providerable->user ?? null;
+        DB::commit();
 
-        DB::beginTransaction();
-        try {
-            // تحديث حالة المنتج حسب الحالة المطلوبة
-            switch ($request->status) {
-                case 'on_way':
-                    if ($orderProductDriver->status != 'pending') {
-                        throw new \Exception('حالة المنتج يجب أن تكون pending لتغييرها إلى on_way');
-                    }
-                    $orderProductDriver->update(['status' => 'on_way']);
-                    $orderProduct->update(['status' => 'on_way']);
+        return response()->json([
+            'message' => 'تم تحديث حالة المنتج بنجاح',
+            'order_status' => $order->fresh()->status,
+            'order_driver_status' => $orderDriver->fresh()->status,
+            'product_status' => $orderProductDriver->fresh()->status,
+            'updated_delivery_fee' => $order->fresh()->delivery_fee
+        ], 200);
 
-                    // إرسال إشعار للمورد
-                   $this->sendProviderNotification($orderProduct, 'on_way');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'message' => 'فشل في تحديث حالة المنتج',
+            'error' => $e->getMessage()
+        ], 400);
+    }
+}
 
-                    break;
+// دالة جديدة للتعامل مع المنتج الملغي
+private function handleCancelledProduct($order, $cancelledOrderProduct)
+{
+    // فك تشفير بيانات توصيل التجار
+    $firstVendorData = $order->first_vendor_delivery_data
+        ? json_decode($order->first_vendor_delivery_data, true)
+        : null;
 
-                case 'complete':
-                    if ($orderProductDriver->status != 'on_way') {
-                        throw new \Exception('حالة المنتج يجب أن تكون on_way لتغييرها إلى complete');
-                    }
-                    $orderProductDriver->update(['status' => 'complete']);
-                    $orderProduct->update(['status' => 'complete']);
+    $secondVendorData = $order->second_vendor_delivery_data
+        ? json_decode($order->second_vendor_delivery_data, true)
+        : null;
 
-                    // إرسال إشعار للمورد
-                     $this->sendProviderNotification($orderProduct, 'complete');
+    // الحصول على التاجر الخاص بالمنتج الملغي
+    $cancelledVendorId = $cancelledOrderProduct->product->providerable->id ?? null;
 
-                    break;
+    if (!$cancelledVendorId) {
+        return;
+    }
 
-                case 'cancelled':
-                    $orderProductDriver->update(['status' => 'cancelled']);
-                    $orderProduct->update(['status' => 'cancelled']);
+    // التحقق إذا كان التاجر لديه منتجات أخرى غير ملغاة في الطلب
+    $vendorActiveProducts = Order_Product::where('order_id', $order->id)
+        ->whereHas('product', function($query) use ($cancelledVendorId) {
+            $query->whereHas('providerable', function($q) use ($cancelledVendorId) {
+                $q->where('id', $cancelledVendorId);
+            });
+        })
+        ->where('status', '!=', 'cancelled')
+        ->count();
 
-                     $this->sendProviderNotification($orderProduct, 'cancelled');
+    // إذا كان التاجر لا يزال لديه منتجات نشطة، لا داعي لتعديل التوصيل
+    if ($vendorActiveProducts > 0) {
+        return;
+    }
 
-                    break;
-            }
+    // تحديد أي بيانات تاجر تحتوي على الـ vendor_id الملغي
+    $updatedFirstVendorData = $firstVendorData;
+    $updatedSecondVendorData = $secondVendorData;
+    $deliveryFeeReduction = 0;
 
-            // التحقق من حالة جميع منتجات الطلب
-            $remainingProducts = Order_Product_Driver::where('order__driver_id', $orderDriver->id)
-                ->whereNotIn('status', ['complete', 'cancelled'])
-                ->count();
-
-            $canceledProducts = Order_Product_Driver::where('order__driver_id', $orderDriver->id)
-                ->where('status', 'cancelled')
-                ->count();
-
-            $totalProducts = Order_Product_Driver::where('order__driver_id', $orderDriver->id)
-                ->count();
-
-            // تحديث حالة الطلب حسب حالة المنتجات
-            if ($remainingProducts == 0) {
-                if ($canceledProducts == 0) {
-                    $orderDriver->update(['status' => 'complete']);
-                    $order->update(['status' => 'complete']);
-                    $this->sendOrderStatusNotification($order, 'complete');
-                }
-                elseif ($canceledProducts == $totalProducts) {
-                    $orderDriver->update(['status' => 'cancelled']);
-                    $order->update(['status' => 'cancelled']);
-                    $this->sendOrderStatusNotification($order, 'cancelled');
-                }
-            }
-            elseif (Order_Product_Driver::where('order__driver_id', $orderDriver->id)
-                ->whereNotIn('status', ['on_way', 'cancelled'])
-                ->doesntExist()) {
-                $orderDriver->update(['status' => 'on_way']);
-                $order->update(['status' => 'on_way']);
-                $this->sendOrderStatusNotification($order, 'on_way');
-            }
-
-            DB::commit();
-
-            return response()->json([
-                'message' => 'تم تحديث حالة المنتج بنجاح',
-                'order_status' => $order->fresh()->status,
-                'order_driver_status' => $orderDriver->fresh()->status,
-                'product_status' => $orderProductDriver->fresh()->status
-            ], 200);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'message' => 'فشل في تحديث حالة المنتج',
-                'error' => $e->getMessage()
-            ], 400);
+    // التحقق من التاجر الأول
+    if ($firstVendorData && isset($firstVendorData['vendor_id'])) {
+        if ($firstVendorData['vendor_id'] == $cancelledVendorId) {
+            $deliveryFeeReduction += $firstVendorData['delivery_fee'] ?? 0;
+            $updatedFirstVendorData = null;
         }
     }
+
+    // التحقق من التاجر الثاني
+    if ($secondVendorData && isset($secondVendorData['vendor_id'])) {
+        if ($secondVendorData['vendor_id'] == $cancelledVendorId) {
+            $deliveryFeeReduction += $secondVendorData['delivery_fee'] ?? 0;
+            $updatedSecondVendorData = null;
+        }
+    }
+
+    // إذا تم إلغاء التاجر الثاني فقط، ننقل التاجر الأول إلى المركز الثاني إذا لزم الأمر
+    if ($updatedFirstVendorData && !$updatedSecondVendorData) {
+        $updatedSecondVendorData = $updatedFirstVendorData;
+        $updatedFirstVendorData = null;
+    }
+
+    // تحديث سعر التوصيل الإجمالي
+    $newDeliveryFee = max(0, $order->delivery_fee - $deliveryFeeReduction);
+
+    // تحديث الطلب ببيانات التوصيل الجديدة
+    $order->update([
+        'delivery_fee' => $newDeliveryFee,
+        'first_vendor_delivery_data' => $updatedFirstVendorData ? json_encode($updatedFirstVendorData) : null,
+        'second_vendor_delivery_data' => $updatedSecondVendorData ? json_encode($updatedSecondVendorData) : null,
+        'total_price' => $order->total_price - $deliveryFeeReduction
+    ]);
+
+    // تسجيل التغيير في السجل
+    Log::info('تم تحديث تفاصيل التوصيل بعد إلغاء المنتج', [
+        'order_id' => $order->id,
+        'cancelled_product_id' => $cancelledOrderProduct->id,
+        'cancelled_vendor_id' => $cancelledVendorId,
+        'delivery_fee_reduction' => $deliveryFeeReduction,
+        'new_delivery_fee' => $newDeliveryFee
+    ]);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public function driverStatistics(Request $request)
     {

@@ -196,13 +196,24 @@ class OrderDriverController extends Controller
 
 
 
-
-
 public function getDriverOrders(Request $request)
 {
     $user = Auth::user();
+    $driver = Auth::user();
+
+    // التحقق من وجود إحداثيات السائق إذا كان المستخدم سائقاً
+    if ($user->type != 1 && (empty($driver->lat) || empty($driver->lang))) {
+        return response()->json([
+            'success' => false,
+            'message' => 'يجب على السائق تحديث موقعه الجغرافي أولاً'
+        ], 400);
+    }
+
     $query = Order_Driver::with([
-            'order:id,user_id,status,created_at,delivery_fee,total_price,first_vendor_delivery_data,second_vendor_delivery_data',
+            'order.user.profile',
+            'order.Order_Product.product.providerable.user.profile',
+            'order.Order_Product.product.images', // إضافة صور المنتجات
+            'order.coupons',
             'Order_Product_Driver.Order_Product.product.providerable.user:id,name,lat,lang',
             'driver.user'
         ]);
@@ -231,135 +242,194 @@ public function getDriverOrders(Request $request)
 
     $driverOrders = $query->get();
 
-    $formattedOrders = $driverOrders->map(function ($orderDriver) use ($user) {
-        $productsData = $orderDriver->Order_Product_Driver->map(function ($productDriver) {
-            try {
-                $orderProduct = $productDriver->Order_Product;
+    $formattedOrders = $driverOrders->map(function ($orderDriver) use ($driver) {
+        $order = $orderDriver->order;
 
-                // التحقق من وجود جميع البيانات المطلوبة
-                if (!$orderProduct || !$orderProduct->product || !$orderProduct->product->providerable) {
-                    Log::warning('Incomplete product data', [
-                        'order_product_id' => $orderProduct->id ?? null,
-                        'product_id' => $orderProduct->product->id ?? null
-                    ]);
-                    return null;
+        // حساب المسافة بين السائق وصاحب الطلب
+        try {
+            $distanceToUser = $this->calculateDistance(
+                $driver->lat,
+                $driver->lang,
+                $order->user->lat,
+                $order->user->lang
+            );
+        } catch (\Exception $e) {
+            $distanceToUser = 9999;
+        }
+
+        // تجميع معلومات التجار مع المسافات
+        $vendors = collect();
+        $products = collect();
+        $orderProducts = collect(); // جمع معلومات Order_Product
+
+        foreach ($order->Order_Product as $orderProduct) {
+            if ($orderProduct->product && $orderProduct->product->providerable) {
+                $vendor = $orderProduct->product->providerable;
+
+                try {
+                    $distanceToVendor = $this->calculateDistance(
+                        $driver->lat,
+                        $driver->lang,
+                        $vendor->user->lat,
+                        $vendor->user->lang
+                    );
+                } catch (\Exception $e) {
+                    $distanceToVendor = 9999;
                 }
 
-                $product = $orderProduct->product;
-                $vendor = $product->providerable;
-                $vendorUser = $vendor->user ?? null;
-
-                return [
-                    'product_info' => [
-                        'order_product_id' => $orderProduct->id,
-                        'product_id' => $product->id,
-                        'product_name' => $product->name,
-                        'total_price' => $orderProduct->total_price,
-                        'quantity' => $orderProduct->quantity,
-                        'status' => $orderProduct->status,
-                        'created_at' => $orderProduct->created_at
-                    ],
-                    'vendor_info' => [
-                        'vendor_id' => $vendor->id,
-                        'vendor_name' => $vendorUser->name ?? 'Vendor Name Not Available',
-                        'lat' => $vendorUser->lat ?? null,
-                        'lang' => $vendorUser->lang ?? null,
+                $vendors->push([
+                    'vendor_id' => $vendor->id,
+                    'vendor_name' => $vendor->user->name,
+                    'distance_to_driver' => $distanceToVendor,
+                    'coordinates' => [
+                        'lat' => $vendor->user->lat,
+                        'address' => $vendor->user->profile->address ?? null,
+                        'lng' => $vendor->user->lang
                     ]
-                ];
-            } catch (\Exception $e) {
-                Log::error('Error processing product data', [
-                    'error' => $e->getMessage(),
-                    'product_driver_id' => $productDriver->id
                 ]);
-                return null;
+
+
+                // جمع معلومات Order_Product الكاملة
+                $orderProducts->push([
+                    'order_product_id' => $orderProduct->id,
+                    'product_id' => $orderProduct->product_id,
+                    'order_id' => $orderProduct->order_id,
+                    'quantity' => $orderProduct->quantity,
+                    'status' => $orderProduct->status,
+                    'original_price' => $orderProduct->original_price,
+                    'unit_price' => $orderProduct->unit_price,
+                    'total_price' => $orderProduct->total_price,
+                    'discount_applied' => $orderProduct->discount_applied,
+                    'discount_value' => $orderProduct->discount_value,
+                    'discount_type' => $orderProduct->discount_type,
+                    'created_at' => $orderProduct->created_at,
+                    'updated_at' => $orderProduct->updated_at,
+
+                    // معلومات المنتج الإضافية
+                    'product' => [
+                        'id' => $orderProduct->product->id,
+                        'name' => $orderProduct->product->name,
+                        'description' => $orderProduct->product->description,
+                        'images' => $orderProduct->product->images->map(function($image) {
+                            return [
+                                'image_url' => $image->image_url,
+                                'is_main' => $image->is_main
+                            ];
+                        }),
+                        'category_id' => $orderProduct->product->category_id,
+                        'providerable_type' => $orderProduct->product->providerable_type,
+                        'providerable_id' => $orderProduct->product->providerable_id
+                    ],
+
+                    // معلومات التاجر
+                    'vendor' => [
+                        'id' => $vendor->id,
+                        'name' => $vendor->user->name,
+                        'phone' => $vendor->user->phone,
+                        'address' => $vendor->user->profile->address ?? null,
+                        'coordinates' => [
+                            'lat' => $vendor->user->lat,
+                            'lng' => $vendor->user->lang
+                        ]
+                    ],
+
+                    // معلومات الخصم
+                    'discount_info' => $orderProduct->hasDiscount() ? [
+                        'has_discount' => true,
+                        'discount_amount' => $orderProduct->discountAmount(),
+                        'discount_type' => $orderProduct->discount_type,
+                        'discount_value' => $orderProduct->discount_value
+                    ] : [
+                        'has_discount' => false,
+                        'discount_amount' => 0
+                    ]
+                ]);
             }
-        })->filter(); // إزالة العناصر الفارغة
+        }
 
-        // فك تشفير بيانات توصيل التجار من الطلب
-        $firstVendorDeliveryData = $orderDriver->order->first_vendor_delivery_data
-            ? json_decode($orderDriver->order->first_vendor_delivery_data, true)
-            : null;
+        // جمع معلومات الكوبونات إذا وجدت
+        $coupons = $order->coupons->map(function($coupon) {
+            return [
+                'coupon_id' => $coupon->id,
+                'code' => $coupon->code,
+                'discount_amount' => $coupon->pivot->discount_amount ?? 0
+            ];
+        });
 
-        $secondVendorDeliveryData = $orderDriver->order->second_vendor_delivery_data
-            ? json_decode($orderDriver->order->second_vendor_delivery_data, true)
-            : null;
+        // فك تشفير بيانات توصيل التجار
+        $firstVendorDeliveryData = $order->first_vendor_delivery_data ? json_decode($order->first_vendor_delivery_data, true) : null;
+        $secondVendorDeliveryData = $order->second_vendor_delivery_data ? json_decode($order->second_vendor_delivery_data, true) : null;
 
-        // إضافة معلومات إضافية للتجار من بيانات المنتجات
+        // الحصول على أسماء التجار من بيانات التوصيل
         if ($firstVendorDeliveryData) {
-            $firstVendorId = $firstVendorDeliveryData['vendor_id'] ?? null;
-            if ($firstVendorId) {
-                $firstVendorInfo = collect($productsData)->first(function ($product) use ($firstVendorId) {
-                    return $product['vendor_info']['vendor_id'] == $firstVendorId;
-                });
-
-                if ($firstVendorInfo) {
-                    $firstVendorDeliveryData['vendor_name'] = $firstVendorInfo['vendor_info']['vendor_name'];
-                    $firstVendorDeliveryData['vendor_lat'] = $firstVendorInfo['vendor_info']['lat'];
-                    $firstVendorDeliveryData['vendor_lang'] = $firstVendorInfo['vendor_info']['lang'];
-                }
-            }
+            $firstVendor = $vendors->firstWhere('vendor_id', $firstVendorDeliveryData['vendor_id']);
+            $firstVendorDeliveryData['vendor_name'] = $firstVendor['vendor_name'] ?? null;
+            $firstVendorDeliveryData['vendor_address'] = $firstVendor['coordinates']['address'] ?? null;
         }
 
         if ($secondVendorDeliveryData) {
-            $secondVendorId = $secondVendorDeliveryData['vendor_id'] ?? null;
-            if ($secondVendorId) {
-                $secondVendorInfo = collect($productsData)->first(function ($product) use ($secondVendorId) {
-                    return $product['vendor_info']['vendor_id'] == $secondVendorId;
-                });
-
-                if ($secondVendorInfo) {
-                    $secondVendorDeliveryData['vendor_name'] = $secondVendorInfo['vendor_info']['vendor_name'];
-                    $secondVendorDeliveryData['vendor_lat'] = $secondVendorInfo['vendor_info']['lat'];
-                    $secondVendorDeliveryData['vendor_lang'] = $secondVendorInfo['vendor_info']['lang'];
-                }
-            }
+            $secondVendor = $vendors->firstWhere('vendor_id', $secondVendorDeliveryData['vendor_id']);
+            $secondVendorDeliveryData['vendor_name'] = $secondVendor['vendor_name'] ?? null;
+            $secondVendorDeliveryData['vendor_address'] = $secondVendor['coordinates']['address'] ?? null;
         }
 
+        // بناء الهيكل المطلوب مشابهاً لدالة index
         $response = [
-            'order_id' => $orderDriver->order_id,
-            'order_driver_id' => $orderDriver->id,
-            'order_driver_status' => $orderDriver->status,
-            'order_status' => $orderDriver->order->status,
-            'total_price' => $orderDriver->order->total_price,
-            'delivery_fee' => $orderDriver->order->delivery_fee,
-            'order_created_at' => $orderDriver->order->created_at,
-            'products' => $productsData,
-            // إضافة بيانات توصيل التجار
-            'delivery_data' => [
-                'first_vendor' => $firstVendorDeliveryData,
-                'second_vendor' => $secondVendorDeliveryData
-            ]
+            'order_info' => [
+                'order_id' => $order->id,
+                'order_driver_id' => $orderDriver->id,
+                'order_driver_status' => $orderDriver->status,
+                'order_date' => $order->created_at,
+                'total_price' => $order->total_price,
+                'delivery_fee' => $order->delivery_fee,
+                'final_price' => $order->total_price + $order->delivery_fee,
+                'status' => $order->status,
+                'note' => $order->note,
+                'created_at' => $order->created_at,
+                'coupons' => $coupons,
+                'delivery_data' => [
+                    'first_vendor' => $firstVendorDeliveryData,
+                    'second_vendor' => $secondVendorDeliveryData
+                ]
+            ],
+            'user_info' => [
+                'user_id' => $order->user->id,
+                'address' => $order->user->profile->address ?? null,
+                'name' => $order->user->name,
+                'phone' => $order->user->phone,
+                'distance_to_driver' => $distanceToUser,
+                'coordinates' => [
+                    'lat' => $order->user->lat,
+                    'lng' => $order->user->lang
+                ]
+            ],
+            'vendors' => $vendors,
+            'products' => $products,
+            'order_products' => $orderProducts, // إضافة معلومات Order_Product الكاملة
+            'nearest_vendor_distance' => $vendors->min('distance_to_driver') ?? 0
         ];
-
-        // معلومات السائق للأدمن فقط
-        if ($user->type == 1 && $orderDriver->driver) {
-            $response['driver_info'] = [
-                'driver_id' => $orderDriver->driver->id,
-                'driver_name' => $orderDriver->driver->user->name ?? 'Unknown Driver',
-                'driver_phone' => $orderDriver->driver->user->phone ?? null,
-                'driver_lat' => $orderDriver->driver->user->lat ?? null,
-                'driver_lang' => $orderDriver->driver->user->lang ?? null
-            ];
-        }
 
         return $response;
     });
 
+    // ترتيب الطلبات حسب الأقرب (أقرب تاجر في كل طلب)
+    $sortedOrders = $formattedOrders->sortBy('nearest_vendor_distance')->values();
+
     return response()->json([
         'success' => true,
-        'orders' => $formattedOrders,
+        'driver_info' => [
+            'driver_id' => $driver->Driver->id,
+            'name' => $driver->name,
+            'coordinates' => [
+                'lat' => $driver->lat,
+                'lng' => $driver->lang
+            ]
+        ],
+        'orders' => $sortedOrders,
+        'total_orders' => $sortedOrders->count(),
         'message' => 'Orders retrieved successfully'
     ], 200);
 }
-
-
-
-
-
-
-
-
-
 
 
 

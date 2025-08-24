@@ -1700,10 +1700,11 @@
                             tableElement.innerHTML = `
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th><span x-text="Alpine.store('i18n').t('name')"></span></th>
-                    <th><span x-text="Alpine.store('i18n').t('email')"></span></th>
-                    <th class="text-center"><span x-text="Alpine.store('i18n').t('action')"></span></th>
+                    <th x-text="$store.i18n.t('number')"></th>
+                    <th x-text="$store.i18n.t('national_id')"></th>
+                    <th x-text="$store.i18n.t('name')"></th>
+                    <th x-text="$store.i18n.t('email')"></th>
+                    <th class="text-center" x-text="$store.i18n.t('actions')"></th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -1724,6 +1725,8 @@
 
                             const mappedData = this.tableData.map((manager, index) => [
                                 this.formatText(index + 1),
+                                this.formatNationalId(manager.user?.national_id, manager.user?.image_national_id),
+
                                 this.formatText(manager.user?.name || 'N/A'),
                                 this.formatText(manager.user?.email || 'N/A'),
                                 this.getActionButtons(manager.provider_Servive.id, manager.provider_Servive.status),
@@ -1732,7 +1735,7 @@
                             setTimeout(() => {
                                 this.datatable1 = new simpleDatatables.DataTable('#myTable1', {
                                     data: {
-                                        headings: ['#', 'Name', 'Email', 'Action'],
+                                        headings: ['#', 'National ID','Name', 'Email',  'Action'],
                                         data: mappedData,
                                     },
                                     searchable: true,
@@ -1743,6 +1746,7 @@
                                         { select: 1, type: 'string' },
                                         { select: 2, type: 'string' },
                                         { select: 3, sortable: false, type: 'html' },
+                                        { select: 4, sortable: false, type: 'html' },
                                     ],
                                     firstLast: true,
                                     firstText: this.getPaginationIcon('first'),
@@ -1763,7 +1767,56 @@
                         } catch (error) {
                             coloredToast('error', 'Failed to display table data. Please try again.');
                         }
+                    }, // دالة جديدة لتنسيق National ID مع الصورة
+                    formatNationalId(nationalId, imageUrl) {
+                        if (!nationalId && !imageUrl) {
+                            return 'N/A';
+                        }
+
+                        let html = '<div class="flex flex-col items-center">';
+
+                        if (nationalId) {
+                            html += `<div class="text-sm font-semibold mb-2">${nationalId}</div>`;
+                        }
+
+                        if (imageUrl) {
+                            html += `
+                <img src="${imageUrl}" 
+                     alt="National ID" 
+                     class="w-16 h-12 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
+                     onclick="vendorApp.showNationalIdImage('${imageUrl}', '${nationalId || 'National ID'}')">
+            `;
+                        }
+
+                        html += '</div>';
+                        return html;
                     },
+                    showNationalIdImage(imageUrl, title) {
+                        Swal.fire({
+                            title: title,
+                            html: `
+                <div class="text-center">
+                    <img src="${imageUrl}" 
+                         alt="${title}" 
+                         class="max-w-full max-h-96 mx-auto rounded-lg">
+                    <div class="mt-3">
+                        <a href="${imageUrl}" 
+                           target="_blank" 
+                           class="text-blue-600 hover:underline">
+                           View Full Image
+                        </a>
+                    </div>
+                </div>
+            `,
+                            showCloseButton: true,
+                            showConfirmButton: false,
+                            width: 'auto',
+                            customClass: {
+                                popup: 'national-id-modal',
+                            },
+                        });
+                    },
+
                     formatName(name, index) {
                         return `
             <div class="flex items-center w-max">

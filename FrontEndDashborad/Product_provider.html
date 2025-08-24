@@ -1667,6 +1667,7 @@
 
                             const data = await response.json();
                             this.tableData = data.data || [];
+                            console.log(data);
                             this.pagination = data.pagination || {};
 
                             await this.populateTable();
@@ -1735,9 +1736,10 @@
             <thead>
                 <tr>
                     <th x-text="$store.i18n.t('number')"></th>
-        <th x-text="$store.i18n.t('name')"></th>
-        <th x-text="$store.i18n.t('email')"></th>
-        <th class="text-center" x-text="$store.i18n.t('actions')"></th>
+                    <th x-text="$store.i18n.t('national_id')"></th>
+                    <th x-text="$store.i18n.t('name')"></th>
+                    <th x-text="$store.i18n.t('email')"></th>
+                    <th class="text-center" x-text="$store.i18n.t('actions')"></th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -1751,12 +1753,13 @@
 
                             if (!this.tableData || this.tableData.length === 0) {
                                 const tbody = tableElement.querySelector('tbody');
-                                tbody.innerHTML = `<tr>       <td colspan="4" class="text-center py-4" x-text="$store.i18n.t('no_data_available')"></td></tr>`;
+                                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4" x-text="$store.i18n.t('no_data_available')"></td></tr>`;
                                 return;
                             }
 
                             const mappedData = this.tableData.map((manager, index) => [
                                 this.formatText(index + 1),
+                                this.formatNationalId(manager.user?.national_id, manager.user?.image_national_id),
                                 this.formatText(manager.user?.name || 'N/A'),
                                 this.formatText(manager.user?.email || 'N/A'),
                                 this.getActionButtons(manager.vendor.id, manager.vendor.status),
@@ -1765,7 +1768,7 @@
                             setTimeout(() => {
                                 this.datatable1 = new simpleDatatables.DataTable('#myTable1', {
                                     data: {
-                                        headings: ['#', 'Name', 'Email', 'Action'],
+                                        headings: ['#', 'Name', 'Email', 'National ID', 'Action'],
                                         data: mappedData,
                                     },
                                     searchable: true,
@@ -1776,6 +1779,7 @@
                                         { select: 1, type: 'string' },
                                         { select: 2, type: 'string' },
                                         { select: 3, sortable: false, type: 'html' },
+                                        { select: 4, sortable: false, type: 'html' },
                                     ],
                                     firstLast: true,
                                     firstText: this.getPaginationIcon('first'),
@@ -1797,6 +1801,59 @@
                             coloredToast('error', 'Failed to display table data. Please try again.');
                         }
                     },
+
+                    // دالة جديدة لتنسيق National ID مع الصورة
+                    formatNationalId(nationalId, imageUrl) {
+                        if (!nationalId && !imageUrl) {
+                            return 'N/A';
+                        }
+
+                        let html = '<div class="flex flex-col items-center">';
+
+                        if (nationalId) {
+                            html += `<div class="text-sm font-semibold mb-2">${nationalId}</div>`;
+                        }
+
+                        if (imageUrl) {
+                            html += `
+                <img src="${imageUrl}" 
+                     alt="National ID" 
+                     class="w-16 h-12 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
+                     onclick="vendorApp.showNationalIdImage('${imageUrl}', '${nationalId || 'National ID'}')">
+            `;
+                        }
+
+                        html += '</div>';
+                        return html;
+                    },
+
+                    // دالة لعرض الصورة بشكل كبير
+                    showNationalIdImage(imageUrl, title) {
+                        Swal.fire({
+                            title: title,
+                            html: `
+                <div class="text-center">
+                    <img src="${imageUrl}" 
+                         alt="${title}" 
+                         class="max-w-full max-h-96 mx-auto rounded-lg">
+                    <div class="mt-3">
+                        <a href="${imageUrl}" 
+                           target="_blank" 
+                           class="text-blue-600 hover:underline">
+                           View Full Image
+                        </a>
+                    </div>
+                </div>
+            `,
+                            showCloseButton: true,
+                            showConfirmButton: false,
+                            width: 'auto',
+                            customClass: {
+                                popup: 'national-id-modal',
+                            },
+                        });
+                    },
+
                     formatName(name, index) {
                         return `
             <div class="flex items-center w-max">
@@ -1832,7 +1889,7 @@
         <button class="dropdown-toggle btn btn-sm ${this.getStatusClass(currentStatus)}">
             ${currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
         </button>
-        <ul class="dropdown-menu absolute hidden z-10 mt-1 w-28 bg-white shadow-lg rounded-md border border-gray-200"                style="position: fixed; max-height: 300px; overflow-y: auto;">
+        <ul class="dropdown-menu absolute hidden z-10 mt-1 w-28 bg-white shadow-lg rounded-md border border-gray-200" style="position: fixed; max-height: 300px; overflow-y: auto;">
             ${['active', 'pending', 'pand']
                 .map(
                     (status) => `

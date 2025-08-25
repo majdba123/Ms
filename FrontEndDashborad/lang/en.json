@@ -1,4 +1,8 @@
 {
+    "confirm_delete_title":"Delete!",
+    "confirm_delete_message": " Are ypu sure you want to delete?",
+    "confirm_delete": "confirm",
+
     "national_id": "ID",
     "add_web_subscribe": "Add Web Subscribe",
     "enter_time": "Enter Time",

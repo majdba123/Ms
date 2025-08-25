@@ -1,4 +1,7 @@
 {
+    "confirm_delete": "تأكيد",
+    "confirm_delete_title": "حذف!",
+    "confirm_delete_message": "هل انت متأكد من الحذف؟",
     "national_id": "ID",
     "add_web_subscribe": "إضافة اشتراك ويب",
     "enter_time": "أدخل الوقت",

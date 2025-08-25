@@ -1410,7 +1410,6 @@
                             localStorage.setItem('language', locale);
                             this.applyDirection(locale);
                         } catch (error) {
-                            console.error('Error loading translations:', error);
                             if (locale !== 'en') await this.loadTranslations('en');
                         }
                     },
@@ -1589,7 +1588,7 @@
                         document.addEventListener('click', (e) => {
                             if (e.target.closest('.delete-btn')) {
                                 const managerId = e.target.closest('.delete-btn').dataset.id;
-                                this.deleteManager(managerId);
+                                this.confirmDeleteManager(managerId);
                             }
                         });
 
@@ -1667,7 +1666,6 @@
 
                             const data = await response.json();
                             this.tableData = data.data || [];
-                            console.log(data);
                             this.pagination = data.pagination || {};
 
                             await this.populateTable();
@@ -1762,7 +1760,7 @@
                                 this.formatNationalId(manager.user?.national_id, manager.user?.image_national_id),
                                 this.formatText(manager.user?.name || 'N/A'),
                                 this.formatText(manager.user?.email || 'N/A'),
-                                this.getActionButtons(manager.vendor.id, manager.vendor.status),
+                                this.getActionButtons(manager.vendor.id, manager.vendor.status,manager.user.id),
                             ]);
 
                             setTimeout(() => {
@@ -1802,8 +1800,8 @@
                         }
                     },
 
-                    // دالة جديدة لتنسيق National ID مع الصورة
                     formatNationalId(nationalId, imageUrl) {
+                        
                         if (!nationalId && !imageUrl) {
                             return 'N/A';
                         }
@@ -1818,7 +1816,7 @@
                             html += `
                 <img src="${imageUrl}" 
                      alt="National ID" 
-                     class="w-16 h-12 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
+                     class="w-16 h-16 object-cover rounded-full cursor-pointer hover:scale-110 transition-transform"
                      onclick="vendorApp.showNationalIdImage('${imageUrl}', '${nationalId || 'National ID'}')">
             `;
                         }
@@ -1827,7 +1825,6 @@
                         return html;
                     },
 
-                    // دالة لعرض الصورة بشكل كبير
                     showNationalIdImage(imageUrl, title) {
                         Swal.fire({
                             title: title,
@@ -1837,11 +1834,7 @@
                          alt="${title}" 
                          class="max-w-full max-h-96 mx-auto rounded-lg">
                     <div class="mt-3">
-                        <a href="${imageUrl}" 
-                           target="_blank" 
-                           class="text-blue-600 hover:underline">
-                           View Full Image
-                        </a>
+                       
                     </div>
                 </div>
             `,
@@ -1881,7 +1874,7 @@
                         return text || 'N/A';
                     },
 
-                    getActionButtons(managerId, currentStatus = 'pending') {
+                    getActionButtons(managerId, currentStatus = 'pending',user) {
                         return `
 <div class="flex items-center justify-center space-x-2">
     <!-- Status Dropdown -->
@@ -1922,8 +1915,55 @@
         </svg>
         <span x-text="$store.i18n.t('map')"></span>
     </button>
+    
+    <!-- Delete Button -->
+    <button class="delete-btn btn btn-sm btn-danger flex items-center" data-id="${user}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+        <span x-text="$store.i18n.t('delete')"></span>
+    </button>
 </div>`;
                     },
+
+                    // تأكيد الحذف مع الترجمة
+                    async confirmDeleteManager(managerId) {
+                        const { value: isConfirmed } = await Swal.fire({
+                            title: Alpine.store('i18n').t('confirm_delete_title'),
+                            text: Alpine.store('i18n').t('confirm_delete_message'),
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#3085d6',
+                            confirmButtonText: Alpine.store('i18n').t('confirm_delete'),
+                            cancelButtonText: Alpine.store('i18n').t('cancel'),
+                        });
+
+                        if (isConfirmed) {
+                            this.deleteManager(managerId);
+                        }
+                    },
+
+                    async deleteManager(managerId) {
+                        try {
+                            const token = localStorage.getItem('authToken');
+                            const response = await fetch(`${this.apiBaseUrl}/api/admin/profile/delete/${managerId}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    Accept: 'application/json',
+                                    Authorization: `Bearer ${token}`,
+                                },
+                            });
+
+                            if (!response.ok) throw new Error('Failed to delete manager');
+
+                            coloredToast('success', Alpine.store('i18n').t('delete_success'));
+                            await this.fetchManagers();
+                        } catch (error) {
+                            coloredToast('error', error.message || Alpine.store('i18n').t('delete_error'));
+                        }
+                    },
+
                     async showVendorLocation(vendorId) {
                         try {
                             const vendor = this.tableData.find((item) => item.vendor.id === vendorId);
@@ -2080,33 +2120,6 @@
                         }
                     },
 
-                    async deleteManager(managerId) {
-                        const deleteConfirmed = await new Promise((resolve) => {
-                            Alpine.store('deleteModal').openModal(managerId, () => {
-                                resolve(true);
-                            });
-                        });
-
-                        if (!deleteConfirmed) return;
-
-                        try {
-                            const token = localStorage.getItem('authToken');
-                            const response = await fetch(`${this.apiBaseUrl}/api/admin/merchants/delete/${managerId}`, {
-                                method: 'DELETE',
-                                headers: {
-                                    Accept: 'application/json',
-                                    Authorization: `Bearer ${token}`,
-                                },
-                            });
-
-                            if (!response.ok) throw new Error('Failed to delete manager');
-
-                            this.showSuccess('تم حذف المدير بنجاح');
-                            await this.fetchManagers();
-                        } catch (error) {
-                            this.showError(error.message || 'فشل في حذف المدير. الرجاء المحاولة لاحقاً.');
-                        }
-                    },
                     getStatusColor(status) {
                         const statusColors = {
                             completed: 'success',

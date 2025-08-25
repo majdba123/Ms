@@ -48,6 +48,15 @@ public function register(array $data): User
             throw new \Exception('يجب أن تحتوي البيانات إما على البريد الإلكتروني أو رقم الهاتف.');
         }
 
+        // إضافة lat و lang إذا كانت موجودة في البيانات
+        if (isset($data['lat'])) {
+            $userData['lat'] = $data['lat'];
+        }
+
+        if (isset($data['lang'])) {
+            $userData['lang'] = $data['lang'];
+        }
+
         // إضافة الرقم الوطني إذا كان النوع 1 أو 2 أو 3 أو 4
         if (in_array($data['type'], [1, 2, 3, 4])) {
             $userData['national_id'] = $data['national_id'];
@@ -73,7 +82,7 @@ public function register(array $data): User
             $imageName = Str::random(32) . '.' . $data['image']->getClientOriginalExtension();
             $imagePath = 'users/' . $imageName;
             Storage::disk('public')->put($imagePath, file_get_contents($data['image']));
-            $userData['image_path'] = $imagePath ? asset('storage/' . $imagePath) : null;
+            $userData['image_path'] = $imagePath ? asset('api/storage/' . $imagePath) : null;
         }
 
         $user = User::create($userData);

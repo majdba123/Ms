@@ -117,6 +117,8 @@ Route::get('dashboard', [AdminController::class, 'adminDashboard']);
         Route::get('/info/get/{user_id}', [ProfileController::class, 'getUserInfo']);
         Route::get('/get_All', [ProfileController::class, 'getAllUsers']);
         Route::put('/status/update/{user_id}', [ProfileController::class, 'updateUserStatus']);
+        Route::delete('/delete/{user_id}', [ProfileController::class, 'deleteUserWithRelations']);
+
 
     });
 

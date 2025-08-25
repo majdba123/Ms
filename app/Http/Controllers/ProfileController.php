@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Profile;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -11,8 +10,20 @@ use Illuminate\Support\Str;
 use App\Http\Requests\Profile\StoreProfileRequest;
 use App\Http\Requests\Profile\UpdateProfileRequest;
 use App\Http\Requests\Profile\UpdateUserInfoRequest;
-
+use App\Models\User;
+use App\Models\Provider_Service;
+use App\Models\Provider_Product;
+use App\Models\Driver;
+use App\Models\Favourite_user;
+use App\Models\Answer_Rating;
+use App\Models\WebSub;
+use App\Models\Rseevation;
+use App\Models\UserNotification;
+use App\Models\User_Plan;
+use App\Models\Payment_Plan;
+use App\Models\Cars;
 use App\Services\Profile\ProfileService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class ProfileController extends Controller
@@ -260,6 +271,66 @@ public function UpdateInfo(UpdateUserInfoRequest $request , $user_id=null)
             ]
         ], 200);
     }
+
+
+    public function deleteUserWithRelations($userId)
+    {
+        DB::beginTransaction();
+
+        try {
+            $user = User::findOrFail($userId);
+            if ($user->type == 1) {
+                return response()->json(['message' => 'this user is admin and not '], 400);
+            }
+
+                // 1. حذف البيانات حسب نوع المستخدم
+            switch ($user->type) {
+                case 'service_provider':
+                    Provider_Service::where('user_id', $userId)->delete();
+                    break;
+                case 'product_provider':
+                case 'food_provider':
+                    Provider_Product::where('user_id', $userId)->delete();
+                    break;
+                case 'driver':
+                    Driver::where('user_id', $userId)->delete();
+                    break;
+            }
+
+
+    // العلاقات التي ترجع مجموعة (hasMany)
+    $user->Provider_service()->delete();
+    $user->Provider_Product()->delete();
+    $user->Driver()->delete();
+    $user->favourite_user()->delete();
+    $user->answere()->delete();
+    $user->websub()->delete();
+    $user->reservation()->delete();
+    $user->notification()->delete();
+
+    // العلاقات التي ترجع نموذج مفرد (hasOne) - استخدام optional
+    optional($user->Profile)->delete();
+
+    $user->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'تم حذف المستخدم وجميع بياناته المرتبطة بنجاح'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'status' => false,
+                'message' => 'فشل في حذف المستخدم',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 
 }
 
